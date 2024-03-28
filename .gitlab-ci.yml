@@ -27,6 +27,7 @@ stages:          # List of stages for jobs, and their order of execution
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
+    - apt-get update && apt-get install -y wget
     - wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
     - nvm install 17
     - nvm alias default 17
