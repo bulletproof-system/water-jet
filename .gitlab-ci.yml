@@ -16,6 +16,9 @@
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
 
+default:
+  image: ros:melodic-ros-core
+
 stages:          # List of stages for jobs, and their order of execution
   - build
   - test
@@ -24,8 +27,14 @@ stages:          # List of stages for jobs, and their order of execution
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
-    - echo "Compiling the code..."
-    - echo "Compile complete."
+    - wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    - nvm install 17
+    - nvm alias default 17
+    - corepack enable pnpm
+    - cd frontend && pnpm install && pnpm build
+  artifacts:
+    paths:
+      - frontend/dist/
 
 unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
