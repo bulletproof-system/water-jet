@@ -11,6 +11,15 @@ useradd -m -s /bin/bash wj
 EOF
 	
 USER wj
+
+RUN <<EOF
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+nvm install 17
+nvm alias default 17
+corepack enable pnpm
+EOF
 	
-RUN curl -fsSL https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash - &&\
-	echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
+	# source /opt/ros/melodic/setup.bash
