@@ -26,11 +26,20 @@ stages:          # List of stages for jobs, and their order of execution
 
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
+  cache:
+    untracked: true
+    paths:
+      - frontend/node_modules
   script:
-    - source ~/.bashrc && cd frontend && pnpm install && pnpm build
+    - echo "start build frontend..."
+    - export NVM_DIR="$HOME/.nvm"
+    - 'if [ -s "$NVM_DIR/nvm.sh" ]; then \. "$NVM_DIR/nvm.sh"; fi'
+    - 'if [ -s "$NVM_DIR/bash_completion" ]; then \. "$NVM_DIR/bash_completion"; fi'
+    - cd frontend && pnpm install && pnpm build
   artifacts:
     paths:
       - frontend/dist/
+
 
 unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
