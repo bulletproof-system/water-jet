@@ -6,6 +6,8 @@ import Layouts from 'vite-plugin-vue-layouts'
 import Vue from '@vitejs/plugin-vue'
 import VueRouter from 'unplugin-vue-router/vite'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import { VueRouterAutoImports } from 'unplugin-vue-router'
+import { templateCompilerOptions } from '@tresjs/core'
 
 // Utilities
 import { defineConfig } from 'vite'
@@ -21,9 +23,17 @@ export default defineConfig({
     AutoImport({
       imports: [
         'vue',
+        'pinia',
+        VueRouterAutoImports,
         {
-          'vue-router/auto': ['useRoute', 'useRouter'],
-        }
+          vuetify: [
+            'useTheme',
+            'useRtl',
+            'useLocale',
+            'useDisplay',
+            'useLayout',
+          ],
+        },
       ],
       dts: 'src/auto-imports.d.ts',
       eslintrc: {
@@ -35,7 +45,10 @@ export default defineConfig({
       dts: 'src/components.d.ts',
     }),
     Vue({
-      template: { transformAssetUrls },
+      template: { 
+        transformAssetUrls,
+        ...templateCompilerOptions.template,
+      },
     }),
     // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
     Vuetify({
@@ -71,4 +84,9 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  build: {
+    rollupOptions: {
+      external: ['tweakpane']
+    }
+  }
 })
