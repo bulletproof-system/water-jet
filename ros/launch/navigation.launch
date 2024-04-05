@@ -1,0 +1,4 @@
+<launch>
+	<include file="$(find wpr_simulation)/launch/wpb_navigation.launch" />
+	<!-- <include file="$(find wpr_simulation)/launch/wpb_gmapping.launch" /> -->
+</launch>
