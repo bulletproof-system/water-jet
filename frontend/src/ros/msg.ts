@@ -73,3 +73,14 @@ export interface LaserScanMsg {
 	ranges: number[]
 	intensities: number[]
 }
+
+// https://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/PoseStamped.html
+export interface PoseStampedMsg {
+	header: HeaderMsg
+	pose: PoseMsg
+}
+
+export interface PathMsg {
+	header: HeaderMsg
+	poses: PoseStampedMsg[]
+}
