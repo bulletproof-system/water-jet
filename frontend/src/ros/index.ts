@@ -46,3 +46,11 @@ rosStore.$onAction(({ store, after }) => {
 		}
 	})
 })
+
+export let mapTf = new ROSLIB.TFClient({
+	ros : ros,
+	fixedFrame : 'map',
+	angularThres : 0.01,
+	transThres : 0.01,
+	rate : 10.0,
+});
