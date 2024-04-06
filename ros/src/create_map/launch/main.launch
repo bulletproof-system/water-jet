@@ -1,0 +1,18 @@
+<launch>
+    <!-- gmapping -->
+    <!-- <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" /> -->
+    
+    <!-- rviz -->
+    <!-- <arg name="rvizconfig" default="$(find wpr_simulation)/rviz/slam.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" /> -->
+
+    <!-- create_map -->
+    <node name="create_map_node" pkg="create_map" type="map_creator.py" output="screen">
+    </node>
+
+    <!-- wpb_home_objects_3d -->
+    <node pkg="create_map" type="create_map_objects_3d" name="create_map_objects_3d" output="screen">
+        <param name="topic" type="string" value="/kinect2/sd/points"/>
+        <param name="start" type="bool" value="true"/>
+    </node>
+</launch>
