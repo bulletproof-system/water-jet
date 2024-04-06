@@ -9,10 +9,13 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     CameraControl: typeof import('./components/CameraControl.vue')['default']
+    Flowerpot: typeof import('./components/Flowerpot.vue')['default']
+    Flowerpots: typeof import('./components/Flowerpots.vue')['default']
     GlobalMap: typeof import('./components/GlobalMap.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     LaserScan: typeof import('./components/LaserScan.vue')['default']
     Map: typeof import('./components/Map.vue')['default']
+    Navigation: typeof import('./components/Navigation.vue')['default']
     NavigationPath: typeof import('./components/NavigationPath.vue')['default']
     Robot: typeof import('./components/Robot.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

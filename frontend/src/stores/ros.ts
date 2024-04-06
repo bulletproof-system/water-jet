@@ -10,15 +10,15 @@ export enum ROSState {
 
 export const useROSStore = defineStore('ros', {
   state: () => ({
-      state: ROSState.Disconnected,
+    state: ROSState.Disconnected,
 	  retry: 0
   }),
   actions: {
     setRosState(state: ROSState) {
       this.state = state
     },
-	resetRetry() {
-		this.retry = 0
-	}
+    resetRetry() {
+      this.retry = 0
+    }
   }
 })

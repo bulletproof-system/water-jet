@@ -1,14 +1,19 @@
 <template>
-	<primitive :object="globalMap" />
+	<primitive :object="globalMap"/>
 </template>
 
 <script setup lang="ts">
-import { ros, mapTf } from '@/ros'
-import { OccupancyGridMsg } from '@/ros/msg';
+import { ros, mapTf, Srv, Msg } from '@/ros'
+// import { OccupancyGridMsg } from '@/ros/msg';
 import * as ROSLIB from 'roslib';
 import * as THREE from 'three';
 
-let mapListener = new ROSLIB.Topic<OccupancyGridMsg>({
+let mapService = new ROSLIB.Service({
+  ros: ros,
+  name: '/control/create_map/start',
+  serviceType: 'create_map/Base'
+})
+let mapListener = new ROSLIB.Topic<Msg.OccupancyGrid>({
   ros : ros,
   name : '/map',
   messageType : 'nav_msgs/OccupancyGrid',
@@ -16,7 +21,7 @@ let mapListener = new ROSLIB.Topic<OccupancyGridMsg>({
   compression: 'cbor'
 });
 let mapInfo = {
-  width: 1,
+  width: 10,
   height: 1,
   resolution: 1,
   origin: {
@@ -25,26 +30,36 @@ let mapInfo = {
   }
 }
 let globalMap = new THREE.Group()
-let occupancyGrid: OccupancyGridMsg = null
+let occupancyGrid: Msg.OccupancyGrid = null
 let color = new Uint8Array(1 * 1 * 4)
 let mapTexture: THREE.DataTexture = null
 let mapGeometry = new THREE.PlaneGeometry(10, 1)
-let mapMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: mapTexture })
+let mapMaterial = new THREE.MeshBasicMaterial({ side: THREE.FrontSide, map: mapTexture })
 let mapGrid = new THREE.Mesh(mapGeometry, mapMaterial)
 globalMap.add(mapGrid)
 
 defineExpose({
 	globalMap,
-	mapGrid
+	getMapGrid
 })
 
 onMounted(() => {
+  startCreateMap()
 	mapListener.subscribe(procMapMsg);
 })
 
 onUnmounted(() => {
 	mapListener.unsubscribe(procMapMsg);
 })
+
+function startCreateMap() {
+  const req: Srv.Base.Request = {
+    request: 'start'
+  }
+  mapService.callService(req, (res: Srv.Base.Response) => {
+    console.log(res)
+  })
+}
 
 function procMapMsg (message: unknown) {
   function syncMapMetaData() {
@@ -68,16 +83,15 @@ function procMapMsg (message: unknown) {
       }
     else return false
   }
-  occupancyGrid = message as unknown as OccupancyGridMsg;
+  occupancyGrid = message as unknown as Msg.OccupancyGrid;
   if (syncMapMetaData()) {
     globalMap.remove(mapGrid)
     color = new Uint8Array(mapInfo.width * mapInfo.height * 4);
     mapGeometry = new THREE.PlaneGeometry(mapInfo.width, mapInfo.height);
     mapTexture = new THREE.DataTexture(color, mapInfo.width, mapInfo.height, THREE.RGBAFormat);
-    mapMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: mapTexture })
+    mapMaterial = new THREE.MeshBasicMaterial({ side: THREE.FrontSide, map: mapTexture })
     mapGrid = new THREE.Mesh(mapGeometry, mapMaterial)
     const offset = new THREE.Vector3(mapInfo.width / 2, mapInfo.height / 2, 0).multiplyScalar(mapInfo.resolution).add(mapInfo.origin.position);
-    console.log(mapInfo)
     mapGrid.applyMatrix4(new THREE.Matrix4().compose(offset, mapInfo.origin.orientation, new THREE.Vector3(mapInfo.resolution, mapInfo.resolution, 1)))
     globalMap.add(mapGrid)
   }
@@ -126,6 +140,10 @@ function hslToRgba(h: number, s: number, l: number) {
 function getColor(lightness: number) {
 	if (lightness < 0) return [255, 255, 255, 0]
 	return hslToRgba(180, 100, 40 - 0.4 * lightness);
+}
+
+function getMapGrid() {
+  return mapGrid
 }
 
 </script>

@@ -7,7 +7,7 @@ const websocket_url = 'ws://localhost:9090';
 const retry = 5; // 最多重试次数
 const timeout = 5000; // 重试间隔
 
-export const ros = new ROSLIB.Ros({});
+export const ros = new ROSLIB.Ros({}); 
 
 const rosStore = useROSStore();
 
@@ -28,6 +28,8 @@ ros.on('close', () => {
 })
 
 export const connectROS = () => {
+	if (rosStore.state === ROSState.Connected) return
+	if (rosStore.state === ROSState.Connecting) return
 	rosStore.setRosState(ROSState.Connecting)
 	rosStore.retry++;
 	ros.connect(websocket_url);
@@ -54,3 +56,7 @@ export let mapTf = new ROSLIB.TFClient({
 	transThres : 0.01,
 	rate : 10.0,
 });
+
+
+export * as Msg from './msg'
+export * as Srv from './srv'

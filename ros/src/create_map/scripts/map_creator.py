@@ -11,7 +11,7 @@ class MapCreator:
         rospy.init_node("create_map")
         rospy.loginfo("map creator start!")
 
-        rospy.Service('/control/create_map/start', Base, self.start)
+        # rospy.Service('/control/create_map/start', Base, self.start)
         rospy.Service('/control/create_map/save', Base, self.save)
 
         self.process = None
