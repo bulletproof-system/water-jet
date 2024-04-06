@@ -73,15 +73,14 @@ def start_nav(msg):
     result_msg.data = "Finish"
     result_pub.publish(result_msg)
 
-           
-if __name__ == "__main__":  
-    rospy.init_node("simple_goal")  
+rospy.init_node("simple_goal")  
 
-    # 订阅nav_goal话题
-    goal_sub = rospy.Subscriber('/usr_nav_goal',String ,start_nav,queue_size=10)
-    result_pub = rospy.Publisher("/usr_nav_result",String)
+# 订阅nav_goal话题
+goal_sub = rospy.Subscriber('/usr_nav_goal',String ,start_nav,queue_size=10)
+result_pub = rospy.Publisher("/usr_nav_result",String)
 
-    rospy.spin()
+rospy.spin()
+        
 
 
 

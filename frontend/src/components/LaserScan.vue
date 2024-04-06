@@ -3,12 +3,11 @@
 </template>
 
 <script setup lang="ts">
-import { ros, mapTf } from '@/ros'
-import { LaserScanMsg, TransformMsg } from '@/ros/msg';
+import { ros, mapTf, Msg } from '@/ros'
 import * as ROSLIB from 'roslib';
 import * as THREE from 'three';
 
-let laserScanListener = new ROSLIB.Topic<LaserScanMsg>({
+let laserScanListener = new ROSLIB.Topic<Msg.LaserScan>({
   ros : ros,
   name : '/scan',
   messageType : 'sensor_msgs/LaserScan',
@@ -20,7 +19,7 @@ const rainbowGeometry = new THREE.BoxGeometry(0.05, 0.05, 0.05)
 const rainbowMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.FrontSide })
 let scanRainbow = new THREE.InstancedMesh(rainbowGeometry, rainbowMaterial, 360)
 laser.add(scanRainbow)
-let laserScanMsg: LaserScanMsg = null
+let laserScanMsg: Msg.LaserScan = null
 
 defineExpose({
 	laser,
@@ -38,14 +37,14 @@ onUnmounted(() => {
 })
 
 function procLaserTF(message: unknown) {
-  let laserTF = message as unknown as TransformMsg
+  let laserTF = message as unknown as Msg.Transform
   laser.position.set(laserTF.translation.x, laserTF.translation.y, laserTF.translation.z)
   const quat = new THREE.Quaternion(laserTF.rotation.x, laserTF.rotation.y, laserTF.rotation.z, laserTF.rotation.w)
   laser.setRotationFromQuaternion(quat)
 }
 
 function procLaserScanMsg(message: unknown) {
-  laserScanMsg = message as unknown as LaserScanMsg;
+  laserScanMsg = message as unknown as Msg.LaserScan;
   scanRainbow.instanceMatrix.needsUpdate = false
   for (let i = 0; i < laserScanMsg.ranges.length; i++) {
     const angle = laserScanMsg.angle_min + i * laserScanMsg.angle_increment

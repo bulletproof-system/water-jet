@@ -7,8 +7,10 @@ import * as THREE from 'three';
 import { useRenderLoop, useTresContext } from '@tresjs/core';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import * as TWEEN from '@tweenjs/tween.js'
+import { useAppStore } from '@/stores/app';
 
 const { camera, renderer } = useTresContext()
+const appStore = useAppStore()
 
 const cameraControls = new MapControls(camera.value, renderer.value.domElement)
 const autoControlDelta = new THREE.Vector3(5, 0, 5)
@@ -36,9 +38,17 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-    manualControl()
+  manualControl()
 	cameraControls.removeEventListener('start', manualControl)
 	cameraControls.removeEventListener('end', startAutoControlTimer)
+})
+
+watch(() => {return appStore.autoControl}, (newValue) => {
+  if (newValue) {
+    startAutoControlTimer()
+  } else {
+    manualControl()
+  }
 })
 
 const { onLoop } = useRenderLoop()
@@ -62,6 +72,8 @@ function autoControlTargetUpdate() {
   }
 }
 function startAutoControlTimer() {
+  if (appStore.autoControl === false) return
+  clearTimeout(autoControlTimer)
   autoControlTimer = setTimeout(() => {
     console.log("auto control start")
     autoControlTargetUpdate()

@@ -1,6 +1,6 @@
 <launch>
 	<!-- 载入 机器人 和 RoboCup@Home 的仿真场景 -->
-	<include file="$(find wpr_simulation)/launch/wpb_stage_robocup.launch"/>
+	<include file="$(find world_simulation)/launch/world.launch"/>
 	
 	<!-- Rviz -->
 	<arg name="rvizconfig" default="$(find wpr_simulation)/rviz/slam.rviz" />
@@ -8,9 +8,9 @@
 
 	<!-- map provider -->
 	<include file="$(find create_map)/launch/main.launch"/>
-	
-	<!-- navigation -->
 
+	<!-- navigation -->
+	<include file="$(find nav_pkg)/launch/nav.launch"/>
 
 	<!-- ros web tool -->
 	<node name="keyboard_vel_ctrl" pkg="wpr_simulation" type="keyboard_vel_ctrl" />

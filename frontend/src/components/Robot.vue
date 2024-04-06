@@ -3,8 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { ros, mapTf } from '@/ros'
-import { TransformMsg } from '@/ros/msg';
+import { ros, mapTf, Msg } from '@/ros'
 import * as ROSLIB from 'roslib';
 import * as THREE from 'three';
 import URDFLoader, { URDFRobot } from 'urdf-loader';
@@ -32,7 +31,7 @@ onUnmounted(() => {
 
 function procRobotTF(message: unknown) {
   if (robot == null) return
-  let robotTF = message as unknown as TransformMsg
+  let robotTF = message as unknown as Msg.Transform
   robot.position.set(robotTF.translation.x, robotTF.translation.y, robotTF.translation.z)
   const quat = new THREE.Quaternion(robotTF.rotation.x, robotTF.rotation.y, robotTF.rotation.z, robotTF.rotation.w)
   robot.setRotationFromQuaternion(quat)
