@@ -11,7 +11,8 @@ export enum ROSState {
 export const useAppStore = defineStore('app', {
   state: () => ({
     allowNavigation: false,
-    autoControl: true
+    autoControl: true,
+    allowObjectRecognition: false
   }),
   actions: {
     setAllowNavigation(allowNavigation: boolean) {

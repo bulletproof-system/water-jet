@@ -6,6 +6,7 @@
       <v-list style="padding-left: 10px;">
         <v-switch v-model="appStore.allowNavigation" label="启用导航" color="primary"></v-switch>
         <v-switch v-model="appStore.autoControl" label="自动跟随" color="primary"></v-switch>
+        <v-switch v-model="appStore.allowObjectRecognition" label="花盆识别" color="primary"></v-switch>
       </v-list>
     </v-navigation-drawer>
 
