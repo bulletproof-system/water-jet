@@ -7,7 +7,9 @@
 import { ros, mapTf, Msg } from '@/ros'
 import * as ROSLIB from 'roslib';
 import * as THREE from 'three';
+import { useAppStore } from '@/stores/app';
 
+const appStore = useAppStore()
 const flowerpots = new THREE.Group();
 const kinect2 = new THREE.Group();
 const flowerpotListener = new ROSLIB.Topic({
@@ -40,7 +42,7 @@ function procRobotTF(message: unknown) {
 
 function procPointStampedMsg(message: unknown) {
 	let pointStamped = message as unknown as Msg.PointStamped
-	
+	if (appStore.allowObjectRecognition === false) return
 	const point = kinect2.localToWorld(new THREE.Vector3(pointStamped.point.x, pointStamped.point.y, pointStamped.point.z))
 	console.log(point)
 	for (let i = 0; i < flowerpots.children.length; i++) {
