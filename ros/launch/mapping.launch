@@ -1,0 +1,22 @@
+<launch>
+	<!-- 载入 机器人 和 RoboCup@Home 的仿真场景 -->
+	<include file="$(find wpr_simulation)/launch/wpb_stage_robocup.launch"/>
+	
+	<!-- Gmapping -->
+	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
+		<param name="xmin" value="-15"/>
+		<param name="xmax" value="15"/>
+		<param name="ymin" value="-15"/>
+		<param name="ymax" value="15"/>
+		<param name="delta" value="0.05"/>
+	</node>
+	
+	<!-- Rviz -->
+	<arg name="rvizconfig" default="$(find wpr_simulation)/rviz/slam.rviz" />
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+	
+	<node name="keyboard_vel_ctrl" pkg="wpr_simulation" type="keyboard_vel_ctrl" />
+
+	<node name="tf2_web_republisher" pkg="tf2_web_republisher" type="tf2_web_republisher" />
+	<include file="$(find rosbridge_server )/launch/rosbridge_websocket.launch" />
+</launch>

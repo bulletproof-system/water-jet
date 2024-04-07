@@ -1,0 +1,42 @@
+<launch>
+	<!-- 载入 机器人 和 RoboCup@Home 的仿真场景 -->
+	<include file="$(find wpr_simulation)/launch/wpb_stage_robocup.launch"/>
+
+	<!-- Run the map server -->
+	<!-- <node name="map_server" pkg="map_server" type="map_server" args="$(find wpr_simulation)/maps/map.yaml"/> -->
+
+	<!-- Gmapping -->
+	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
+		<param name="xmin" value="-15"/>
+		<param name="xmax" value="15"/>
+		<param name="ymin" value="-15"/>
+		<param name="ymax" value="15"/>
+		<param name="delta" value="0.05"/>
+	</node>
+
+	<!--- Run AMCL -->
+	<include file="$(find wpb_home_tutorials)/nav_lidar/amcl_omni.launch" />
+
+	<!--- Run move base -->
+	<node pkg="move_base" type="move_base" respawn="false" name="move_base"  output="screen">
+		<rosparam file="$(find wpb_home_tutorials)/nav_lidar/costmap_common_params.yaml" command="load" ns="global_costmap" />
+		<rosparam file="$(find wpb_home_tutorials)/nav_lidar/costmap_common_params.yaml" command="load" ns="local_costmap" />
+		<rosparam file="$(find wpb_home_tutorials)/nav_lidar/local_costmap_params.yaml" command="load" />
+		<rosparam file="$(find wpb_home_tutorials)/nav_lidar/global_costmap_params.yaml" command="load" />
+		<rosparam file="$(find wpb_home_tutorials)/nav_lidar/local_planner_params.yaml" command="load" />
+		<param name="base_global_planner" value="global_planner/GlobalPlanner" /> 
+		<param name="use_dijkstra" value="true"/>
+		<param name="base_local_planner" value="wpbh_local_planner/WpbhLocalPlanner" />
+		<param name= "controller_frequency" value="10" type="double"/>
+	</node>
+
+	<!-- Rviz -->
+	<!-- <arg name="rvizconfig" default="$(find wpr_simulation)/rviz/slam.rviz" /> -->
+	<arg name="rvizconfig" default="$(find wpr_simulation)/rviz/nav.rviz" />
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+	<node name="keyboard_vel_ctrl" pkg="wpr_simulation" type="keyboard_vel_ctrl" />
+
+	<node name="tf2_web_republisher" pkg="tf2_web_republisher" type="tf2_web_republisher" />
+	<include file="$(find rosbridge_server )/launch/rosbridge_websocket.launch" />
+</launch>
