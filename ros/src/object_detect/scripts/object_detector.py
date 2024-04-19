@@ -81,6 +81,7 @@ class ObjectDetector:
                 new_id = max(pots.keys()) + 1 if pots else 0
                 pots[new_id] = {'x': world_point.point.x, 'y': world_point.point.y, 'z': world_point.point.z}
                 
+                # 转换为序列数据
                 serialized_cloud = pickle.dumps(obj_pointcloud)
 
                 # 写入数据库
