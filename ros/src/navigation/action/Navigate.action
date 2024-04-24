@@ -1,0 +1,9 @@
+# navigation/action
+# 导航 action
+actionlib_msgs/GoalID goal_id # 唯一标识 time stamp string id
+geometry_msgs/Pose pos# 导航位置, 世界坐标 position x y z orientation x y z w
+---
+string result # 结果
+---
+int32 percentage # 进度
+string cur_state
