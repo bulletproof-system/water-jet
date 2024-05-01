@@ -1,8 +1,3 @@
-<template>
-	<primitive :object="navigationPath" />
-</template>
-
-<script setup lang="ts">
 import { ros, Msg } from '@/ros'
 import * as ROSLIB from 'roslib';
 import * as THREE from 'three';
@@ -11,11 +6,11 @@ import GlobalMap from './GlobalMap.vue';
 import { ShallowRef } from 'vue';
 import { useAppStore } from '@/stores/app';
 
-const { scene } = useTresContext()
+// const { scene } = useTresContext()
 const appStore = useAppStore()
 
 let navigationPathListener = new ROSLIB.Topic({
-    ros: ros,
+	ros: ros,
 	name: '/move_base/GlobalPlanner/plan',
 	messageType: 'nav_msgs/Path',
 	throttle_rate: 100,
@@ -34,27 +29,16 @@ let navigationAction = {
 		throttle_rate: 100,
 	})
 }
-let pathMsg: Msg.Path
+let pathMsg: Msg.nav.Path
 const geometry = new THREE.BufferGeometry()
-const material = new THREE.LineBasicMaterial( { color: 0xff0000, linewidth: 2,  } );
+const material = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2, });
 let navigationPath = new THREE.Line(geometry, material)
 
-defineExpose({
-	navigationPath,
-	handleClick
-})
-
-onMounted(() => {
-	navigationPathListener.subscribe(procPathMsg)
-	navigationAction.subscribe.subscribe(procNavigationResult)
-})
-
-onUnmounted(() => {
-	navigationPathListener.unsubscribe(procPathMsg)
-})
+navigationPathListener.subscribe(procPathMsg)
+navigationAction.subscribe.subscribe(procNavigationResult)
 
 function procPathMsg(message: unknown) {
-    pathMsg = message as unknown as Msg.Path
+	pathMsg = message as unknown as Msg.nav.Path
 	const point = []
 	for (let i = 0; i < pathMsg.poses.length; i++) {
 		const position = pathMsg.poses[i].pose.position
@@ -63,21 +47,21 @@ function procPathMsg(message: unknown) {
 	geometry.setFromPoints(point)
 }
 
-function handleClick(raycaster: THREE.Raycaster, map: ShallowRef<InstanceType<typeof GlobalMap>>) {
-	const mapGrid = map.value.getMapGrid()
-	const intersects = raycaster.intersectObject(mapGrid, true)
-    for (let i = 0; i < intersects.length; i++) {
-		if (intersects[i].object === mapGrid) {
-			const goal = intersects[i].point
-			navigate(goal)
-			return
-		}
-	}
-}
+// function handleClick(raycaster: THREE.Raycaster, map: ShallowRef<InstanceType<typeof GlobalMap>>) {
+// 	const mapGrid = map.value.getMapGrid()
+// 	const intersects = raycaster.intersectObject(mapGrid, true)
+//     for (let i = 0; i < intersects.length; i++) {
+// 		if (intersects[i].object === mapGrid) {
+// 			const goal = intersects[i].point
+// 			navigate(goal)
+// 			return
+// 		}
+// 	}
+// }
 
 function navigate(goal: THREE.Vector3) {
 	if (appStore.allowNavigation === false) return
- 	const goalMsg = new ROSLIB.Message({ data: `${goal.x} ${goal.y} ${goal.z}`})
+	const goalMsg = new ROSLIB.Message({ data: `${goal.x} ${goal.y} ${goal.z}` })
 	navigationAction.publish.publish(goalMsg)
 }
 
@@ -86,4 +70,5 @@ function procNavigationResult(message: unknown) {
 	console.log(restult)
 }
 
-</script>
+
+export { navigationPath }

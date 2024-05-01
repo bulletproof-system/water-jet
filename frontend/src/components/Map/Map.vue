@@ -15,16 +15,15 @@
     <TresAmbientLight :intensity="0.5" />
     <GlobalMap ref="globalMap"/>
     <Robot ref="robot" />
-    <LaserScan ref="laserscan"/>
+    <Lidar ref="laserscan"/>
     <Navigation ref="navigation"/>
-    <Flowerpots />
+    <!-- <Flowerpots /> -->
   </TresCanvas>
 </template>
 
 <script setup lang="ts">
 import * as THREE from 'three';
 import { TresCanvas } from '@tresjs/core'
-import { handleError } from 'vue';
 
 const canvas = ref(null)
 const camera = ref(null)
