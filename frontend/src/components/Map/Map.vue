@@ -116,13 +116,16 @@ function handleMouseUp(event) {
       // 松开后调用导航
       navigation.value.navigate();
       globalMap.value.handleMouseUp();
+      mouseAction.value = MouseAction.Control;
       break;
     case MouseAction.SetPosition:
       // 松开后设置机器人位置
       robot.value.setPosition();
       globalMap.value.handleMouseUp();
+      mouseAction.value = MouseAction.Control;
       break;
   }
 }
+
 
 </script>
