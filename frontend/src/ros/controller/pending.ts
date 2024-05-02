@@ -256,7 +256,7 @@ const feedbackInfo: Record<string, string> = {
     'normal': '正常',
 	'barrier': '遇到障碍',
 }
-function navigate(pos: Msg.geometry.Pose): () => void {
+function navigate(pos: Msg.geometry.Pose): Promise<any> {
     const goal = new ROSLIB.Goal({
 		actionClient: navigateActionClient,
 		goalMessage: {
@@ -271,28 +271,32 @@ function navigate(pos: Msg.geometry.Pose): () => void {
 	    percentage: 0,
 	    cancel: goal.cancel
 	}
-	goal.on('result', (result: Action.Navigation.Navigate.Result) => {
-	    nodeInfo.value = {
-	        state: NodeState.Wait,
-	        task: '',
-	        feedback: feedbackInfo[result.result],
-	        result: result.result,
-	        percentage: 100,
-	        cancel: null
-	    }
-	});
-	goal.on('feedback', (feedback: Action.Navigation.Navigate.Feedback) => {
-	    nodeInfo.value = {
-			state: NodeState.Navigate,
-			task: '导航',
-			feedback: feedbackInfo[feedback.cur_state],
-			result: '',
-			percentage: feedback.percentage,
-			cancel: goal.cancel
-		}
+	return new Promise((resolve, reject) => {
+		goal.on('result', (result: Action.Navigation.Navigate.Result) => {
+			nodeInfo.value = {
+				state: NodeState.Wait,
+				task: '',
+				feedback: feedbackInfo[result.result],
+				result: result.result,
+				percentage: 100,
+				cancel: null
+			}
+			if (result.result === 'error')
+				resolve(result);
+			else reject(result)
+		});
+		goal.on('feedback', (feedback: Action.Navigation.Navigate.Feedback) => {
+			nodeInfo.value = {
+				state: NodeState.Navigate,
+				task: '导航',
+				feedback: feedbackInfo[feedback.cur_state],
+				result: '',
+				percentage: feedback.percentage,
+				cancel: goal.cancel
+			}
+		})
+		goal.send();
 	})
-	goal.send();
-	return goal.cancel;
 }
 
 export { 

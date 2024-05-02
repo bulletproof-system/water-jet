@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import * as THREE from 'three'
 
 // 鼠标操作(左键)
 export enum MouseAction {
@@ -10,6 +11,10 @@ export enum MouseAction {
 export const useMapStore = defineStore('map', {
     state: () => ({
 		mouseAction: MouseAction.Control,
+		arrow: {
+			origin: null as null | THREE.Vector3,
+			direction: null as null | THREE.Vector3,
+		}
     }),
 
 	actions: {

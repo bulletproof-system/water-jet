@@ -35,7 +35,7 @@ declare module 'vue' {
     PendingPanel: typeof import('./components/OperatorPanel/PendingPanel.vue')['default']
     PotInfo: typeof import('./components/PotInfo.vue')['default']
     PotList: typeof import('./components/PotList.vue')['default']
-    Robot: typeof import('./components/Robot.vue')['default']
+    Robot: typeof import('./components/Map/Robot.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TargetFooter: typeof import('./components/Target/TargetFooter.vue')['default']

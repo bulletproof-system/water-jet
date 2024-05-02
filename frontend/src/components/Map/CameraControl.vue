@@ -8,9 +8,13 @@ import { useRenderLoop, useTresContext } from '@tresjs/core';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import * as TWEEN from '@tweenjs/tween.js'
 import { useAppStore } from '@/stores/app';
+import { useMapStore, MouseAction } from '@/stores/map';
 
 const { camera, renderer } = useTresContext()
 const appStore = useAppStore()
+const mapStore = useMapStore()
+
+const { mouseAction } = storeToRefs(mapStore);
 
 const cameraControls = new MapControls(camera.value, renderer.value.domElement)
 const autoControlDelta = new THREE.Vector3(5, 0, 5)
@@ -50,6 +54,11 @@ watch(() => {return appStore.autoControl}, (newValue) => {
     manualControl()
   }
 })
+
+// 仅当 MouseAction.Control 时可用
+watch(mouseAction, (newValue) => {
+    cameraControls.enabled = newValue === MouseAction.Control
+}, { immediate: true })
 
 const { onLoop } = useRenderLoop()
 onLoop(autoControl)
