@@ -10,14 +10,13 @@
 ## navigate action api
 ```text
 /navigation/action/Navigate.action
-# 导航 action
-actionlib_msgs/GoalID goal_id # 唯一标识
+# 导航 action api
 geometry_msgs/Pose pos # 导航位置, 世界坐标
 ---
-string result # 结果 'success' | `fail` | `cancel`
+string result # 结果 'success' | 'fail' | 'cancel'
 ---
-uint8 percentage # 进度百分数
-string cur_state # 'normal' | 'barrier'
+uint8 percentage # 进度百分数(0~100)
+string cur_state # 'normal' | 'barrier' | 'planning'
 ```
 
 
