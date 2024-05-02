@@ -47,6 +47,9 @@ const disabled = computed(() =>
 	mapStore.mouseAction !== MouseAction.Control
 );
 
-
+// 重置鼠标操作为 Control 
+onBeforeUnmount(() => {
+	mapStore.mouseAction = MouseAction.Control;
+})
 
 </script>

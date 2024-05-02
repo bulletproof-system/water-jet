@@ -7,9 +7,11 @@
 		</v-btn>
 	</v-toolbar>
 	<v-navigation-drawer location="right" :width="config.drawer_width" class="operator-panel">
-		<component :is="panels[rosStore.ctrlMode]"  style="height: inherit;"></component>
-		<!-- <v-text-field label="花盆 id" variant="outlined" v-model="id"></v-text-field>
-		<v-btn @click="appStore.openPot(id)">确定</v-btn> -->
+		<div style="overflow: hidden; height: inherit;">
+			<v-fab-transition origin="top center">
+				<component :is="panels[rosStore.ctrlMode]"  style="height: inherit;"></component>
+			</v-fab-transition>
+		</div>
 	</v-navigation-drawer>
 </template>
 
