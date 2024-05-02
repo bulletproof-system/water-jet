@@ -17,9 +17,9 @@ def active_cb():
 
 
 def fb_cb(fb):
-    if (fb.cur_state == "barrier"):
-        rospy.loginfo("当前进度：{}".format(fb.cur_state))
-        a = 1
+    rospy.loginfo("{}".format(fb.percentage))
+    rospy.loginfo("当前进度：{}".format(fb.cur_state))
+
     
 
 if __name__ == "__main__":
