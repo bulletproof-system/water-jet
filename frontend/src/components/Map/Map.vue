@@ -11,7 +11,7 @@
       :up="new THREE.Vector3(0, 0, 1)"
     />
     <!-- 相机控制器 -->
-    <CameraControl :robot="robot?.robot"/>
+    <CameraControl ref="cameraControl"/>
     <!-- 坐标系 -->
     <TresGridHelper :position="[0, 0, 0]" :rotation="[Math.PI / 2, 0, 0]" />
     <!-- 光源 -->
@@ -33,9 +33,11 @@
 import * as THREE from 'three';
 import { TresCanvas } from '@tresjs/core'
 import { useMapStore, MouseAction } from '@/stores/map';
+import CameraControl from './CameraControl.vue';
 
 const mapStore = useMapStore();
 const { mouseAction, arrow } = storeToRefs(mapStore);
+const cameraControl = ref(null)
 const canvas = ref(null)
 const camera = ref(null)
 const globalMap = ref(null)
@@ -49,7 +51,8 @@ let element: Element;
 
 const activeAction: Record<MouseAction, {}> = {
   [MouseAction.Control]: {
-    'click': handleClick
+    'click': handleClick,
+    'mousedown': handleMouseDown,
   },
   [MouseAction.Navigate]: {
     'mousedown': handleMouseDown,
@@ -65,7 +68,6 @@ const activeAction: Record<MouseAction, {}> = {
 
 onMounted(() => {
   element = canvas.value.context.renderer.value.domElement
-  element.addEventListener('click', handleClick, false);
   watch(mouseAction, (newAction, oldAction) => {
     // 切换鼠标操作后, 移除旧操作的监听器
     for (const event in activeAction[oldAction])
@@ -74,11 +76,11 @@ onMounted(() => {
     // 添加新操作的监听器
     for (const event in activeAction[newAction])
       element.addEventListener(event, activeAction[newAction][event]);
-  })
+  }, { immediate: true })
 })
 
 onUnmounted(() => {
-  element.removeEventListener('click', handleClick, false);
+
 })
 
 function setRaycaster(clientX: number, clientY: number) {
@@ -96,9 +98,20 @@ function handleClick(event) {
 
 function handleMouseDown(event) {
   setRaycaster(event.clientX, event.clientY);
-
-  // globalMap 记录箭头起点
-  globalMap.value.handleMouseDown(raycaster);
+  switch (mouseAction.value) {
+    case MouseAction.Control:
+      cameraControl.value.handleMouseDown();  
+      break;
+    case MouseAction.Navigate:
+      // globalMap 记录箭头起点
+      globalMap.value.handleMouseDown(raycaster);
+      break;
+    case MouseAction.SetPosition:
+      // globalMap 记录箭头起点
+      globalMap.value.handleMouseDown(raycaster);
+      break;
+  }
+  
 }
 
 function handleMouseMove(event) {

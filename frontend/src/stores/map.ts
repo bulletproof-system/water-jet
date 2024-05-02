@@ -8,18 +8,44 @@ export enum MouseAction {
 	SetPosition,		// 设置机器人位置
 }
 
+// 控制模式
+export enum ControlMode {
+    Normal = 0, 	// 正常模式
+	FollowRobot, 	// 跟随机器人
+	LocatePot,		// 定位花盆
+}
+
+export interface Target {
+	from?: THREE.Vector3,
+	to?: THREE.Vector3,
+}
+
 export const useMapStore = defineStore('map', {
     state: () => ({
 		mouseAction: MouseAction.Control,
 		arrow: {
-			origin: null as null | THREE.Vector3,
-			direction: null as null | THREE.Vector3,
+			origin: null as THREE.Vector3,
+			direction: null as THREE.Vector3,
+		},
+		mode: ControlMode.Normal as ControlMode,
+		control: {
+			target: {
+				from: new THREE.Vector3(),
+				to: new THREE.Vector3(),
+			} as Target,
+			locatePot: (id: string) => console.log('unmounted'),
 		}
     }),
 
 	actions: {
 	    setMouseAction(action: MouseAction) {
 	        this.mouseAction = action
-	    }
+	    },
+		setLocatePot(locatePot: (id: number) => void) {
+			this.control.locatePot = locatePot
+		},
+		locatePot(id: number) {
+		    this.control.locatePot(id)
+		}
 	}
 })
