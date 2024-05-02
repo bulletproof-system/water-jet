@@ -43,7 +43,7 @@ const panels = (() => {
   let panels = {}
   for (const key in CtrlMode)
     if (isNaN(key as any))
-	panels[CtrlMode[key]] = defineAsyncComponent(() => import(`@/components/${key}/${key}Panel.vue`))
+	panels[CtrlMode[key]] = defineAsyncComponent(() => import(`@/components/OperatorPanel/${key}Panel.vue`))
   return panels
 })()
 
