@@ -77,7 +77,7 @@ onLoop(() => {
 })
 
 function updateFollowRobotTarget() {
-  target.from = robot.position.clone().add(offset);
+  target.from = robot.localToWorld(offset.clone());
   target.to = robot.position.clone();
   updateTween();
 }

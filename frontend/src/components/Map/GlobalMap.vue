@@ -1,6 +1,6 @@
 <template>
 	<primitive :object="globalMap"/>
-	<primitive v-if="arrow.origin" :object="arrowHelper" />
+	<primitive :object="arrowHelper" />
 </template>
 
 <script setup lang="ts">
@@ -17,7 +17,10 @@ function handleMouseDown(raycaster: THREE.Raycaster) {
 	if (interset.length == 0) {
 		return;
 	}
-	arrow.value.origin = interset[0].point;
+	arrow.value = {
+		origin: interset[0].point.clone(),
+		direction: null,
+	}
 }
 
 function handleMouseMove(raycaster: THREE.Raycaster) {
@@ -28,12 +31,17 @@ function handleMouseMove(raycaster: THREE.Raycaster) {
 	if (!arrow.value.origin) {
 		return;
 	}
-	arrow.value.direction = interset[0].point.clone().sub(arrow.value.origin);
+	arrow.value = {
+		origin: arrow.value.origin,
+		direction: interset[0].point.clone().sub(arrow.value.origin),
+	}
 }
 
 function handleMouseUp() {
-	arrow.value.origin = null;
-	arrow.value.direction = null;
+	arrow.value = {
+		origin: null,
+		direction: null,
+	}
 }
 
 const arrowHelper = new THREE.ArrowHelper(
@@ -44,6 +52,15 @@ const arrowHelper = new THREE.ArrowHelper(
 	0.1,
 	0.1
 );
+
+watch(arrow, () => {
+	console.log(arrow.value);
+	if (arrow.value.origin && arrow.value.direction) {
+		arrowHelper.visible = true;
+	} else {
+		arrowHelper.visible = false;
+	}
+}, { immediate: true });
 
 const { onLoop } = useRenderLoop();
 onLoop(() => {
