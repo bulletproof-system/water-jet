@@ -25,24 +25,40 @@
     <!-- 导航 -->
     <Navigation ref="navigation"/>
     <!-- 花盆 -->
-    <!-- <Flowerpots /> -->
+    <!-- <Flowerpots ref="flowerPots" /> -->
   </TresCanvas>
+  <div style="position: relative;" class="d-flex justify-end">
+    <div style="position: absolute; top: -190px" class="d-flex flex-column pa-3">
+        <v-btn  class="ma-1" :icon="mode === MapControlMode.Normal ? 'mdi-map-check-outline' : 'mdi-map-outline'"
+          @click="mode = MapControlMode.Normal"
+        />
+        <v-btn  class="ma-1" :icon="mode === MapControlMode.FollowRobot ? 'mdi-robot-happy' : 'mdi-robot'"
+          @click="mode = MapControlMode.FollowRobot"
+        />
+        <v-btn  class="ma-1" :icon="enbaleSelectPot ? 'mdi-flower-tulip' : 'mdi-flower-tulip-outline'"
+          @click="enbaleSelectPot = !enbaleSelectPot"
+        />
+    </div>
+    
+  </div>
+
 </template>
 
 <script setup lang="ts">
 import * as THREE from 'three';
 import { TresCanvas } from '@tresjs/core'
-import { useMapStore, MouseAction } from '@/stores/map';
-import CameraControl from './CameraControl.vue';
+import { useMapStore, MouseAction, ControlMode as MapControlMode } from '@/stores/map';
 
 const mapStore = useMapStore();
-const { mouseAction, arrow } = storeToRefs(mapStore);
+const { mouseAction, mode } = storeToRefs(mapStore);
 const cameraControl = ref(null)
 const canvas = ref(null)
 const camera = ref(null)
 const globalMap = ref(null)
 const robot = ref(null)
 const navigation = ref(null)
+const flowerPots = ref(null)
+const enbaleSelectPot = ref(false)
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -94,6 +110,8 @@ function setRaycaster(clientX: number, clientY: number) {
 function handleClick(event) {
   setRaycaster(event.clientX, event.clientY);
   
+  if (enbaleSelectPot.value)
+    flowerPots.value.handleClick(raycaster);
 }
 
 function handleMouseDown(event) {

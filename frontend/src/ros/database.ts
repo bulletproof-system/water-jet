@@ -138,32 +138,6 @@ function setPotActive(id: string, active: boolean) {
 	}
 }
 
-// function procPots(message: ROSLIB.Message) {
-	// const pots = message as unknown as Msg.database.PotAbstractList;
 
-	// let ids = {}, deleteList = [], updateList = [];
-	// for (const pot of pots.potAbstracts) {
-	// 	ids[pot.id] = pot;
-	// }
-	// for (const id in pots) {
-	// 	if (id in ids) {
-	// 		if (pots[id].hash != ids[id].hash)
-	// 			updateList.push(id);
-	// 	} else {
-	// 		deleteList.push(id);
-	// 	}
-	// }
-	// removePot(...deleteList);
-	// updateList.forEach(id => fetchPotInfo(id));
-
-	// flowerpots.clear();
-	// for (const pot of pots.potInfos) {
-	// 	const pose = pot.pose
-	// 	const flowerpot = new THREE.Mesh( flowerpotGeometry, flowerpotMaterial );
-	// 	flowerpot.position.set( pose.position.x, pose.position.y, pose.position.z );
-	// 	flowerpot.rotation.setFromQuaternion(new THREE.Quaternion( pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w ))
-	// 	flowerpots.add(flowerpot);
-	// }
-// }
 
 export { pots, flowerpots }
