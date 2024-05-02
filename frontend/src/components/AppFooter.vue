@@ -26,7 +26,7 @@
       </v-row>
     </div>
 
-    <v-btn :prepend-icon="scramState.icon" 
+    <v-btn :prepend-icon="scramState.icon" min-width="150"
       :color="scramState.color" variant="elevated" @click="toggleScram" 
       :loading="targetScram !== rosStore.scram"
     >
