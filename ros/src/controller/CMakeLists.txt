@@ -78,6 +78,7 @@ SaveMap.srv
 add_action_files(
   FILES
   Target.action
+  Aim.action
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -86,6 +87,7 @@ DEPENDENCIES
 std_msgs
 geometry_msgs
 sensor_msgs
+actionlib_msgs
 )
 
 ################################################
