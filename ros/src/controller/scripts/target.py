@@ -20,13 +20,13 @@ class TargetNode:
         self.state = 1
 
         # Subscribers
-        self.hello_subscriber = rospy.Subscriber('/ctrl/hello', Hello, self.hello_callback)
+        self.hello_subscriber = rospy.Subscriber('hello', Hello, self.hello_callback)
         
         # Publishers
         self.node_info_publisher = rospy.Publisher('/ctrl/node_info', NodeInfo, queue_size=10)
         
         # Action Server
-        self.server = SimpleActionServer('/controller/action/Target', TargetAction, execute_cb=self.execute_cb, auto_start=False)
+        self.server = SimpleActionServer('/ctrl/action/Target', TargetAction, execute_cb=self.execute_cb, auto_start=False)
         self.server.start()
 
         # Action Client 

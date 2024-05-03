@@ -19,7 +19,7 @@ uint8 AUTO_WATER=6
 class Core:
     def __init__(self):
         # 初始化节点        
-        rospy.init_node("ctrl/core")
+        rospy.init_node("ctrl_core")
 
         # 当前功能模式
         self.mode = 1
@@ -29,7 +29,7 @@ class Core:
 
         # Subscribers
         rospy.Subscriber("_cmd_vel",Twist,self._cmd_vel_callback)
-        rospy.Subscriber("/ctrl/hello",Hello,self.hello_callback)
+        rospy.Subscriber("hello",Hello,self.hello_callback)
 
         # Publishers
         self.cmd_vel_pub = rospy.Publisher('/ctrl/cmd_vel',Twist,queue_size=10)
