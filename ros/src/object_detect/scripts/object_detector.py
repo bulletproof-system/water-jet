@@ -120,6 +120,7 @@ class ObjectDetector:
             set_pot_info_service = rospy.ServiceProxy('/database/pot/set', SetPotInfo)
             response = set_pot_info_service(pot_info)
         
+        
 
 
 if __name__ == '__main__':

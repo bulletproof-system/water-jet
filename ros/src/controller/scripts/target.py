@@ -11,13 +11,20 @@ from navigation.msg import NavigateAction, NavigateGoal
 from robot_arm.msg import AimAction,AimGoal
 from database.srv import GetPotInfo
 from object_detect.srv import CheckPot
+from controller.srv import Start,StartResponse,Stop,StopResponse
+"""
+State: 
 
-class TargetNode:
+uint8 Stop=0
+uint8 Wait=1
+uint8 Target=10
+"""
+class Target:
     def __init__(self):
         rospy.init_node('ctrl_target')
         
         # state
-        self.state = 1
+        self.state = 0
 
         # Subscribers
         self.hello_subscriber = rospy.Subscriber('hello', Hello, self.hello_callback)
@@ -25,6 +32,10 @@ class TargetNode:
         # Publishers
         self.node_info_publisher = rospy.Publisher('/ctrl/node_info', NodeInfo, queue_size=10)
         
+        # Services
+        rospy.Service('/ctrl/target/start',Start,self.handle_start)
+        rospy.Service('/ctrl/target/stop',Stop,self.handle_stop)
+
         # Action Server
         self.server = SimpleActionServer('/ctrl/action/Target', TargetAction, execute_cb=self.execute_cb, auto_start=False)
         self.server.start()
@@ -38,6 +49,28 @@ class TargetNode:
 
         # Service Client
         self.pot_info_service = rospy.ServiceProxy('/database/pot/get', GetPotInfo)
+    
+    def handle_start(self,req):
+        """处理启动服务请求"""
+        if self.state == 0:
+            self.state = 1  # 将状态设置为 Wait，等待目标任务
+            rospy.loginfo("Target action server started.")
+            return StartResponse(True)
+        else:
+            rospy.loginfo("Target action server already running.")
+            return StartResponse(False)    
+
+    def handle_stop(self,req):
+        """处理停止服务请求，终止当前任务并重置状态"""
+        if self.state != 0:
+            self.state = 0
+            if self.server.is_active():
+                self.server.set_preempted()  # 如果有活动的目标任务，提前终止
+            rospy.loginfo("Target action server stopped.")
+            return StopResponse(True)
+        else:
+            rospy.loginfo("Target action server is not running.")
+            return StopResponse(False)
 
     def hello_callback(self, msg):
         rospy.loginfo("Received hello message")
@@ -87,6 +120,7 @@ class TargetNode:
         
     def execute_cb(self, goal):
         self.state = 10
+
         feedback = TargetFeedback()
         result = TargetResult()
         
@@ -94,17 +128,20 @@ class TargetNode:
         for i, target in enumerate(goal.targets):
             #* 调用导航模块
             target_pose = self.get_target_pose(target)
-            success = self.navigate_to_target(target_pose)
-            if not success:
+            response = self.navigate_to_target(target_pose)
+            if not response.success:
                 result.result = 'fail'
                 self.server.set_aborted(result)
+                self.state = 1
                 return
 
             #* 调用花盆识别模块
-            if not self.check_flowerpot(target):
+            response = self.check_flowerpot(target)
+            if not response.success:
                 rospy.logwarn("No flowerpot detected at target: %d" % target)
                 result.result = 'fail'
                 self.server.set_aborted(result)
+                self.state = 1
                 return
 
             #* 调用浇水模块
@@ -112,12 +149,13 @@ class TargetNode:
             goal.id = target
             self.aim_client.send_goal(goal)
             self.aim_client.wait_for_result()
-            aim_result = self.aim_client.get_result()
+            response = self.aim_client.get_result()
 
-            if not aim_result:
+            if not response.success:
                 rospy.logwarn("Unable to aim at target: %d" % target)
                 result.result = 'fail'
                 self.server.set_aborted(result)
+                self.state = 1
                 return
             
             #* 反馈进度
@@ -131,16 +169,18 @@ class TargetNode:
                 rospy.loginfo("Watering preempted")
                 self.server.set_preempted()
                 result.result = 'cancel'
+                self.state = 1
                 return
         
         rospy.loginfo("Watering complete")
         result.result = 'success'
         self.server.set_succeeded(result)
+        self.state = 1
 
 if __name__ == '__main__':
 
     try:
-        target_node = TargetNode()
+        target = Target()
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
