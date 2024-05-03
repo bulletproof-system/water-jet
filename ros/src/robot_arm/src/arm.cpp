@@ -28,7 +28,7 @@ public:
   {
     as_.start();
     first_ = true;
-    center_point_sub_ = nh_.subscribe("objects_center", 10, &ArmActionServer::objectsCenterCallback, this);
+    center_point_sub_ = nh_.subscribe("object_center", 10, &ArmActionServer::objectsCenterCallback, this);
     vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
     mani_ctrl_pub_ = nh_.advertise<sensor_msgs::JointState>("/wpb_home/mani_ctrl", 30);
     tts_pub_ = nh_.advertise<sound_play::SoundRequest>("/robotsound", 20);
@@ -63,7 +63,7 @@ public:
         if (active) {
           adjust();
           extendArm();
-          ros::Duration(5.0).sleep();
+          ros::Duration(2.0).sleep();
           // simulate the process of jetting
           speak();
           retractArm();
@@ -123,11 +123,11 @@ private:
     double angle = atan2(target_y, target_x);
     geometry_msgs::Twist vel_cmd;
 
-    ros::Rate rate(10);
-
+    vel_cmd.linear.x = 0;
+    vel_cmd.linear.y = 0;
     vel_cmd.angular.z = angle;
     vel_pub_.publish(vel_cmd);
-    ros::Duration(5.0).sleep();
+    ros::Duration(1.0).sleep();
     vel_cmd.angular.z = 0;
     vel_pub_.publish(vel_cmd);
     return;
