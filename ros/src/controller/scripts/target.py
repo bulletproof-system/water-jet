@@ -30,10 +30,10 @@ class TargetNode:
         self.server.start()
 
         # Action Client 
-        self.nav_client = SimpleActionClient('navigate', NavigateAction)
+        self.nav_client = SimpleActionClient('/navigation/navigate', NavigateAction)
         self.nav_client.wait_for_server(rospy.Duration(5))  # 等待最多5秒以连接服务器
 
-        self.aim_client = SimpleActionClient('/aim', NavigateAction)
+        self.aim_client = SimpleActionClient('/aim', AimAction)
         self.aim_client.wait_for_server(rospy.Duration(5))  # 等待最多5秒以连接服务器
 
         # Service Client
