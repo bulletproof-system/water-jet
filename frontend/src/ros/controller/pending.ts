@@ -255,6 +255,7 @@ const feedbackInfo: Record<string, string> = {
 	'cancel': '导航取消',
     'normal': '正常',
 	'barrier': '遇到障碍',
+	'planning': '正在规划路径',
 }
 function navigate(pos: Msg.geometry.Pose): Promise<any> {
     const goal = new ROSLIB.Goal({
