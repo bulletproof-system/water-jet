@@ -48,7 +48,9 @@ class TargetNode:
 
     def get_target_pose(self, target_id):
         try:
-            response = self.pot_info_service(target_id)
+            get_pot_info = GetPotInfo()
+            get_pot_info.id = target_id
+            response = self.pot_info_service(get_pot_info)
             if response.success:
                 return response.info.pose
             else:
