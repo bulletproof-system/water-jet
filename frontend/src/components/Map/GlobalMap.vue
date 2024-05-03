@@ -54,7 +54,6 @@ const arrowHelper = new THREE.ArrowHelper(
 );
 
 watch(arrow, () => {
-	console.log(arrow.value);
 	if (arrow.value.origin && arrow.value.direction) {
 		arrowHelper.visible = true;
 	} else {

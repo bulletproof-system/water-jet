@@ -11,9 +11,10 @@ const mapStore = useMapStore();
 const { arrow } = storeToRefs(mapStore);
 
 function navigate() {
+	const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0),  arrow.value.direction.normalize());
 	const pos: Msg.geometry.Pose = {
-		position: { ...arrow.value.origin },
-		orientation: { ...new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0),  arrow.value.direction.normalize()) }
+		position: { ...arrow.value.origin, z:0 },
+		orientation: { x: quaternion.x, y: quaternion.y, z: quaternion.z , w: quaternion.w }
 	}
 	ctrl.navigate(pos);
 }

@@ -49,7 +49,7 @@ export const useROSStore = defineStore('ros', {
     ctrlMode: CtrlMode.Pending,
     scram: false,
     nodeInfo: {
-      state: NodeState.Stop,
+      state: NodeState.Wait,
       task: '',
       feedback: '',
       result: '',

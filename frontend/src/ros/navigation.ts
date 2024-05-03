@@ -59,11 +59,6 @@ function procPathMsg(message: unknown) {
 // 	}
 // }
 
-function navigate(goal: THREE.Vector3) {
-	if (appStore.allowNavigation === false) return
-	const goalMsg = new ROSLIB.Message({ data: `${goal.x} ${goal.y} ${goal.z}` })
-	navigationAction.publish.publish(goalMsg)
-}
 
 function procNavigationResult(message: unknown) {
 	const restult = message as unknown as string

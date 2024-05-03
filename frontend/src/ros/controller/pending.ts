@@ -246,7 +246,7 @@ function saveMap(): Promise<any> {
 const navigateActionClient = new ROSLIB.ActionClient({
     ros: ros,
 	serverName: '/ctrl/pending/navigate',
-	actionName: 'controller/Navigate',
+	actionName: 'navigation/NavigateAction',
 })
 const feedbackInfo: Record<string, string> = {
 	'success': '导航成功',
@@ -270,7 +270,7 @@ function navigate(pos: Msg.geometry.Pose): Promise<any> {
 	    feedback: '正在导航...',
 	    result: '',
 	    percentage: 0,
-	    cancel: goal.cancel
+	    cancel: goal.cancel.bind(goal)
 	}
 	return new Promise((resolve, reject) => {
 		goal.on('result', (result: Action.Navigation.Navigate.Result) => {
@@ -283,8 +283,8 @@ function navigate(pos: Msg.geometry.Pose): Promise<any> {
 				cancel: null
 			}
 			if (result.result === 'error')
-				resolve(result);
-			else reject(result)
+				reject(result);
+			else resolve(result)
 		});
 		goal.on('feedback', (feedback: Action.Navigation.Navigate.Feedback) => {
 			nodeInfo.value = {
@@ -293,7 +293,7 @@ function navigate(pos: Msg.geometry.Pose): Promise<any> {
 				feedback: feedbackInfo[feedback.cur_state],
 				result: '',
 				percentage: feedback.percentage,
-				cancel: goal.cancel
+				cancel: goal.cancel.bind(goal)
 			}
 		})
 		goal.send();
