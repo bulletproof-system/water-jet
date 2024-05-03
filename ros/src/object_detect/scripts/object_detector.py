@@ -5,8 +5,8 @@ import rospy
 import message_filters
 import pickle
 import pcl
-import sensor_msgs.point_cloud2 as pcl2
 from pcl_ros import point_cloud2 as pcl2_ros
+import sensor_msgs.point_cloud2 as pc2
 from geometry_msgs.msg import Pose, Point, Quaternion,PointStamped
 from sensor_msgs.msg import PointCloud2
 from database.msg import PotInfo
@@ -61,6 +61,9 @@ class ObjectDetector:
         
         return response
 
+    def pointcloud2_to_pcd(pointcloud2_msg):
+        """实现从pointcloud2格式到pcd格式的转换"""
+
     def handle_update_pots(self,obj_center,obj_pointcloud):
         """获取object_center , obj_pointcloud信息,更新花盆信息数据"""
 
@@ -98,7 +101,11 @@ class ObjectDetector:
             pots[new_id] = {'x': world_point.point.x, 'y': world_point.point.y, 'z': world_point.point.z,'last_scan_time': current_time}
 
             # 处理点云数据
-            serialized_cloud = pickle.dumps(obj_pointcloud)
+            cloud = pcl.PointCloud()
+            cloud.from_list(pc2.read_points(obj_pointcloud, skip_nans=True))
+            pcl.save(cloud, 'temp.pcd', binary=True)
+            with open('temp.pcd', 'rb') as f:
+                serialized_cloud = f.read()
 
             # TODO picture设置
             pot_info = PotInfo()

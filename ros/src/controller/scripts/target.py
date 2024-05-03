@@ -86,6 +86,7 @@ class TargetNode:
             return False
         
     def execute_cb(self, goal):
+        self.state = 10
         feedback = TargetFeedback()
         result = TargetResult()
         
