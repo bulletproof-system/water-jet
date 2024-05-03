@@ -46,10 +46,10 @@ export const useROSStore = defineStore('ros', {
   state: () => ({
     connectState: ConnectState.Disconnected,
 	  retry: 0,
-    ctrlMode: CtrlMode.Pending,
+    ctrlMode: CtrlMode.Init,
     scram: false,
     nodeInfo: {
-      state: NodeState.Wait,
+      state: NodeState.Stop,
       task: '',
       feedback: '',
       result: '',
@@ -69,6 +69,9 @@ export const useROSStore = defineStore('ros', {
     },
     setScram(active: boolean) {
       this.scram = active
+    },
+    setNodeState(state: NodeState) {
+      this.nodeInfo.state = state
     },
     cancel() {
       if (!this.nodeInfo.cancel) return;

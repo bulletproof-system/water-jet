@@ -3,14 +3,7 @@ import { ros } from "../init";
 import { Msg, Srv } from "../";
 import { CtrlMode, NodeState, useROSStore } from "@/stores/ros";
 import { useAppStore } from '@/stores/app';
-import { error } from 'console';
 
-// 订阅 info, 更新 controller 状态
-const infoTopic = new ROSLIB.Topic({
-    ros: ros,
-    name: "/ctrl/info",
-    messageType: "controller/Info"
-})
 const appStore = useAppStore();
 const rosStore = useROSStore();
 const { ctrlMode, scram, nodeInfo } = storeToRefs(rosStore);
@@ -28,10 +21,29 @@ setInterval(() => {
 	}
 }, 1000);
 
+// 订阅 info, 更新 controller 状态
+const infoTopic = new ROSLIB.Topic({
+    ros: ros,
+    name: "/ctrl/info",
+    messageType: "controller/Info"
+})
+
 infoTopic.subscribe((message: ROSLIB.Message) => {
 	const info = message as unknown as Msg.controller.Info;
 	rosStore.setCtrlMode(info.mode);
 	rosStore.setScram(info.scram);
+})
+
+const nodeInfoTopic = new ROSLIB.Topic({
+    ros: ros,
+    name: "/ctrl/node_info",
+    messageType: "controller/NodeInfo"
+})
+
+nodeInfoTopic.subscribe((message: ROSLIB.Message) => {
+    const info = message as unknown as Msg.controller.NodeInfo;
+	if (info.mode === ctrlMode.value)
+		rosStore.setNodeState(info.state);
 })
 
 // 切换 mode

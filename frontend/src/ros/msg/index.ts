@@ -1,4 +1,4 @@
-import { CtrlMode } from "@/stores/ros"
+import { CtrlMode, NodeState } from "@/stores/ros"
 
 export interface Time {
 	sec: number
@@ -161,5 +161,11 @@ export namespace controller {
 		header: Header,
 		mode: CtrlMode,
 		scram: boolean,
+	}
+
+	// /controller/msg/NodeInfo.msg 
+	export interface NodeInfo {
+	    state: NodeState,
+		mode: CtrlMode,
 	}
 }
