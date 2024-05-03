@@ -1,0 +1,5 @@
+# /database/srv/SetPotInfo.srv
+
+PotInfo info
+---
+bool success
