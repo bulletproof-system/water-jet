@@ -1,5 +1,4 @@
 import { CtrlMode } from "@/stores/ros"
-import exp = require("constants")
 
 export interface Time {
 	sec: number

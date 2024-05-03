@@ -13,16 +13,9 @@ export const ros = new ROSLIB.Ros({});
 
 const rosStore = useROSStore();
 
-const helloTopic = new ROSLIB.Topic({
-	ros: ros,
-	name: '/hello',
-	messageType: 'controller/Hello'
-})
-
 ros.on('connection', () => {
 	rosStore.setConnectState(ConnectState.Connected)
 	rosStore.resetRetry()
-	helloTopic.publish(new ROSLIB.Message({publisher: 'frontend'} as Msg.controller.Hello ))
 	console.log('Connected to websocket server.');
 })
 

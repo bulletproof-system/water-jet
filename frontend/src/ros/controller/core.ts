@@ -15,6 +15,19 @@ const appStore = useAppStore();
 const rosStore = useROSStore();
 const { ctrlMode, scram, nodeInfo } = storeToRefs(rosStore);
 
+const helloTopic = new ROSLIB.Topic({
+	ros: ros,
+	name: '/hello',
+	messageType: 'controller/Hello'
+})
+
+setInterval(() => {
+	if (ctrlMode.value == CtrlMode.Init) {
+		helloTopic.publish(new ROSLIB.Message({publisher: 'frontend'} as Msg.controller.Hello ))
+		console.log('publish hello')
+	}
+}, 1000);
+
 infoTopic.subscribe((message: ROSLIB.Message) => {
 	const info = message as unknown as Msg.controller.Info;
 	rosStore.setCtrlMode(info.mode);
