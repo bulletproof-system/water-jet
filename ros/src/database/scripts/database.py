@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 import rospy
 import sqlite3
 from datetime import datetime
