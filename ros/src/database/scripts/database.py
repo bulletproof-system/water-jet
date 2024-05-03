@@ -10,7 +10,7 @@ class Database:
         rospy.init_node('database')
 
         # TODO DATABASE PATH
-        self.db_path = '/home/yanhaojun/catkin_ws/src/pots.db'
+        self.db_path = './pots.db'
         self.connect_to_database()
 
         # Publishers
