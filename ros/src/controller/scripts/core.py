@@ -29,7 +29,7 @@ class Core:
 
         # Subscribers
         rospy.Subscriber("_cmd_vel",Twist,self._cmd_vel_callback)
-        rospy.Subscriber("hello",Hello,self.hello_callback)
+        rospy.Subscriber("/hello",Hello,self.hello_callback)
 
         # Publishers
         self.cmd_vel_pub = rospy.Publisher('/ctrl/cmd_vel',Twist,queue_size=10)
