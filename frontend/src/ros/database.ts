@@ -2,39 +2,49 @@ import * as ROSLIB from 'roslib';
 import { Msg, Srv, ros } from '.';
 import * as THREE from 'three';
 import { useAppStore } from '@/stores/app';
+import { PCDLoader } from 'three/examples/jsm/loaders/PCDLoader';
 
 const appStore = useAppStore()
+
+const loader = new PCDLoader();
+
 export class Pot {
 	id: string // 花盆 id
 	pose: Msg.geometry.Pose // 世界坐标
-	data: Msg.sensor.PointCloud2 // 点云数据 
-	picture: Msg.sensor.Image // 花照片
+	// data: Uint8Array // 点云数据 
+	picture: Uint8Array // 花照片
 	active: boolean // 是否自动浇灌
 	choose: boolean // 是否被选中
 	last_water_date: Date; // 上次浇水时间
-	pointCloud: THREE.BufferGeometry // 3d 模型
+	pointCloud: THREE.Points // 3d 模型
 
 	constructor(info: Msg.database.PotInfo) {
 		this.id = info.id.toString();
-		this.pointCloud = new THREE.BufferGeometry();
 		this.choose = false;
 		this.update(info)
 	}
 	update(info: Msg.database.PotInfo) {
 		this.pose = info.pose;
-		this.data = info.data;
+		// this.data = info.data;
 		this.picture = info.picture;
 		this.active = info.active;
 		if (!this.active) this.choose = false;
 		this.last_water_date = info.last_water_date;
 
 		// 更新点云
-		this.pointCloud.dispose();
-		this.pointCloud = new THREE.BufferGeometry();
+		this.pointCloud?.geometry.dispose();
 
+		try {
+			this.pointCloud = loader.parse(info.data);
+		} catch {
+			console.error(`parse point cloud failed, id: ${this.id}`);
+		}
+
+		// 更新图片
+		
 	}
 	delete() {
-		this.pointCloud.dispose();
+		this.pointCloud?.geometry.dispose();
 	}
 	setActive(active: boolean) {
 		setPotActive(this.id, active);

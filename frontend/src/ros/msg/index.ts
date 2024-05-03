@@ -136,8 +136,8 @@ export namespace database {
 	export interface PotInfo {
 		id: number // 花盆 id
 		pose: geometry.Pose // 世界坐标
-		data: sensor.PointCloud2 // 点云数据 
-		picture:  sensor.Image // 花照片
+		data: Uint8Array // 点云数据 
+		picture:  Uint8Array // 花照片
 		active: boolean // 是否自动浇灌
 		last_water_date: Date // 上次浇水时间
 	}
