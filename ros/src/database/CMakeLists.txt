@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(controller)
+project(database)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -163,7 +163,7 @@ ${OpenCV_INCLUDE_DIRS}
 
 ## Handle Python scripts
 catkin_install_python(PROGRAMS
-  scripts/database_node.py
+  scripts/database.py
   scripts/test_get_pot_list.py
   scripts/test_set_pot_info.py
   scripts/test_set_pot_active.py
