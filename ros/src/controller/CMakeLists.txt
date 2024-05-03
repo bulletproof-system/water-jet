@@ -63,7 +63,7 @@ Info.msg
 ## Generate services in the 'srv' folder
 add_service_files(
 FILES
-ChanggeMode.srv
+ChangeMode.srv
 Scram.srv
 Start.srv
 Stop.srv
