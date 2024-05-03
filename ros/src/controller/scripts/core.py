@@ -22,7 +22,7 @@ class Core:
         rospy.init_node("ctrl_core")
 
         # 当前功能模式
-        self.mode = 1
+        self.mode = 0
 
         # 急停模式
         self.scram = False
@@ -40,6 +40,11 @@ class Core:
         rospy.Service('/ctrl/stop',Stop,self.handle_stop)
         rospy.Service('/ctrl/change_mode',ChangeMode,self.handle_change_mode)
         rospy.Service('/ctrl/scram',Scram,self.scram_callback)
+
+        self.mode = 1
+        rospy.wait_for_service('/ctrl/pending/start')
+        client = rospy.ServiceProxy('ctrl/pending/start',Start)
+        response = client(mode = 1)
     
     def hello_callback(self,hello):
         info = Info(mode=self.mode,scram=self.scram)
@@ -93,6 +98,7 @@ class Core:
     def handle_change_mode(self,change_mode):
         mode = change_mode.mode
         service_paths = {
+            1: '/ctrl/pending/stop',
             2: '/ctrl/auto_map/stop',
             3: '/ctrl/manual_map/stop',
             4: '/ctrl/inspection/stop', 
