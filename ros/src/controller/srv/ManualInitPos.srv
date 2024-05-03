@@ -1,4 +1,4 @@
 # /controller/srv/ManualInitPos.srv
-geometry_msgs/Pos pos # 初始位置, 世界坐标
+geometry_msgs/Pose pos # 初始位置, 世界坐标
 ---
 bool success # 结果
