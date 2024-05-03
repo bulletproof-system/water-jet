@@ -105,17 +105,21 @@ class Core:
             client = rospy.ServiceProxy(service_path, Stop)
             request = Stop(mode=mode)
             response = client(request)
-            self.mode = mode
-            
-            # 发布info信息
-            info = Info(mode=self.mode,scram=self.scram)
-            self.info_pub.publish(info)
-    
-            return response
+
+            if response.sucess:
+                self.mode = mode
+                # 发布info信息
+                info = Info(mode=self.mode,scram=self.scram)
+                self.info_pub.publish(info)
+                change_mode_response = ChangeModeResponse(sucess=True)
+                return change_mode_response
+            else:
+                change_mode_response = ChangeModeResponse(sucess=False)
+                return change_mode_response
         else:
-            self.mode = mode
-            self.info_pub.publish(Info(mode=self.mode,scram=self.scram))
-            return ChangeModeResponse(sucess=True)
+            # 更换模式出错
+            change_mode_response = ChangeModeResponse(sucess=False)
+            return change_mode_response
 
     def scram_callback(self,scarm):
         self.scram = scarm.active
@@ -124,7 +128,8 @@ class Core:
         info = Info(mode=self.mode,scram=self.scram)
         self.info_pub.publish(info)
 
-        return ScramResponse(sucess=True)
+        scarm_response = ScramResponse(sucess=True)
+        return scarm_response
 
     def _cmd_vel_callback(self,twist):
         # 处于急停状态
