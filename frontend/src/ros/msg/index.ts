@@ -1,4 +1,5 @@
 import { CtrlMode } from "@/stores/ros"
+import exp = require("constants")
 
 export interface Time {
 	sec: number
@@ -149,8 +150,14 @@ export namespace database {
 	}
 }
 
-// /controller/msg/Info.msg
+
 export namespace controller {
+	// /controller/msg/Hello.msg
+	export interface Hello {
+	    publisher: string
+	}
+
+	// /controller/msg/Info.msg
 	export interface Info {
 		header: Header,
 		mode: CtrlMode,
