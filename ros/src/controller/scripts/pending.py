@@ -81,12 +81,11 @@ class PendingServer():
             return resp
 
         def navigate_serve(goal):
-            end_flag = False
-            result = NavigateResult()
+            self.end_flag = False
+            self.result = NavigateResult()
             def done_cb(state,r):
-                nonlocal end_flag,result
-                result.result = r.result
-                end_flag = True
+                self.result.result = r.result
+                self.end_flag = True
                     
             def active_cb():
                 rospy.loginfo("服务被激活....")
@@ -109,11 +108,11 @@ class PendingServer():
             while not rospy.is_shutdown():
                 if self.navigate_server.is_preempt_requested(): # cancel了
                     client.cancel_goal()
-                    result.result = "cancel"
-                    self.navigate_server.set_succeeded(result)
+                    self.result.result = "cancel"
+                    self.navigate_server.set_succeeded(self.result)
                     break
-                if end_flag == True: # move_base导航失败
-                    self.navigate_server.set_succeeded(result)
+                if self.end_flag == True: # move_base导航失败
+                    self.navigate_server.set_succeeded(self.result)
                     break
                 rate.sleep()
             rospy.loginfo("导航结束！")
