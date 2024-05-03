@@ -15,6 +15,12 @@
 	<!-- controller -->
 	<include file="$(find controller)/launch/controller.launch"/>
 
+	<!-- object_detect -->
+	<include file="$(find object_detect)/launch/object_detect.launch"/>
+
+	<!-- database -->
+	<include file="$(find database)/launch/database.launch"/>
+
 	<!-- ros web tool -->
 	<node name="keyboard_vel_ctrl" pkg="wpr_simulation" type="keyboard_vel_ctrl" />
 	<node name="tf2_web_republisher" pkg="tf2_web_republisher" type="tf2_web_republisher" />
