@@ -21,8 +21,9 @@ class PendingServer():
         self.node_info.mode = 1 # 模式是pending
 
         # 与前端交互节点状态
-        self.hello_sub = rospy.Subscriber('/ctrl/hello', Hello, hello_callback)
+        self.hello_sub = rospy.Subscriber('/hello', Hello, hello_callback)
         self.node_info_pub = rospy.Publisher('/ctrl/node_info', NodeInfo, queue_size=10)
+        self.node_info_pub.publish(self.node_info)
 
         # 该节点的功能需要由/ctrl/pending/start服务启动,pending的具体服务在start_serve中实现
         self.start_server = rospy.Service("/ctrl/pending/start",Start,self.start_serve)
@@ -32,27 +33,32 @@ class PendingServer():
     def start_serve(req):
         def stop_serve(req):
             self.node_info.state = self.node_info.Stop
-            self.node_info.state = self.node_info.Wait
+            self.node_info_pub.publish(self.node_info)
             return
 
         def clear_map_serve(req):
             self.node_info.state = self.node_info.Clear_Map
+            self.node_info_pub.publish(self.node_info)
             rospy.loginfo("假装清除了已保存的地图")
             resp = ClearMapResponse()
             resp.success = True
             self.node_info.state = self.node_info.Wait
+            self.node_info_pub.publish(self.node_info)
             return resp
 
         def auto_init_pos_serve(req):
             self.node_info.state = self.node_info.Auto_Init_Map
+            self.node_info_pub.publish(self.node_info)
             rospy.loginfo("假装自动设置了机器人初始位置")
             resp = AutoInitPosResponse()
             resp.success = True
             self.node_info.state = self.node_info.Wait
+            self.node_info_pub.publish(self.node_info)
             return resp
 
         def manual_init_pos_serve(req):
             self.node_info.state = self.node_info.Manual_Init_Map
+            self.node_info_pub.publish(self.node_info)
             rospy.loginfo("我真的手动设置了机器人初始位置")
             init_pos_pub = rospy.Publisher('/initialpose', PoseWithCovarianceStamped, queue_size=1)
             p = PoseWithCovarianceStamped()
@@ -70,14 +76,17 @@ class PendingServer():
             resp = ManualInitPosResponse()
             resp.success = True
             self.node_info.state = self.node_info.Wait
+            self.node_info_pub.publish(self.node_info)
             return resp
 
         def save_map_serve(req):
             self.node_info.state = self.node_info.SaveMap
+            self.node_info_pub.publish(self.node_info)
             rospy.loginfo("假装保存了地图")
             resp = SaveMapResponse()
             resp.success = True
             self.node_info.state = self.node_info.Wait
+            self.node_info_pub.publish(self.node_info)
             return resp
 
         def navigate_serve(goal):
@@ -100,6 +109,7 @@ class PendingServer():
 
 
             self.node_info.state = self.node_info.Navigate
+            self.node_info_pub.publish(self.node_info)
             client = actionlib.SimpleActionClient("navigation/navigate",NavigateAction)
             client.wait_for_server()
             client.send_goal(goal,done_cb,active_cb,fb_cb)
@@ -119,9 +129,11 @@ class PendingServer():
 
                     
             self.node_info.state = self.node_info.Wait
+            self.node_info_pub.publish(self.node_info)
 
 
         self.node_info.state = self.node_info.Wait
+        self.node_info_pub.publish(self.node_info)
         # 五种服务启动
         self.stop_server = rospy.Service("/ctrl/pending/stop",Stop,stop_serve)
         self.clear_map_server = rospy.Service("/ctrl/pending/clear_map",ClearMap,clear_map_serve)
