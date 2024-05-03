@@ -1,0 +1,7 @@
+<launch>
+
+  <!-- Rviz -->
+  <arg name="rvizconfig" default="$(find wpr_simulation)/rviz/slam.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+</launch>
