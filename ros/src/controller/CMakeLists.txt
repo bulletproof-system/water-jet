@@ -67,6 +67,10 @@ ChangeMode.srv
 Scram.srv
 Start.srv
 Stop.srv
+AutoInitPos.srv
+ClearMap.srv
+ManualInitPos.srv
+SaveMap.srv
 )
 
 ## Generate actions in the 'action' folder
