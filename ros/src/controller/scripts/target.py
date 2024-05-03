@@ -19,12 +19,15 @@ uint8 Stop=0
 uint8 Wait=1
 uint8 Target=10
 """
+STOP = 0
+WAIT = 1
+TARGET = 10
 class Target:
     def __init__(self):
         rospy.init_node('ctrl_target')
         
         # state
-        self.state = 0
+        self.state = STOP
 
         # Subscribers
         self.hello_subscriber = rospy.Subscriber('hello', Hello, self.hello_callback)
@@ -52,8 +55,8 @@ class Target:
     
     def handle_start(self,req):
         """处理启动服务请求"""
-        if self.state == 0:
-            self.state = 1  # 将状态设置为 Wait，等待目标任务
+        if self.state == STOP:
+            self.state = WAIT  # 将状态设置为 Wait，等待目标任务
             rospy.loginfo("Target action server started.")
             return StartResponse(True)
         else:
@@ -62,8 +65,8 @@ class Target:
 
     def handle_stop(self,req):
         """处理停止服务请求，终止当前任务并重置状态"""
-        if self.state != 0:
-            self.state = 0
+        if self.state != STOP:
+            self.state = STOP
             if self.server.is_active():
                 self.server.set_preempted()  # 如果有活动的目标任务，提前终止
             rospy.loginfo("Target action server stopped.")
@@ -119,7 +122,7 @@ class Target:
             return False
         
     def execute_cb(self, goal):
-        self.state = 10
+        self.state = TARGET
 
         feedback = TargetFeedback()
         result = TargetResult()
@@ -132,7 +135,7 @@ class Target:
             if not response.success:
                 result.result = 'fail'
                 self.server.set_aborted(result)
-                self.state = 1
+                self.state = WAIT
                 return
 
             #* 调用花盆识别模块
@@ -141,7 +144,7 @@ class Target:
                 rospy.logwarn("No flowerpot detected at target: %d" % target)
                 result.result = 'fail'
                 self.server.set_aborted(result)
-                self.state = 1
+                self.state = WAIT
                 return
 
             #* 调用浇水模块
@@ -155,7 +158,7 @@ class Target:
                 rospy.logwarn("Unable to aim at target: %d" % target)
                 result.result = 'fail'
                 self.server.set_aborted(result)
-                self.state = 1
+                self.state = WAIT
                 return
             
             #* 反馈进度
@@ -169,13 +172,13 @@ class Target:
                 rospy.loginfo("Watering preempted")
                 self.server.set_preempted()
                 result.result = 'cancel'
-                self.state = 1
+                self.state = WAIT
                 return
         
         rospy.loginfo("Watering complete")
         result.result = 'success'
         self.server.set_succeeded(result)
-        self.state = 1
+        self.state = WAIT
 
 if __name__ == '__main__':
 
