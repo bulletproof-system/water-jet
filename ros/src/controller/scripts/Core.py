@@ -1,6 +1,7 @@
 import rospy
 from geometry_msgs.msg import Twist
-from msg import Info,Hello,Start,StartResponse,Stop,StopResponse,ChangeMode,ChangeModeResponse,Scram,ScramResponse
+from controller.msg import Info,Hello
+from controller.srv import Start,StartResponse,Stop,StopResponse,ChangeMode,ChangeModeResponse,Scram,ScramResponse
 
 """
 Core State 
@@ -137,3 +138,10 @@ class Core:
         # 不处于急停状态
         else:
             self.cmd_vel_pub.publish(twist)
+
+if __name__ == '__main__':
+    try:
+        core = Core()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass

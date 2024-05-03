@@ -162,7 +162,7 @@ ${OpenCV_INCLUDE_DIRS}
 
 ## Handle Python scripts
 catkin_install_python(PROGRAMS
-  scripts/Core.py
+  scripts/core.py
   scripts/target.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
