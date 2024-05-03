@@ -2,10 +2,7 @@
 # coding=utf-8
 import tf
 import rospy
-import multiprocessing
 import message_filters
-import sqlite3
-import os
 import pickle
 import pcl
 import sensor_msgs.point_cloud2 as pcl2
@@ -101,10 +98,7 @@ class ObjectDetector:
             pots[new_id] = {'x': world_point.point.x, 'y': world_point.point.y, 'z': world_point.point.z,'last_scan_time': current_time}
 
             # 处理点云数据
-            cloud = pcl2_ros.read_points_list(obj_pointcloud, field_names=("x", "y", "z", "rgba"), skip_nans=True)
-            pcl_cloud = pcl.PointCloud_PointXYZRGBA()
-            pcl_cloud.from_list(cloud)
-            serialized_cloud = pickle.dumps(pcl_cloud)
+            serialized_cloud = pickle.dumps(obj_pointcloud)
 
             # TODO picture设置
             pot_info = PotInfo()

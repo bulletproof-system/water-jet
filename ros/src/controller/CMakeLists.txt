@@ -58,6 +58,7 @@ add_message_files(
 FILES
 Hello.msg
 Info.msg
+NodeInfo.msg
 )
 
 ## Generate services in the 'srv' folder
