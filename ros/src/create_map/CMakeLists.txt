@@ -206,10 +206,10 @@ link_directories(${PCL_LIBRARY_DIRS})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(create_map_objects_3d
-  src/create_map_objects_3d.cpp
-)
-add_dependencies(create_map_objects_3d ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(create_map_objects_3d
-  ${catkin_LIBRARIES}
-)
+#add_executable(create_map_objects_3d
+#  src/create_map_objects_3d.cpp
+#)
+#add_dependencies(create_map_objects_3d ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#target_link_libraries(create_map_objects_3d
+#  ${catkin_LIBRARIES}
+#)
