@@ -105,14 +105,17 @@ class Core:
             5: '/ctrl/target/stop',    
             6: '/ctrl/auto_water/stop' 
         }
+
         if mode in service_paths:
-            service_path = service_paths[mode]
+            # 关闭当前的mode
+            service_path = service_paths[self.mode]
             rospy.wait_for_service(service_path)
             client = rospy.ServiceProxy(service_path, Stop)
-            request = StopRequest(mode=mode)
+            request = StopRequest(mode=self.mode)
             response = client(request)
 
             if response.success:
+                # 如果成功，切换mode
                 self.mode = mode
                 # 发布info信息
                 info = Info(mode=self.mode,scram=self.scram)
