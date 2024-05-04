@@ -57,6 +57,8 @@ add_message_files(
   SaveMap.msg
   ClearMap.msg
   SetPosition.msg
+  ManualInitMapStart.msg
+  ManualInitMapStop.msg
 )
 
 ## Generate services in the 'srv' folder

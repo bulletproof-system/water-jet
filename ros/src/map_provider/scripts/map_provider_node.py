@@ -26,6 +26,8 @@ class MapProviderNode:
         rospy.Subscriber('/map_provider/save_map', SaveMap, self.save_map_callback)
         rospy.Subscriber('/map_provider/clear_map', ClearMap, self.clear_map_callback)
         rospy.Subscriber('/map_provider/set_position', SetPosition, self.set_position_callback)
+        rospy.Subscriber('/map_provider/manual_init_map_start_msg', ManualInitMapStart, self.manual_init_map_start_callback)
+        rospy.Subscriber('/map_provider/manual_init_map_stop_msg', ManualInitMapStop, self.manual_init_map_stop_callback)
         self.initial_pose_pub = rospy.Publisher('/initialpose', PoseWithCovarianceStamped, queue_size=10)
 
         # 发布主题
@@ -243,6 +245,38 @@ class MapProviderNode:
             rospy.loginfo("No active SLAM process to cancel.")
             result.result = 'cancel'
         self.manual_map_server.set_preempted(result)  # 设置操作已被取消的结果
+    
+    # 尝试使用 Msg 机制来触发手动建图
+    # 手动建图本质：启动 slam 与 关闭 slam
+    # 启动/停止 slam 进程即返回
+    # Msg 无 result 返回
+    def manual_init_map_start_callback(self, data):
+        rospy.loginfo("manual_init_map_start_callback called by {}".format(data.caller))
+        # 检查 /slam_gmapping 节点是否开启
+        try:
+            # 等同于 `rosnode list` 命令
+            nodes = subprocess.check_output(["rosnode", "list"]).decode('utf-8').strip().split("\n")
+            if '/slam_gmapping' not in nodes:
+                rospy.loginfo("/slam_gmapping node is not running, starting it...")
+                self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'test-slam_gmapping.launch'])
+            else:
+                rospy.loginfo("/slam_gmapping node already running.")
+        except Exception as e:
+            rospy.logerr("An error occurred while checking for the /slam_gmapping node: %s", e)
+
+    def manual_init_map_stop_callback(self, data):
+        rospy.loginfo("manual_init_map_stop_callback called by {}".format(data.caller))
+        # 检查 /slam_gmapping 节点是否开启
+        try:
+            # 等同于 `rosnode list` 命令
+            nodes = subprocess.check_output(["rosnode", "list"]).decode('utf-8').strip().split("\n")
+            if '/slam_gmapping' in nodes:
+                rospy.loginfo("/slam_gmapping node is running, stopping it...")
+                subprocess.call(["rosnode", "kill", "/slam_gmapping"])
+            else:
+                rospy.loginfo("/slam_gmapping node is not running, nothing to stop.")
+        except Exception as e:
+            rospy.logerr("An error occurred while attempting to kill the /slam_gmapping node: %s", e)
 
 if __name__ == '__main__':
     try:
