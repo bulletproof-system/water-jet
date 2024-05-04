@@ -8,7 +8,8 @@
 #include <sound_play/SoundRequest.h>
 
 #include <cmath>
-#include "database/PotInfo.h"
+#include "database/GetPotInfo.h"
+#include "database/SetPotInfo.h"
 
 #include <sstream>
 #include <ctime>
@@ -32,8 +33,10 @@ public:
     vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
     mani_ctrl_pub_ = nh_.advertise<sensor_msgs::JointState>("/wpb_home/mani_ctrl", 30);
     tts_pub_ = nh_.advertise<sound_play::SoundRequest>("/robotsound", 20);
-    pot_get_client_ = nh_.serviceClient<database::PotInfo>("/database/pot/get");
-    pot_set_client_ = nh_.serviceClient<database::PotInfo>("/database/pot/set");
+    pot_get_client_ = nh_.serviceClient<database::GetPotInfo>("/database/pot/get");
+    ros::service::waitForService("/database/pot/get");
+    pot_set_client_ = nh_.serviceClient<database::SetPotInfo>("/database/pot/set");
+    ros::service::waitForService("/database/pot/set");
 
     // test
     // target_point_.point.x = 1.2;
@@ -53,13 +56,14 @@ public:
   void executeCallback(const robot_arm::AimGoalConstPtr& goal)
   {
     ROS_INFO("Executing arm action...");
-    
-    database::PotInfo srv;
-    srv.request.id = goal->id;
-    if (pot_get_client_.call(srv)) {
-      if (srv.response.success) {
+  
+    database::GetPotInfo getPotInfo;
+    getPotInfo.request.id = goal->id;
+
+    if (pot_get_client_.call(getPotInfo)) {
+      if (getPotInfo.response.success) {
         ROS_INFO("succeed to get active infomation!");
-        bool active = srv.response.info.active;
+        bool active = getPotInfo.response.info.active;
         if (active) {
           adjust();
           extendArm();
@@ -68,14 +72,15 @@ public:
           speak();
           retractArm();
 
-          srv.request.info = srv.response.info;
-          srv.request.info.last_water_date = getCurrentTime();
-          if (pot_set_client_.call(srv)) {
-            if (srv.response.success) {
-              ROS_INFO("succeed to set pot last water time!");
+          database::SetPotInfo setPotInfo;
+          setPotInfo.request.info = getPotInfo.response.info;
+          setPotInfo.request.info.last_water_date = getCurrentTime();
+          if (pot_set_client_.call(setPotInfo)) {
+            if (setPotInfo.response.success) {
+              ROS_INFO("succeed to set pot's last water date!");
             }
             else {
-              ROS_WARN("fail to set pot last water time....");
+              ROS_WARN("fail to set pot's last water date....");
             }
           }
           robot_arm::AimResult result;
@@ -107,7 +112,7 @@ private:
     sound_play::SoundRequest sp;
     sp.sound = sound_play::SoundRequest::SAY;
     sp.command = sound_play::SoundRequest::PLAY_ONCE;
-    sp.volume = 2.0;
+    sp.volume = 3.0;
     sp.arg = "watering";
     tts_pub_.publish(sp);
   }

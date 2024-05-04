@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "client");
   ros::NodeHandle nh;
-  Client client("/aim", true); // 定义客户端，并指向服务器的名称 "aim"
+  Client client("aim", true); // 定义客户端，并指向服务器的名称 "aim"
 
   // 等待服务器启动
   ROS_INFO("Waiting for action server to start.");
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
   // 创建并发送目标
   robot_arm::AimGoal goal;
-  goal.pot_id = 1; // 假设的 pot_id 你可以根据需要修改这个值
+  goal.id = 1; // 假设的 pot_id 你可以根据需要修改这个值
   client.sendGoal(goal, &doneCb);
 
   ros::spin();
