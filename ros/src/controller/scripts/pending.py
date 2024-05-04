@@ -34,7 +34,9 @@ class PendingServer():
         def stop_serve(req):
             self.node_info.state = self.node_info.Stop
             self.node_info_pub.publish(self.node_info)
-            return
+            resp = StopResponse()
+            resp.success = True
+            return resp
 
         def clear_map_serve(req):
             self.node_info.state = self.node_info.Clear_Map
