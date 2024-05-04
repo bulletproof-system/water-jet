@@ -45,13 +45,8 @@ class ObjectDetector:
         response = client(request)
 
         global pots
-        for pot_info in response.pots:
-            original_pose = pickle.loads(pot_info.pose)
-            pots[pot_info.id] = {
-                'x': original_pose.position.x, 
-                'y': original_pose.position.y, 
-                'z': original_pose.position.z
-            }
+        pots = {pot_info.id: {'x': pot_info.pose.position.x, 'y': pot_info.pose.position.y, 'z': pot_info.pose.position.z} 
+                        for pot_info in response.pots}
         
     def handle_check_pot(self,req):
         """检查花盆id所对应的花盆是否存在"""
@@ -107,15 +102,15 @@ class ObjectDetector:
             pots[new_id] = {'x': world_point.point.x, 'y': world_point.point.y, 'z': world_point.point.z,'last_scan_time': current_time}
 
             # 处理点云数据
-            pcl_data = pcl_ros.point_cloud2.to_pcl(obj_pointcloud)
+            # pcl_data = pcl_ros.point_cloud2.to_pcl(obj_pointcloud)
     
-            # 保存为 PCD 文件
-            pcl.save(pcl_data, "temp.pcd")           
-            # cloud.from_list(pc2.read_points(obj_pointcloud, skip_nans=True))
-            # pcl.save(cloud, 'temp.pcd', binary=True)
-            with open('temp.pcd', 'rb') as f:
-                 serialized_cloud = f.read()
-            # serialized_cloud = pickle.dumps(obj_pointcloud)
+            # # 保存为 PCD 文件
+            # pcl.save(pcl_data, "temp.pcd")           
+            # # cloud.from_list(pc2.read_points(obj_pointcloud, skip_nans=True))
+            # # pcl.save(cloud, 'temp.pcd', binary=True)
+            # with open('temp.pcd', 'rb') as f:
+            #      serialized_cloud = f.read()
+            serialized_cloud = pickle.dumps(obj_pointcloud)
 
             # TODO picture设置
             pot_info = PotInfo()

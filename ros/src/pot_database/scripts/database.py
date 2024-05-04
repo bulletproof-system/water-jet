@@ -130,8 +130,13 @@ class Database:
         self.update_pub.publish(update_msg)
 
     def row_to_potinfo(self, row):
+        # 反序列化 pose, data, 和 picture 字段
+        pose = pickle.loads(row[1]) if row[1] else None
+        data = pickle.loads(row[2]) if row[2] else None
+        picture = pickle.loads(row[3]) if row[3] else None
         last_water_date_str = row[5].strftime("%Y-%m-%dT%H:%M:%S") if row[5] else None
-        return PotInfo(id=row[0], pose=row[1], data=row[2], picture=row[3], 
+        
+        return PotInfo(id=row[0], pose=pose, data=data, picture=picture, 
                        active=row[4], last_water_date=last_water_date_str)
 
 if __name__ == '__main__':
