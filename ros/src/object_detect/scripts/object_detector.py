@@ -55,9 +55,9 @@ class ObjectDetector:
         
         response = CheckPotResponse()
         if time_difference > TIMEOUT_THRESHOLD:
-            response.sucess = False
+            response.success = False
         else:
-            response.sucess = True
+            response.success = True
         
         return response
 
