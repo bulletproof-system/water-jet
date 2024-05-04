@@ -76,7 +76,7 @@ class Core:
             request = StartRequest(mode=mode)
             response = client(request)
         except rospy.ServiceException as e:
-            rospy.logerr(f"Service call failed: {e}")
+            rospy.logerr("Service call failed: {}".format(e))
             return StartResponse(success=False)
 
         return response
