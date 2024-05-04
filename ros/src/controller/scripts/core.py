@@ -90,9 +90,10 @@ class Core:
         rospy.wait_for_service(service_path)
 
         client = rospy.ServiceProxy(service_path, Stop)
-        request = Stop(mode=mode)
-        response = client(request)
+        request = Stop()
+        request.mode = mode
 
+        response = client(request)
         return response   
          
     def handle_change_mode(self,change_mode):
