@@ -89,7 +89,6 @@ class MapProviderNode:
             rospy.logerr("Error occurred while deleting maps: %s", e)
 
     def set_position_callback(self, data):
-        # TODO: 实现设置机器人初始位置逻辑
         rospy.loginfo("Setting initial robot position...")
         # 创建一个带协方差的位姿消息，这通常用于设置初始位姿
         initial_pose_msg = PoseWithCovarianceStamped()
@@ -108,7 +107,7 @@ class MapProviderNode:
         rospy.loginfo("Starting automatic mapping...")
         # 示例的进度反馈和结果发布
         feedback = InitMapFeedback()
-        feedback.percentage = 0
+        feedback.percentage = -1    # 简化版本，不关心进度
         self.auto_map_server.publish_feedback(feedback)
         # 一些建图逻辑...
         feedback.percentage = 100
@@ -118,9 +117,10 @@ class MapProviderNode:
     def manual_map(self, goal):
         rospy.loginfo("Received manual mapping request, starting manual mapping...")
         feedback = InitMapFeedback()
-        feedback.percentage = -1  # 简化版本，不关心进度
+        feedback.percentage = -1    # 简化版本，不关心进度
 
-        # # 启动 SLAM
+        # 启动 SLAM
+        print "current slam process: {}".format(self.slam_process)
         # if self.slam_process is None:
         #     try:
         #         self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'test-slam_gmapping.launch'])
@@ -137,6 +137,7 @@ class MapProviderNode:
         #     result = InitMapResult(result='error')
         #     self.manual_map_server.set_aborted(result)
         # self.manual_map_server.publish_feedback(feedback)
+
         # if self.slam_process is None:
         #     try:
         #         self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'test-slam_gmapping.launch'])
@@ -165,9 +166,43 @@ class MapProviderNode:
             # 检查是否有预处理请求
             if self.manual_map_server.is_preempt_requested():
                 rospy.loginfo('Preempted Manual Map')
-                self.manual_map_server.set_preempted()  # 通知客户端任务被预处理
+                # self.manual_map_server.set_preempted()  # 通知客户端任务被预处理
+                rospy.loginfo("Manual mapping has been preempted/cancelled.")
+                result = InitMapResult()
+                # if self.slam_process:
+                #     try:
+                #         self.slam_process.terminate()
+                #         rospy.loginfo("SLAM process has been terminated.")
+                #         result.result = 'cancel'
+                #         self.slam_process = None
+                #     except Exception as e:
+                #         rospy.logerr("Failed to terminate SLAM process: %s", e)
+                #         result.result = 'error'
+                # else:
+                #     rospy.loginfo("No active SLAM process to cancel.")
+                #     result.result = 'cancel'
+                try:
+                    self.slam_process.terminate()
+                    # 使用rosnode kill命令结束slam_gmapping节点
+                    kill_command = "rosnode kill /slam_gmapping"
+                    subprocess.call(kill_command.split(' '))
+                    rospy.loginfo("SLAM process has been terminated using rosnode kill.")
+                    result.result = 'cancel'
+                except Exception as e:
+                    rospy.logerr("Failed to terminate SLAM process with rosnode kill: %s", e)
+                    result.result = 'error'
+                finally:
+                    self.slam_process = None
+                self.manual_map_server.set_preempted(result)  # 设置操作已被取消的结果
                 break
             rospy.sleep(0.1)  # 休眠，以避免过度占用CPU
+
+        # while not rospy.is_shutdown():
+        #     if self.manual_map_server.is_preempt_requested():
+        #         rospy.loginfo('Preempted Manual Map')
+        #         # self.manual_map_server.set_preempted()  # 通知客户端任务被预处理
+        #         break
+        #     rospy.sleep(0.01)  # 休眠，以避免过度占用CPU
 
     def manual_preeme_cb(self):
         rospy.loginfo("Manual mapping has been preempted/cancelled.")
