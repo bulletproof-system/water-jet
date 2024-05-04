@@ -28,7 +28,7 @@ function target(): Promise<any> {
 		})
 		return res;
 	})()
-	const goal = new ROSLIB.Goal({
+	let goal = new ROSLIB.Goal({
 	    actionClient: targetActionClient,
 		goalMessage: {
 			targets: targets.map((target) => parseInt(target)),
@@ -48,6 +48,7 @@ function target(): Promise<any> {
 				percentage: 100,
 				cancel: null
 			})
+			goal = null;
 			if (result.result === 'error')
 				reject(result);
 			else resolve(result);

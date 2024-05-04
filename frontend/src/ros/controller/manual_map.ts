@@ -17,7 +17,7 @@ const feedbackInfo: Record<string, string> = {
 	'cancel': '导航取消',
 }
 function manualInitMap(): Promise<any> {
-	const goal = new ROSLIB.Goal({
+	let goal = new ROSLIB.Goal({
 	    actionClient: manualInitMapActionClient,
 		goalMessage: {
 			caller: 'frontend'
@@ -37,6 +37,7 @@ function manualInitMap(): Promise<any> {
 				percentage: -1,
 				cancel: null
 			})
+			goal = null;
 			if (result.result === 'error')
 				reject(result);
 			else resolve(result)

@@ -226,7 +226,7 @@ const feedbackInfo: Record<string, string> = {
 	'planning': '正在规划路径',
 }
 function navigate(pos: Msg.geometry.Pose): Promise<any> {
-    const goal = new ROSLIB.Goal({
+    let goal = new ROSLIB.Goal({
 		actionClient: navigateActionClient,
 		goalMessage: {
 			pos: pos
@@ -244,6 +244,7 @@ function navigate(pos: Msg.geometry.Pose): Promise<any> {
 				percentage: 100,
 				cancel: null
 			})
+			goal = null
 			if (result.result === 'error')
 				reject(result);
 			else resolve(result)

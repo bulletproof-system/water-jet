@@ -21,7 +21,7 @@ const feedbackInfo: Record<string, string> = {
 	'cancel': '巡检取消',
 }
 function inspect(): Promise<any> {
-	const goal = new ROSLIB.Goal({
+	let goal = new ROSLIB.Goal({
 	    actionClient: inspectActionClient,
 		goalMessage: {
 			caller: 'frontend'
@@ -41,6 +41,7 @@ function inspect(): Promise<any> {
 				percentage: 100,
 				cancel: null
 			})
+			goal = null;
 			if (result.result === 'error')
 				reject(result);
 			else resolve(result)
