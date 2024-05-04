@@ -44,7 +44,9 @@ class Core:
         self.mode = 1
         rospy.wait_for_service('/ctrl/pending/start')
         client = rospy.ServiceProxy('ctrl/pending/start',Start)
-        response = client(mode = 1)
+        request = StartRequest()
+        request.mode = 1
+        response = client(request)
     
     def hello_callback(self,hello):
         info = Info(mode=self.mode,scram=self.scram)
@@ -67,9 +69,15 @@ class Core:
         service_path = service_paths.get(mode)
         rospy.wait_for_service(service_path)
 
+        
         client = rospy.ServiceProxy(service_path, Start)
-        request = StartRequest(mode=mode)
-        response = client(request)
+
+        try:
+            request = StartRequest(mode=mode)
+            response = client(request)
+        except rospy.ServiceException as e:
+            rospy.logerr(f"Service call failed: {e}")
+            return StartResponse(success=False)
 
         return response
     
@@ -97,6 +105,7 @@ class Core:
          
     def handle_change_mode(self,change_mode):
         mode = change_mode.mode
+
         service_paths = {
             1: '/ctrl/pending/stop',
             2: '/ctrl/auto_map/stop',
