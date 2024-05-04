@@ -53,6 +53,7 @@ class SimpleGoalServer:
         # 监听global_planner
         self.gp_sub = None
         rospy.loginfo("导航启动")
+        self.gp_sub = rospy.Subscriber('/move_base/GlobalPlanner/plan',Path, self.updata_global_plan)
 
     def clear_state(self):
         self.cur_goal = None
@@ -62,6 +63,20 @@ class SimpleGoalServer:
         self.global_plan = None 
         self.cur_pos_id = 0 
         self.plan_init = False
+
+    def updata_global_plan(self, msg):
+        p_list = msg.poses # geometry_msgs/PoseStamped[]
+        self.global_plan = []
+        self.cur_pos_id = 0
+        for p in p_list: # geometry_msgs/PoseStamped
+            pose = p.pose # geometry_msgs/Pose
+            x = pose.position.x
+            y = pose.position.y
+            z = pose.orientation.z
+            self.global_plan.append((x,y,z))
+        if len(self.global_plan) == 0:
+            return
+        self.plan_init = True
         
     # server的回调函数
     def simple_goal_cb(self,goal):
@@ -73,19 +88,7 @@ class SimpleGoalServer:
                 self.reach_flag = True
                 self.fail = True
 
-        def updata_global_plan(msg):
-            p_list = msg.poses # geometry_msgs/PoseStamped[]
-            self.global_plan = []
-            self.cur_pos_id = 0
-            for p in p_list: # geometry_msgs/PoseStamped
-                pose = p.pose # geometry_msgs/Pose
-                x = pose.position.x
-                y = pose.position.y
-                z = pose.orientation.z
-                self.global_plan.append((x,y,z))
-            if len(self.global_plan) == 0:
-                return
-            self.plan_init = True
+        
 
         def move_base_active_cb():
             rospy.loginfo("move_base服务被激活....")
@@ -126,7 +129,7 @@ class SimpleGoalServer:
         self.cur_goal.target_pose.pose.orientation.z = goal.pos.orientation.z
         self.cur_goal.target_pose.pose.orientation.w = goal.pos.orientation.w
         # 监听global_planner
-        self.gp_sub = rospy.Subscriber('/move_base/GlobalPlanner/plan',Path,updata_global_plan,queue_size=10)
+        
         self.ac.send_goal(self.cur_goal,move_base_done_cb,move_base_active_cb,move_base_fb_cb)  
         self.reach_flag = False
         self.ac.wait_for_server()         
@@ -153,7 +156,7 @@ class SimpleGoalServer:
         self.clear_state()
         # 停止监听
         self.vel_sub.unregister()
-        self.gp_sub.unregister()
+        # self.gp_sub.unregister()
         rospy.loginfo("导航结束！")
 
     # 监听速度，实现动态避障
