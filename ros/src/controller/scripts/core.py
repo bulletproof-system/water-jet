@@ -53,7 +53,7 @@ class Core:
     def handle_start(self,start):
         mode = start.mode
         if mode != self.mode:
-            return StartResponse(sucess=False)
+            return StartResponse(success=False)
 
         service_paths = {
             1: '/ctrl/pending/start',
@@ -76,7 +76,7 @@ class Core:
     def handle_stop(self,stop):
         mode = stop.mode
         if mode != self.mode:
-            return StopResponse(sucess=False)
+            return StopResponse(success=False)
 
         service_paths = {
             1: '/ctrl/pending/stop',
@@ -112,19 +112,19 @@ class Core:
             request = StopRequest(mode=mode)
             response = client(request)
 
-            if response.sucess:
+            if response.success:
                 self.mode = mode
                 # 发布info信息
                 info = Info(mode=self.mode,scram=self.scram)
                 self.info_pub.publish(info)
-                change_mode_response = ChangeModeResponse(sucess=True)
+                change_mode_response = ChangeModeResponse(success=True)
                 return change_mode_response
             else:
-                change_mode_response = ChangeModeResponse(sucess=False)
+                change_mode_response = ChangeModeResponse(success=False)
                 return change_mode_response
         else:
             # 更换模式出错
-            change_mode_response = ChangeModeResponse(sucess=False)
+            change_mode_response = ChangeModeResponse(success=False)
             return change_mode_response
 
     def scram_callback(self,scarm):
@@ -134,7 +134,7 @@ class Core:
         info = Info(mode=self.mode,scram=self.scram)
         self.info_pub.publish(info)
 
-        scarm_response = ScramResponse(sucess=True)
+        scarm_response = ScramResponse(success=True)
         return scarm_response
 
     def _cmd_vel_callback(self,twist):
