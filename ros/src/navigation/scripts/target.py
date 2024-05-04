@@ -25,7 +25,7 @@ def fb_cb(fb):
 if __name__ == "__main__":
     rospy.init_node("target")
     # 创建 action Client 对象
-    client = actionlib.SimpleActionClient("navigate",NavigateAction)
+    client = actionlib.SimpleActionClient("/navigation/navigate",NavigateAction)
     print("op = 0:navigate")
     print("op = 1:cancel")
     print("op = -1:exit")

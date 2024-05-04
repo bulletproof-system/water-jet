@@ -45,7 +45,7 @@ class SimpleGoalServer:
         self.result = NavigateResult()
 
         # simple_goal是三个服务层节点的server
-        self.server = actionlib.SimpleActionServer("navigate",NavigateAction,self.simple_goal_cb,False)
+        self.server = actionlib.SimpleActionServer("/navigation/navigate",NavigateAction,self.simple_goal_cb,False)
         self.server.start()
 
         # 监听速度
