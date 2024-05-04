@@ -12,7 +12,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 class PendingServer():
     def __init__(self):
         # 与前端交互节点状态
-        def hello_callback(self, msg):
+        def hello_callback(msg):
             rospy.loginfo("Received hello message")
             self.node_info_pub.publish(self.node_info)
 
