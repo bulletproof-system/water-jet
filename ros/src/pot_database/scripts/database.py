@@ -63,7 +63,10 @@ class Database:
     def handle_set_pot_info(self, request):
         pot = request.info
         try:
-            last_water_date = datetime.strptime(pot.last_water_date, "%Y-%m-%dT%H:%M:%S")
+            if pot.last_water_date == "":
+                last_water_date = None
+            else:
+                last_water_date = datetime.strptime(pot.last_water_date, "%Y-%m-%dT%H:%M:%S")
             self.cursor.execute('''
                 INSERT OR REPLACE INTO pots (id, pose, data, picture, active, last_water_date)
                 VALUES (?, ?, ?, ?, ?, ?)

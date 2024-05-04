@@ -101,25 +101,26 @@ class ObjectDetector:
             pots[new_id] = {'x': world_point.point.x, 'y': world_point.point.y, 'z': world_point.point.z,'last_scan_time': current_time}
 
             # 处理点云数据
-            cloud = pcl.PointCloud()
-            cloud.from_list(pc2.read_points(obj_pointcloud, skip_nans=True))
-            pcl.save(cloud, 'temp.pcd', binary=True)
-            with open('temp.pcd', 'rb') as f:
-                serialized_cloud = f.read()
+            # cloud = pcl.PointCloud()
+            # cloud.from_list(pc2.read_points(obj_pointcloud, skip_nans=True))
+            # pcl.save(cloud, 'temp.pcd', binary=True)
+            # with open('temp.pcd', 'rb') as f:
+            #     serialized_cloud = f.read()
+            serialized_cloud = pickle.dumps(obj_pointcloud)
 
             # TODO picture设置
             pot_info = PotInfo()
             pot_info.id = new_id
             pot_info.pose = Pose(Point(world_point.point.x, world_point.point.y, world_point.point.z), Quaternion(0, 0, 0, 1))
             pot_info.data = serialized_cloud
-            pot_info.picture = None
+            pot_info.picture = []
             pot_info.active = True
-            pot_info.last_water_date = None
+            pot_info.last_water_date = ""
 
             # 调用数据库服务
             set_pot_info_service = rospy.ServiceProxy('/database/pot/set', SetPotInfo)
             request = SetPotInfoRequest()
-            request.PotInfo = pot_info
+            request.info = pot_info
             response = set_pot_info_service(request)
         
         
