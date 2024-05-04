@@ -32,7 +32,7 @@ class Core:
         rospy.Subscriber("/hello",Hello,self.hello_callback)
 
         # Publishers
-        self.cmd_vel_pub = rospy.Publisher('/ctrl/cmd_vel',Twist,queue_size=10)
+        self.cmd_vel_pub = rospy.Publisher('/cmd_vel',Twist,queue_size=10)
         self.info_pub = rospy.Publisher('/ctrl/info',Info,queue_size=10)
         
         # Services
