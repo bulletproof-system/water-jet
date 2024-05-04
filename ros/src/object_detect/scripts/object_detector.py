@@ -8,9 +8,9 @@ import pcl
 import sensor_msgs.point_cloud2 as pc2
 from geometry_msgs.msg import Pose, Point, Quaternion,PointStamped
 from sensor_msgs.msg import PointCloud2
-from database.msg import PotInfo
+from pot_database.msg import PotInfo
 from object_detect.srv import *
-from database.srv import *
+from pot_database.srv import *
 from math import sqrt
 
 pots = {}                   # pot的信息字典， id -> (x,y,z,last_scan_time) ;
@@ -38,11 +38,15 @@ class ObjectDetector:
         
     def load_pots_from_database(self):
         """从数据库加载所有花盆的信息"""
-        self.cursor.execute('SELECT id, x, y, z FROM pots')
-        rows = self.cursor.fetchall()
+        request = GetPotListRequest()
+        rospy.wait_for_service('/database/pot/list')
+        client = rospy.ServiceProxy('/database/pot/list',GetPotList)
+        response = client(request)
+
         global pots
-        pots = {row[0]: {'x': row[1], 'y': row[2], 'z': row[3]} for row in rows}
-    
+        pots = {pot_info.id: {'x': pot_info.pose.position.x, 'y': pot_info.pose.position.y, 'z': pot_info.pose.position.z} 
+                for pot_info in response.pots}    
+        
     def handle_check_pot(self,req):
         """检查花盆id所对应的花盆是否存在"""
         pot_id = req.id
