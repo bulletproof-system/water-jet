@@ -9,15 +9,14 @@ import subprocess
 
 import actionlib
 from std_msgs.msg import String
-from map_provider.msg import *
-# from map_provider.action import InitMap
+from map_provider.msg import *      # action 也包含在内
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped
 
 
-cur_dir = os.path.dirname(os.path.abspath(__file__))
-pkg_dir = os.path.dirname(cur_dir)
-maps_dir = os.path.join(pkg_dir, 'maps')
+cur_dir = os.path.dirname(os.path.abspath(__file__))    # 当前文件夹
+pkg_dir = os.path.dirname(cur_dir)                      # map_provider 包目录
+maps_dir = os.path.join(pkg_dir, 'maps')                # map_provider/maps，用于存放地图
 
 class MapProviderNode:
     def __init__(self):
@@ -42,6 +41,7 @@ class MapProviderNode:
         self.manual_map_server.start()
         rospy.loginfo("Map Provider Node has started.")
 
+    # 保存地图的回调函数
     def save_map_callback(self, data):
         rospy.loginfo("Saving map...")
         map_name = data.name
@@ -63,6 +63,9 @@ class MapProviderNode:
         except Exception as e:
             rospy.logerr("Error occurred: %s", e)
 
+    # 清理地图的回调函数
+    # 实现：清空 maps_dir 下的所有文件
+    # data 暂时用不到
     def clear_map_callback(self, data):
         rospy.loginfo("Clearing map...")
         rospy.loginfo("Clearing all maps in the directory {}.".format(maps_dir))
@@ -88,6 +91,20 @@ class MapProviderNode:
         except Exception as e:
             rospy.logerr("Error occurred while deleting maps: %s", e)
 
+    # 手动设定位置的回调函数
+    # data 是 geometry_msgs/Pose pos，yaml 格式的 data 如下（示例见test_set_pos.yaml）：
+    """
+    pos:
+    position:
+        x: 1.0
+        y: 1.0
+        z: 2.0
+    orientation:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 10.0
+    """
     def set_position_callback(self, data):
         rospy.loginfo("Setting initial robot position...")
         # 创建一个带协方差的位姿消息，这通常用于设置初始位姿
@@ -102,8 +119,9 @@ class MapProviderNode:
         self.initial_pose_pub.publish(initial_pose_msg)
         rospy.loginfo("Robot initial position has been set.")
 
+    # 自动建图的回调函数
+    # TODO: 实现自动建图逻辑
     def auto_map(self, goal):
-        # TODO: 实现自动建图逻辑
         rospy.loginfo("Starting automatic mapping...")
         # 示例的进度反馈和结果发布
         feedback = InitMapFeedback()
@@ -114,6 +132,10 @@ class MapProviderNode:
         self.auto_map_server.publish_feedback(feedback)
         self.auto_map_server.set_succeeded(InitMapResult(result='success'))
 
+    # 手动建图的回调函数
+    # 尝试注册了 preempt 的处理函数，但未触发
+    # 采用和 navigation 包一样的逻辑，轮询查看是否有 preempt
+    # 保险起见，加了 rosnode kill /slam_gmapping 的逻辑来终止 slam
     def manual_map(self, goal):
         rospy.loginfo("Received manual mapping request, starting manual mapping...")
         feedback = InitMapFeedback()
@@ -204,6 +226,7 @@ class MapProviderNode:
         #         break
         #     rospy.sleep(0.01)  # 休眠，以避免过度占用CPU
 
+    # 手动建图 preempt 时的处理函数，但不知道为什么触发不了
     def manual_preeme_cb(self):
         rospy.loginfo("Manual mapping has been preempted/cancelled.")
         result = InitMapResult()
