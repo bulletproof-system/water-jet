@@ -3,7 +3,7 @@
 import rospy
 from geometry_msgs.msg import Twist
 from controller.msg import Info,Hello
-from controller.srv import Start,StartResponse,Stop,StopResponse,ChangeMode,ChangeModeResponse,Scram,ScramResponse
+from controller.srv import *
 
 """
 Core State 
@@ -68,7 +68,7 @@ class Core:
         rospy.wait_for_service(service_path)
 
         client = rospy.ServiceProxy(service_path, Start)
-        request = Start(mode=mode)
+        request = StartRequest(mode=mode)
         response = client(request)
 
         return response
@@ -90,8 +90,7 @@ class Core:
         rospy.wait_for_service(service_path)
 
         client = rospy.ServiceProxy(service_path, Stop)
-        request = Stop()
-        request.mode = mode
+        request = StopRequest(mode=mode)
 
         response = client(request)
         return response   
@@ -110,7 +109,7 @@ class Core:
             service_path = service_paths[mode]
             rospy.wait_for_service(service_path)
             client = rospy.ServiceProxy(service_path, Stop)
-            request = Stop(mode=mode)
+            request = StopRequest(mode=mode)
             response = client(request)
 
             if response.sucess:

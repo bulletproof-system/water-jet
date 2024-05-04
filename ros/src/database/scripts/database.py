@@ -4,7 +4,7 @@ import rospy
 import sqlite3
 from datetime import datetime
 from database.msg import PotInfo, PotUpdate
-from database.srv import GetPotList, SetPotInfo, SetPotActive, GetPotInfo, DeletePot, GetPotListResponse, SetPotInfoResponse, SetPotActiveResponse, GetPotInfoResponse, DeletePotResponse
+from database.srv import *
 
 class Database:
     def __init__(self):

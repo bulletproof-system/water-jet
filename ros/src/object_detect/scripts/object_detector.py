@@ -10,8 +10,8 @@ import sensor_msgs.point_cloud2 as pc2
 from geometry_msgs.msg import Pose, Point, Quaternion,PointStamped
 from sensor_msgs.msg import PointCloud2
 from database.msg import PotInfo
-from object_detect.srv import CheckPot,CheckPotResponse
-from database.srv import SetPotInfo
+from object_detect.srv import *
+from database.srv import *
 from math import sqrt
 
 pots = {}                   # pot的信息字典， id -> (x,y,z,last_scan_time) ;
@@ -60,9 +60,6 @@ class ObjectDetector:
             response.sucess = True
         
         return response
-
-    def pointcloud2_to_pcd(pointcloud2_msg):
-        """实现从pointcloud2格式到pcd格式的转换"""
 
     def handle_update_pots(self,obj_center,obj_pointcloud):
         """获取object_center , obj_pointcloud信息,更新花盆信息数据"""
@@ -118,7 +115,9 @@ class ObjectDetector:
 
             # 调用数据库服务
             set_pot_info_service = rospy.ServiceProxy('/database/pot/set', SetPotInfo)
-            response = set_pot_info_service(pot_info)
+            request = SetPotInfoRequest()
+            request.PotInfo = pot_info
+            response = set_pot_info_service(request)
         
         
 
