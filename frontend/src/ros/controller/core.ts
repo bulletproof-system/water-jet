@@ -14,10 +14,14 @@ const helloTopic = new ROSLIB.Topic({
 	messageType: 'controller/Hello'
 })
 
+function syncModeState() {
+	helloTopic.publish(new ROSLIB.Message({publisher: 'frontend'} as Msg.controller.Hello ))
+	console.log('sync state')
+}
+
 setInterval(() => {
 	if (ctrlMode.value == CtrlMode.Init) {
-		helloTopic.publish(new ROSLIB.Message({publisher: 'frontend'} as Msg.controller.Hello ))
-		console.log('publish hello')
+		syncModeState()
 	}
 }, 1000);
 
@@ -59,6 +63,7 @@ export function changeMode(mode: CtrlMode): Promise<any> {
 	};
 	return new Promise((resolve, reject) => {
 		changeModeService.callService(request, (response: Srv.controller.ChangeMode.Response) => {
+			syncModeState();
 			if (response.success) {
 				resolve(response);
 			} else {
@@ -116,50 +121,42 @@ export function start(): Promise<any> {
     if (nodeInfo.value.state !== NodeState.Stop) {
 		return Promise.reject(`node can't start: ${nodeInfo}`);
 	}
-	nodeInfo.value = {
-		state: NodeState.Stop,
-		task: '正在启动节点',
-		feedback: '',
+	rosStore.setNodeInfo({
+		feedback: '正在启动节点',
 		result: '',
 		percentage: -1,
 		cancel: null
-	}
+	})
 	const request: Srv.controller.Start.Request = {
 		mode: ctrlMode.value
 	};
 	return new Promise((resolve, reject) => {
 		startService.callService(request, (response: Srv.controller.Start.Response) => {
 			if (response.success) {
-				nodeInfo.value = {
-					state: NodeState.Wait,
-					task: '',
+				rosStore.setNodeInfo({
 					feedback: '启动节点完成',
 					result: 'success',
 					percentage: 100,
 					cancel: null
-				}
+				})
 				resolve(response);
 			} else {
-				nodeInfo.value = {
-					state: NodeState.Stop,
-					task: '',
+				rosStore.setNodeInfo({
 					feedback: '启动节点失败',
 					result: 'fail',
 					percentage: 100,
 					cancel: null
-				}
+				})
 				console.warn('start node failed');
 				reject("start node failed");
 			}
 		}, (error) => {
-			nodeInfo.value = {
-				state: NodeState.Stop,
-				task: '',
+			rosStore.setNodeInfo({
 				feedback: '启动节点失败',
 				result: 'error',
 				percentage: 100,
 				cancel: null
-			}
+			})
 			console.warn(error);
 			reject(error);
 		})
@@ -180,50 +177,42 @@ export function stop(): Promise<any> {
 	}
 	// 停止正在运行的任务
 	rosStore.cancel();
-	nodeInfo.value = {
-		state: NodeState.Wait,
-		task: '正在停止节点',
-		feedback: '',
+	rosStore.setNodeInfo({
+		feedback: '正在停止节点',
 		result: '',
 		percentage: -1,
 		cancel: null
-	}
+	})
 	const request: Srv.controller.Stop.Request = {
 		mode: ctrlMode.value
 	};
 	return new Promise((resolve, reject) => {
 		stopService.callService(request, (response: Srv.controller.Stop.Response) => {
 			if (response.success) {
-				nodeInfo.value = {
-					state: NodeState.Stop,
-					task: '',
+				rosStore.setNodeInfo({
 					feedback: '停止节点成功',
 					result: 'success',
 					percentage: 100,
 					cancel: null
-				}
+				})
 				resolve(response);
 			} else {
-				nodeInfo.value = {
-					state: NodeState.Stop,
-					task: '',
+				rosStore.setNodeInfo({
 					feedback: '停止节点失败',
 					result: 'fail',
 					percentage: 100,
 					cancel: null
-				}
+				})
 				console.warn('stop node failed');
 				reject("stop node failed");
 			}
 		}, (error) => {
-			nodeInfo.value = {
-				state: NodeState.Stop,
-				task: '',
+			rosStore.setNodeInfo({
 				feedback: '停止节点失败',
 				result: 'error',
 				percentage: 100,
 				cancel: null
-			}
+			})
 			console.warn(error);
 			reject(error);
 		});

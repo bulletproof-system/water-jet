@@ -16,43 +16,41 @@ const feedbackInfo: Record<string, string> = {
 	'error': '导航异常',
 	'cancel': '导航取消',
 }
-function manualInitMap(): ()=>void {
+function manualInitMap(): Promise<any> {
 	const goal = new ROSLIB.Goal({
 	    actionClient: manualInitMapActionClient,
 		goalMessage: {
 			caller: 'frontend'
 		} as Action.MapProvider.InitMap.Goal
 	});
-	nodeInfo.value = {
-		state: NodeState.Manual_Init_Map,
-		task: '手动建图',
-	    feedback: '正在建图...',
+	rosStore.setNodeInfo({
+		feedback: '正在建图...',
 	    result: '',
 	    percentage: -1,
-	    cancel: goal.cancel
-	}
-	goal.on('result', (result: Action.MapProvider.InitMap.Result) => {
-		nodeInfo.value = {
-			state: NodeState.Wait,
-			task: '',
-		    feedback: feedbackInfo[result.result],
-		    result: result.result,
-		    percentage: -1,
-		    cancel: null
-		} 
-	});
-	goal.on('feedback', (feedback: Action.MapProvider.InitMap.Feedback) => {
-		nodeInfo.value = {
-			state: NodeState.Manual_Init_Map,
-			task: '手动建图',
-			feedback: '正在建图...',
-			result: '',
-			percentage: feedback.percentage,
-			cancel: goal.cancel
-		};
-	});
-	goal.send();
-	return goal.cancel;
+	    cancel: goal.cancel.bind(goal)
+	})
+	return new Promise((resolve, reject) => {
+		goal.on('result', (result: Action.MapProvider.InitMap.Result) => {
+			rosStore.setNodeInfo({
+				feedback: feedbackInfo[result.result],
+				result: result.result,
+				percentage: -1,
+				cancel: null
+			})
+			if (result.result === 'error')
+				reject(result);
+			else resolve(result)
+		});
+		goal.on('feedback', (feedback: Action.MapProvider.InitMap.Feedback) => {
+			rosStore.setNodeInfo({
+				feedback: '正在建图...',
+				result: '',
+				percentage: feedback.percentage,
+				cancel: goal.cancel.bind(goal)
+			})
+		});
+		goal.send();
+	})
 }
 
 export { manualInitMap }

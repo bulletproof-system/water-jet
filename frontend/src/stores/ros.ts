@@ -35,7 +35,6 @@ export enum NodeState {
 
 export interface NodeInfo {
   state: NodeState,
-  task: string,
   feedback: string,
   result: 'success' | 'fail' | 'cancel' | 'error' | '',
   percentage: number,
@@ -72,6 +71,13 @@ export const useROSStore = defineStore('ros', {
     },
     setNodeState(state: NodeState) {
       this.nodeInfo.state = state
+    },
+    setNodeInfo(nodeInfo: Partial<NodeInfo>) {
+      for (const key in nodeInfo) {
+        if (Object.prototype.hasOwnProperty.call(nodeInfo, key)) {
+          this.nodeInfo[key] = nodeInfo[key]
+        }
+      }
     },
     cancel() {
       if (!this.nodeInfo.cancel) return;

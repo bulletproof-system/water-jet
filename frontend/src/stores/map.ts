@@ -41,10 +41,10 @@ export const useMapStore = defineStore('map', {
 	    setMouseAction(action: MouseAction) {
 	        this.mouseAction = action
 	    },
-		setLocatePot(locatePot: (id: number) => void) {
+		setLocatePot(locatePot: (id: string) => void) {
 			this.control.locatePot = locatePot
 		},
-		locatePot(id: number) {
+		locatePot(id: string) {
 		    this.control.locatePot(id)
 		}
 	}
