@@ -46,6 +46,11 @@ export const useMapStore = defineStore('map', {
 		},
 		locatePot(id: string) {
 		    this.control.locatePot(id)
+		},
+		setTarget(from: THREE.Vector3, to: THREE.Vector3) {
+			this.control.target.from = from
+			this.control.target.to = to
+			this.mode = ControlMode.LocatePot
 		}
 	}
 })

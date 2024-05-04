@@ -25,7 +25,7 @@
     <!-- 导航 -->
     <Navigation ref="navigation"/>
     <!-- 花盆 -->
-    <!-- <Flowerpots ref="flowerPots" /> -->
+    <Flowerpots ref="flowerPots" />
   </TresCanvas>
   <div style="position: relative;" class="d-flex justify-end">
     <div style="position: absolute; top: -190px" class="d-flex flex-column pa-3">
