@@ -5,6 +5,7 @@ import sqlite3
 from datetime import datetime
 from pot_database.msg import PotInfo, PotUpdate
 from pot_database.srv import *
+import pickle
 
 class Database:
     def __init__(self):
@@ -67,13 +68,20 @@ class Database:
                 last_water_date = None
             else:
                 last_water_date = datetime.strptime(pot.last_water_date, "%Y-%m-%dT%H:%M:%S")
+
+            # Serialize pose, data, and picture using pickle
+            serialized_pose = pickle.dumps(pot.pose)
+            serialized_data = pickle.dumps(pot.data)
+            serialized_picture = pickle.dumps(pot.picture)            
+
             self.cursor.execute('''
                 INSERT OR REPLACE INTO pots (id, pose, data, picture, active, last_water_date)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (pot.id, pot.pose, pot.data, pot.picture, pot.active, last_water_date))
+            ''', (pot.id, serialized_pose, serialized_data, serialized_picture, pot.active, last_water_date))
             self.conn.commit()
             self.publish_update([pot.id], [])
             return SetPotInfoResponse(success=True)
+    
         except sqlite3.Error as e:
             rospy.logerr("Failed to set pot info, DB error: %s" % str(e))
             self.conn.rollback()
