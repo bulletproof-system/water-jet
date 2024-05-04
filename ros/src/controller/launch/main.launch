@@ -12,7 +12,7 @@
 	<include file="$(find object_detect)/launch/object_detect.launch"/>
 
 	<!-- database -->
-	<include file="$(find database)/launch/database.launch"/>
+	<include file="$(find pot_database)/launch/database.launch"/>
 
 	<!-- ros web tool -->
 	<node name="keyboard_vel_ctrl" pkg="wpr_simulation" type="keyboard_vel_ctrl" />
