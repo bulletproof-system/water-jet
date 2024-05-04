@@ -5,7 +5,6 @@ import rospy
 import message_filters
 import pickle
 import pcl
-from pcl_ros import point_cloud2 as pcl2_ros
 import sensor_msgs.point_cloud2 as pc2
 from geometry_msgs.msg import Pose, Point, Quaternion,PointStamped
 from sensor_msgs.msg import PointCloud2

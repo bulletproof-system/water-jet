@@ -3,8 +3,8 @@
 import rospy
 import sqlite3
 from datetime import datetime
-from database.msg import PotInfo, PotUpdate
-from database.srv import *
+from pot_database.msg import PotInfo, PotUpdate
+from pot_database.srv import *
 
 class Database:
     def __init__(self):
