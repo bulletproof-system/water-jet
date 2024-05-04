@@ -54,8 +54,8 @@ export class Pot {
 		this.delete()
 
 		try {
-			const geometry = new THREE.IcosahedronGeometry( 0.3 ); 
-			const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} ); 
+			const geometry = new THREE.IcosahedronGeometry( 0.2 ); 
+			const material = new THREE.MeshLambertMaterial( {color: 0x00ff00} ); 
 			const capsule = new THREE.Mesh( geometry, material ); 
 			this.pointCloud = capsule;
 			// this.pointCloud = potModel.clone();
@@ -99,19 +99,19 @@ export class Pot {
 }
 
 const pots = ref(new Map<string, Pot>())
-// for (let i=1; i<=10; i+=2) {
-// 	pots.value.set(i.toString(), new Pot({
-// 		id: i,
-// 		pose: {
-// 			position: { x: Math.random() * 3 - 6, y: Math.random() * 3 - 6, z: Math.random() * 3 },
-// 			orientation: { x: 0, y: 0, z: 0, w: 1 }
-// 		},
-// 		data: undefined,
-// 		picture: undefined,
-// 		active: true,
-// 		last_water_date: new Date(),
-// 	}))
-// }
+for (let i=1; i<=10; i+=2) {
+	pots.value.set(i.toString(), new Pot({
+		id: i,
+		pose: {
+			position: { x: Math.random() * 3 - 6, y: Math.random() * 3 - 6, z: Math.random() * 3 },
+			orientation: { x: 0, y: 0, z: 0, w: 1 }
+		},
+		data: undefined,
+		picture: undefined,
+		active: true,
+		last_water_date: new Date(),
+	}))
+}
 
 const potUpdateTopic = new ROSLIB.Topic({
     ros: ros,
@@ -136,7 +136,7 @@ const setPotActiveService = new ROSLIB.Service({
 
 
 ros.on('connection', () => {
-	const request: Srv.database.PotList.Request = { caller: 'frontend' };
+	const request: Srv.database.PotList.Request = { };
 	potListService.callService(request, (response: Srv.database.PotList.Response) => {
 		pots.value.forEach((pot) => {
 			pot.delete()

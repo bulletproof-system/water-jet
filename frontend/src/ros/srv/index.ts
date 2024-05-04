@@ -96,7 +96,7 @@ export namespace database {
 	// /database/srv/PotList.srv
     export namespace PotList {
 		export interface Request {
-		    caller: string
+		    // caller: string
 		}
 		export interface Response {
 			pots: Msg.database.PotInfo[]
