@@ -20,9 +20,7 @@ function syncModeState() {
 }
 
 setInterval(() => {
-	if (ctrlMode.value == CtrlMode.Init) {
-		syncModeState()
-	}
+	syncModeState()
 }, 1000);
 
 // 订阅 info, 更新 controller 状态
