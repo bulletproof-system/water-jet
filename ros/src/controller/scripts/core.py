@@ -28,7 +28,7 @@ class Core:
         self.scram = False
 
         # Subscribers
-        rospy.Subscriber("_cmd_vel",Twist,self._cmd_vel_callback)
+        rospy.Subscriber("/ctrl/cmd_vel",Twist,self._cmd_vel_callback)
         rospy.Subscriber("/hello",Hello,self.hello_callback)
 
         # Publishers
