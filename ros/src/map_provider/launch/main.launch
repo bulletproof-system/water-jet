@@ -1,0 +1,7 @@
+<launch>
+
+    <!-- map_provider -->
+    <node name="map_provider_node" pkg="map_provider" type="map_provider_node.py" output="screen">
+    </node>
+
+</launch>
