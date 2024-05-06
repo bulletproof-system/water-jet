@@ -1,0 +1,43 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="cmd_vel_topic" default="cmd_vel" />
+  <arg name="odom_topic" default="odom" />
+  <arg name="simulation" default="false"/> 
+  <arg name="use_dijkstra" default="true"/>  
+
+  <arg name="base_type" default= "$(env BASE_TYPE)"/> 
+  <arg name="move_forward_only" default="false"/>
+
+  <!-- move_base using DWA planner -->
+  <!-- <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+    <rosparam file="$(find robot_navigation)/param/$(env BASE_TYPE)/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find robot_navigation)/param/$(env BASE_TYPE)/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find robot_navigation)/param/$(env BASE_TYPE)/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find robot_navigation)/param/$(env BASE_TYPE)/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find robot_navigation)/param/$(env BASE_TYPE)/move_base_params.yaml" command="load" />
+    <rosparam file="$(find robot_navigation)/param/$(env BASE_TYPE)/dwa_local_planner_params.yaml" command="load" />
+    <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
+    <remap from="odom" to="$(arg odom_topic)"/>
+    <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+    <param name="GlobalPlanner/use_dijkstra " value="$(arg use_dijkstra)" />
+  </node> -->
+
+  <!--- Run AMCL -->
+  <include file="$(find wpb_home_tutorials)/nav_lidar/amcl_omni.launch" />
+
+  <!--- Run move base -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <param name="base_global_planner" value="global_planner/GlobalPlanner" /> 
+    <param name="use_dijkstra" value="true"/>
+    <param name="base_local_planner" value="wpbh_local_planner/WpbhLocalPlanner" />
+    <param name= "controller_frequency" value="10" type="double"/>
+    <rosparam file="$(find wpb_home_tutorials)/nav_lidar/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find wpb_home_tutorials)/nav_lidar/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find wpb_home_tutorials)/nav_lidar/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find wpb_home_tutorials)/nav_lidar/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find wpb_home_tutorials)/nav_lidar/local_planner_params.yaml" command="load" />
+  </node>
+
+</launch>
