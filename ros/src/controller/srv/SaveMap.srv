@@ -1,0 +1,4 @@
+# /controller/srv/SaveMap.srv
+string caller # 调用者
+---
+bool success # 结果
