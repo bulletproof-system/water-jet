@@ -77,6 +77,7 @@ SaveMap.srv
 ## Generate actions in the 'action' folder
 add_action_files(
   FILES
+  AutoWater.action
   Target.action
 )
 

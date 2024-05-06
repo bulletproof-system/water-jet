@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from database.srv import GetPotList
+from pot_database.srv import GetPotList
 
 def test_get_pot_list():
     rospy.init_node('test_get_pot_list')

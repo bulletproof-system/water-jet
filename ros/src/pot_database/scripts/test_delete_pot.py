@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from database.srv import DeletePot
+from pot_database.srv import DeletePot
 
 def test_delete_pot():
     rospy.init_node('test_delete_pot')

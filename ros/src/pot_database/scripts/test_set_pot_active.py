@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from database.srv import SetPotActive
+from pot_database.srv import SetPotActive
 
 def test_set_pot_active():
     rospy.init_node('test_set_pot_active')

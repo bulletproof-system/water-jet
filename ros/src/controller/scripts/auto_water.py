@@ -9,7 +9,7 @@ from controller.msg import Hello, NodeInfo
 from controller.msg import AutoWaterAction, AutoWaterFeedback, AutoWaterResult
 from navigation.msg import NavigateAction, NavigateGoal
 from robot_arm.msg import AimAction,AimGoal
-from database.srv import GetPotList
+from pot_database.srv import GetPotList
 from controller.srv import Start,StartResponse,Stop,StopResponse
 
 STOP = 0

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from database.srv import SetPotInfo, PotInfo
+from pot_database.srv import SetPotInfo, PotInfo
 
 def test_set_pot_info():
     rospy.init_node('test_set_pot_info')
