@@ -123,7 +123,6 @@ catkin_package(
 #  LIBRARIES map_provider
 #  CATKIN_DEPENDS actionlib actionlib_msgs geometry_msgs move_base_msgs nav_msgs roscpp rospy std_msgs
 #  DEPENDS system_lib
-  INCLUDE_DIRS include
   LIBRARIES map_provider
   CATKIN_DEPENDS actionlib actionlib_msgs geometry_msgs move_base_msgs nav_msgs roscpp rospy std_msgs
 )
