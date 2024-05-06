@@ -2,6 +2,12 @@ echo $0
 src=$(dirname $(dirname $(dirname $0)))
 echo ${src}
 
+# 将src目录下的所有.py文件的可执行权限设置为+x
+find ${src} -name "*.py" -exec chmod +x {} \;
+
+# 将src目录下的所有.sh文件的可执行权限设置为+x
+find ${src} -name "*.sh" -exec chmod +x {} \;
+
 # 将src目录下的除忽略列表的所有内容链接到目标工作空间目录
 ws=/home/robot/catkin_ws/src/fri_g3_morning
 # ws=/home/ltt/download/src/fir_g3_morning
@@ -37,6 +43,8 @@ for folder in ${src}/*; do
         fi
     fi
 done
+
+
 
 # ln -s ${src}/controller ${ws}/controller
 # ln -s ${src}/create_map ${ws}/create_map

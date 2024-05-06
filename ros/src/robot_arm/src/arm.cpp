@@ -8,8 +8,8 @@
 #include <sound_play/SoundRequest.h>
 
 #include <cmath>
-#include "database/GetPotInfo.h"
-#include "database/SetPotInfo.h"
+#include "pot_database/GetPotInfo.h"
+#include "pot_database/SetPotInfo.h"
 
 #include <sstream>
 #include <ctime>
@@ -33,9 +33,9 @@ public:
     vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
     mani_ctrl_pub_ = nh_.advertise<sensor_msgs::JointState>("/wpb_home/mani_ctrl", 30);
     tts_pub_ = nh_.advertise<sound_play::SoundRequest>("/robotsound", 20);
-    pot_get_client_ = nh_.serviceClient<database::GetPotInfo>("/database/pot/get");
+    pot_get_client_ = nh_.serviceClient<pot_database::GetPotInfo>("/database/pot/get");
     ros::service::waitForService("/database/pot/get");
-    pot_set_client_ = nh_.serviceClient<database::SetPotInfo>("/database/pot/set");
+    pot_set_client_ = nh_.serviceClient<pot_database::SetPotInfo>("/database/pot/set");
     ros::service::waitForService("/database/pot/set");
 
     // test
@@ -57,7 +57,7 @@ public:
   {
     ROS_INFO("Executing arm action...");
   
-    database::GetPotInfo getPotInfo;
+    pot_database::GetPotInfo getPotInfo;
     getPotInfo.request.id = goal->id;
 
     if (pot_get_client_.call(getPotInfo)) {
@@ -72,7 +72,7 @@ public:
           speak();
           retractArm();
 
-          database::SetPotInfo setPotInfo;
+          pot_database::SetPotInfo setPotInfo;
           setPotInfo.request.info = getPotInfo.response.info;
           setPotInfo.request.info.last_water_date = getCurrentTime();
           if (pot_set_client_.call(setPotInfo)) {

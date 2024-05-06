@@ -9,7 +9,7 @@ from controller.msg import Hello, NodeInfo
 from controller.msg import TargetAction, TargetFeedback, TargetResult
 from navigation.msg import NavigateAction, NavigateGoal
 from robot_arm.msg import AimAction,AimGoal
-from database.srv import *
+from pot_database.srv import *
 from object_detect.srv import *
 from controller.srv import *
 
