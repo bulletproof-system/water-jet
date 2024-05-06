@@ -1,0 +1,4 @@
+# /controller/srv/Scram.srv
+bool active # 切换急停
+---
+bool success # 结果

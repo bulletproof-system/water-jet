@@ -1,0 +1,4 @@
+# /controller/srv/ChangeMode.srv
+uint8 mode # 更改到该 mode, 这里 mode 不能为 Init
+---
+bool success # 结果

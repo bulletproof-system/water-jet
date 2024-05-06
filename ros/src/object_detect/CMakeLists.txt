@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(controller)
+project(object_detect)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -54,32 +54,22 @@ find_package(OpenCV REQUIRED)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-FILES
-Hello.msg
-Info.msg
-NodeInfo.msg
-)
+# add_message_files(
+# FILES
+# )
 
 ## Generate services in the 'srv' folder
 add_service_files(
 FILES
-ChangeMode.srv
-Scram.srv
-Start.srv
-Stop.srv
-AutoInitPos.srv
-ClearMap.srv
-ManualInitPos.srv
-SaveMap.srv
+CheckPot.srv
 )
 
 ## Generate actions in the 'action' folder
-add_action_files(
-  FILES
-  Target.action
-  Aim.action
-)
+# add_action_files(
+#   FILES
+#   Action1.action
+#   Action2.action
+# )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
@@ -87,7 +77,6 @@ DEPENDENCIES
 std_msgs
 geometry_msgs
 sensor_msgs
-actionlib_msgs
 )
 
 ################################################
@@ -158,19 +147,17 @@ ${OpenCV_INCLUDE_DIRS}
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
 ## Declare a C++ executable
-##add_executable(create_map_objects_3d src/create_map_objects_3d.cpp)
-##target_link_libraries(create_map_objects_3d
-##${catkin_LIBRARIES}
-##${PCL_LIBRARIES}
-##${OpenCV_LIBS} # Make sure to link OpenCV libraries here
-#)
-##add_dependencies(create_map_objects_3d ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(create_map_objects_3d src/create_map_objects_3d.cpp)
+target_link_libraries(create_map_objects_3d
+${catkin_LIBRARIES}
+${PCL_LIBRARIES}
+${OpenCV_LIBS} # Make sure to link OpenCV libraries here
+)
+add_dependencies(create_map_objects_3d ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Handle Python scripts
-catkin_install_python(PROGRAMS
-  scripts/core.py
-  scripts/target.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+catkin_install_python(PROGRAMS scripts/object_detector.py
+DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 ## Add cmake target dependencies of the executable

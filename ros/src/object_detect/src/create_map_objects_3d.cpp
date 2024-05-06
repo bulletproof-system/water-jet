@@ -318,23 +318,30 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
                     // coord.probability.push_back(1.0f);
                     nObjCnt++;
                     ROS_WARN("[obj_%d] xMin= %.2f yMin = %.2f yMax = %.2f",i,boxMarker.xMin, boxMarker.yMin, boxMarker.yMax);
+                    
+                    // new: center
+                    geometry_msgs::PointStamped center_point;
+                    center_point.header.stamp = ros::Time::now();
+                    center_point.header.frame_id = "base_footprint";
+
+                    // calculate center point
+                    float centerX = (boxMarker.xMax + boxMarker.xMin) / 2.0;
+                    float centerY = (boxMarker.yMax + boxMarker.yMin) / 2.0;
+                    float centerZ = (boxMarker.zMax + boxMarker.zMin) / 2.0;
+
+                    center_point.point.x = centerX;
+                    center_point.point.y = centerY;
+                    center_point.point.z = centerZ;
+
+                    obj_center_pub.publish(center_point);
+
+                    // publish the corresponding PointCloud  data
+                    sensor_msgs::PointCloud2 object_cloud_msg;
+                    pcl::toROSMsg(*object_cloud, object_cloud_msg);
+                    object_cloud_msg.header.frame_id = "base_footprint";
+                    object_cloud_msg.header.stamp = ros::Time::now();
+                    pc_pub.publish(object_cloud_msg);
                 }
-
-                // new: center
-                geometry_msgs::PointStamped center_point;
-                center_point.header.stamp = ros::Time::now();
-                center_point.header.frame_id = "base_footprint";
-
-                // calculate center point
-                float centerX = (boxMarker.xMax + boxMarker.xMin) / 2.0;
-                float centerY = (boxMarker.yMax + boxMarker.yMin) / 2.0;
-                float centerZ = (boxMarker.zMax + boxMarker.zMin) / 2.0;
-
-                center_point.point.x = centerX;
-                center_point.point.y = centerY;
-                center_point.point.z = centerZ;
-
-                obj_center_pub.publish(center_point);
             }
             SortObjects();
             // coord_pub.publish(coord);
@@ -518,15 +525,14 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     ros::Subscriber pc_sub = nh.subscribe(pc_topic, 10 , ProcCloudCB);
     ros::Subscriber beh_sub = nh.subscribe("/wpb_home/behaviors", 30, BehaviorCB);
+    
     pc_pub = nh.advertise<sensor_msgs::PointCloud2>("obj_pointcloud",1);
+    obj_center_pub = nh.advertise<geometry_msgs::PointStamped>("obj_centers", 1);
     marker_pub = nh.advertise<visualization_msgs::Marker>("obj_marker", 10);
     coord_pub = nh.advertise<wpb_home_behaviors::Coord>("/wpb_home/objects_3d", 10);
 
     segmented_objects = nh.advertise<PointCloud> ("segmented_objects",1);
     segmented_plane = nh.advertise<PointCloud> ("segmented_plane",1);
-
-    // new: point_center
-    obj_center_pub = nh.advertise<geometry_msgs::PointStamped>("object_centers", 10);
 
     ros::spin();
 

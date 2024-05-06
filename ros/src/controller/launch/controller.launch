@@ -1,0 +1,11 @@
+<launch>
+    <node name="ctrl_core" pkg="controller" type="core.py" output="screen" />  
+    <node name="pending" pkg="controller" type="pending.py" output="screen" />  
+    <node name="target" pkg="controller" type="target.py" output="screen" />  
+    <node name="auto_water" pkg="controller" type="auto_water.py" output="screen" />  
+    <node name="inspection" pkg="controller" type="inspection.py" output="screen" />  
+    <node name="auto_map" pkg="controller" type="auto_map.py" output="screen" />  
+    <node name="manual_map" pkg="controller" type="manual_map.py" output="screen" />  
+</launch>
+
+

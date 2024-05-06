@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(controller)
+project(database)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -56,30 +56,26 @@ find_package(OpenCV REQUIRED)
 ## Generate messages in the 'msg' folder
 add_message_files(
 FILES
-Hello.msg
-Info.msg
-NodeInfo.msg
+PotInfo.msg
+PotUpdate.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
 FILES
-ChangeMode.srv
-Scram.srv
-Start.srv
-Stop.srv
-AutoInitPos.srv
-ClearMap.srv
-ManualInitPos.srv
-SaveMap.srv
+DeletePot.srv
+GetPotInfo.srv
+GetPotList.srv
+SetPotActive.srv
+SetPotInfo.srv
 )
 
 ## Generate actions in the 'action' folder
-add_action_files(
-  FILES
-  Target.action
-  Aim.action
-)
+# add_action_files(
+#   FILES
+#   Action1.action
+#   Action2.action
+# )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
@@ -87,7 +83,6 @@ DEPENDENCIES
 std_msgs
 geometry_msgs
 sensor_msgs
-actionlib_msgs
 )
 
 ################################################
@@ -168,8 +163,12 @@ ${OpenCV_INCLUDE_DIRS}
 
 ## Handle Python scripts
 catkin_install_python(PROGRAMS
-  scripts/core.py
-  scripts/target.py
+  scripts/database.py
+  scripts/test_get_pot_list.py
+  scripts/test_set_pot_info.py
+  scripts/test_set_pot_active.py
+  scripts/test_get_pot_info.py
+  scripts/test_delete_pot.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

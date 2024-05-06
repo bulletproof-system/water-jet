@@ -1,0 +1,4 @@
+<launch>
+    <!-- Database Node -->
+    <node name="database" pkg="database" type="database.py" output="screen"/>
+</launch>

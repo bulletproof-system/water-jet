@@ -1,0 +1,4 @@
+# /controller/srv/Start.srv
+uint8 mode # 如果 mode 与当前 mode 不一致, 返回 false
+---
+bool success # 结果
