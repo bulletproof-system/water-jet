@@ -35,7 +35,6 @@ export enum NodeState {
 
 export interface NodeInfo {
   state: NodeState,
-  task: string,
   feedback: string,
   result: 'success' | 'fail' | 'cancel' | 'error' | '',
   percentage: number,
@@ -46,7 +45,7 @@ export const useROSStore = defineStore('ros', {
   state: () => ({
     connectState: ConnectState.Disconnected,
 	  retry: 0,
-    ctrlMode: CtrlMode.Pending,
+    ctrlMode: CtrlMode.Init,
     scram: false,
     nodeInfo: {
       state: NodeState.Stop,
@@ -69,6 +68,16 @@ export const useROSStore = defineStore('ros', {
     },
     setScram(active: boolean) {
       this.scram = active
+    },
+    setNodeState(state: NodeState) {
+      this.nodeInfo.state = state
+    },
+    setNodeInfo(nodeInfo: Partial<NodeInfo>) {
+      for (const key in nodeInfo) {
+        if (Object.prototype.hasOwnProperty.call(nodeInfo, key)) {
+          this.nodeInfo[key] = nodeInfo[key]
+        }
+      }
     },
     cancel() {
       if (!this.nodeInfo.cancel) return;

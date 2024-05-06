@@ -1,4 +1,4 @@
-import { CtrlMode } from "@/stores/ros"
+import { CtrlMode, NodeState } from "@/stores/ros"
 
 export interface Time {
 	sec: number
@@ -136,8 +136,8 @@ export namespace database {
 	export interface PotInfo {
 		id: number // 花盆 id
 		pose: geometry.Pose // 世界坐标
-		data: sensor.PointCloud2 // 点云数据 
-		picture:  sensor.Image // 花照片
+		data: Uint8Array // 点云数据 
+		picture:  Uint8Array // 花照片
 		active: boolean // 是否自动浇灌
 		last_water_date: Date // 上次浇水时间
 	}
@@ -149,11 +149,23 @@ export namespace database {
 	}
 }
 
-// /controller/msg/Info.msg
+
 export namespace controller {
+	// /controller/msg/Hello.msg
+	export interface Hello {
+	    publisher: string
+	}
+
+	// /controller/msg/Info.msg
 	export interface Info {
 		header: Header,
 		mode: CtrlMode,
 		scram: boolean,
+	}
+
+	// /controller/msg/NodeInfo.msg 
+	export interface NodeInfo {
+	    state: NodeState,
+		mode: CtrlMode,
 	}
 }

@@ -1,0 +1,5 @@
+# /object_detect/srv/CheckPot.srv
+
+uint32 id       # 花盆id
+---
+bool success    # 是否存在

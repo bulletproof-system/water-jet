@@ -1,0 +1,5 @@
+# /database/srv/GetPotList.srv
+# 花盆信息列表
+
+---
+PotInfo[] pots

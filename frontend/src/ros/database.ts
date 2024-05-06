@@ -2,54 +2,108 @@ import * as ROSLIB from 'roslib';
 import { Msg, Srv, ros } from '.';
 import * as THREE from 'three';
 import { useAppStore } from '@/stores/app';
+// import { PCDLoader } from 'three/examples/jsm/loaders/PCDLoader';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
 
 const appStore = useAppStore()
+
+const sphere = new THREE.SphereGeometry();
+const object = new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( ) );
+const box = new THREE.BoxHelper( object, 0xffff00 );
+
+const loader = new GLTFLoader();
+const flowerpots = new THREE.Group();
+let potModel = new THREE.Group();
+new Promise(() => {
+	loader.load('watercolor_succulent.glb',
+		(gltf) => {
+			potModel = gltf.scene
+		}, undefined,
+		(error) => {
+			console.error(error);
+		}
+	)
+})
+
+
 export class Pot {
 	id: string // 花盆 id
 	pose: Msg.geometry.Pose // 世界坐标
-	data: Msg.sensor.PointCloud2 // 点云数据 
-	picture: Msg.sensor.Image // 花照片
+	// data: Uint8Array // 点云数据 
+	picture: Uint8Array // 花照片
 	active: boolean // 是否自动浇灌
 	choose: boolean // 是否被选中
 	last_water_date: Date; // 上次浇水时间
-	pointCloud: THREE.BufferGeometry // 3d 模型
+	pointCloud: THREE.Object3D // 3d 模型
 
 	constructor(info: Msg.database.PotInfo) {
 		this.id = info.id.toString();
-		this.pointCloud = new THREE.BufferGeometry();
 		this.choose = false;
 		this.update(info)
 	}
 	update(info: Msg.database.PotInfo) {
 		this.pose = info.pose;
-		this.data = info.data;
+		// this.data = info.data;
 		this.picture = info.picture;
 		this.active = info.active;
 		if (!this.active) this.choose = false;
 		this.last_water_date = info.last_water_date;
 
 		// 更新点云
-		this.pointCloud.dispose();
-		this.pointCloud = new THREE.BufferGeometry();
+		this.delete()
 
+		try {
+			const geometry = new THREE.IcosahedronGeometry( 0.2 ); 
+			const material = new THREE.MeshLambertMaterial( {color: 0x00ff00} ); 
+			const capsule = new THREE.Mesh( geometry, material ); 
+			this.pointCloud = capsule;
+			// this.pointCloud = potModel.clone();
+			this.pointCloud.userData = {
+				id: this.id
+			}
+			this.pointCloud.position.copy(this.pose.position);
+			this.pointCloud.quaternion.copy(this.pose.orientation);
+			this.pointCloud.visible = this.active;
+			flowerpots.add(this.pointCloud);
+		} catch {
+			console.error(`parse point cloud failed, id: ${this.id}`);
+		}
+
+		// 更新图片
+		
+
+		// 展示点云
+		
 	}
 	delete() {
-		this.pointCloud.dispose();
+		if (this.pointCloud) {
+			this.pointCloud.clear();
+			flowerpots.remove(this.pointCloud);
+			this.pointCloud = null;
+		}
 	}
 	setActive(active: boolean) {
-		setPotActive(this.id, active);
+		setPotActive(this.id, active).then(() => {
+			if (this.pointCloud) {
+				this.pointCloud.visible = active;
+			}
+		});
 	}
 	setChoose(choose: boolean) {
 	    this.choose = choose;
 	}
+	locate() {
+
+	}
 }
 
 const pots = ref(new Map<string, Pot>())
-for (let i=1; i<=40; i+=2) {
+for (let i=1; i<=10; i+=2) {
 	pots.value.set(i.toString(), new Pot({
 		id: i,
 		pose: {
-			position: { x: 0, y: 0, z: 0 },
+			position: { x: Math.random() * 3 - 6, y: Math.random() * 3 - 6, z: Math.random() * 3 },
 			orientation: { x: 0, y: 0, z: 0, w: 1 }
 		},
 		data: undefined,
@@ -79,11 +133,14 @@ const setPotActiveService = new ROSLIB.Service({
 	name: '/database/pot/set_active',
 	serviceType: 'database/SetPotActive'
 })
-const flowerpots = new THREE.Group();
+
 
 ros.on('connection', () => {
-	const request: Srv.database.PotList.Request = { caller: 'frontend' };
+	const request: Srv.database.PotList.Request = { };
 	potListService.callService(request, (response: Srv.database.PotList.Response) => {
+		pots.value.forEach((pot) => {
+			pot.delete()
+		})
 		pots.value.clear()
 		for (const pot of response.pots) {
 		    pots.value.set(pot.id.toString(), new Pot(pot));
@@ -123,47 +180,28 @@ function removePot(...ids: number[]) {
 }
 
 // 设置花盆 active 
-function setPotActive(id: string, active: boolean) {
+function setPotActive(id: string, active: boolean): Promise<any> {
     const request: Srv.database.SetPotActive.Request = { id: parseInt(id), active: active };
-    setPotActiveService.callService(request, (response: Srv.database.SetPotActive.Response) => {
-        if (!response.success) {
-            console.error(`set pot active failed, id: ${id}`);
-            return;
-        }
-    });
-	if (appStore.debug) {
-		setTimeout(() => {
-			pots.value.get(id).active = active
-		}, 1000)
-	}
+	return new Promise((resolve, reject) => {
+		setPotActiveService.callService(request, (response: Srv.database.SetPotActive.Response) => {
+			if (!response.success) {
+				console.warn(`set pot active failed, id: ${id}`);
+				reject(false);
+				return;
+			}
+			resolve(true)
+		}, (error) => {
+			console.error(`set pot active error, id: ${id}`);
+			reject(error)
+			return;
+		});
+		if (appStore.debug) {
+			setTimeout(() => {
+				pots.value.get(id).active = active;
+				resolve(true);
+			}, 1000)
+		}
+	})
 }
-
-// function procPots(message: ROSLIB.Message) {
-	// const pots = message as unknown as Msg.database.PotAbstractList;
-
-	// let ids = {}, deleteList = [], updateList = [];
-	// for (const pot of pots.potAbstracts) {
-	// 	ids[pot.id] = pot;
-	// }
-	// for (const id in pots) {
-	// 	if (id in ids) {
-	// 		if (pots[id].hash != ids[id].hash)
-	// 			updateList.push(id);
-	// 	} else {
-	// 		deleteList.push(id);
-	// 	}
-	// }
-	// removePot(...deleteList);
-	// updateList.forEach(id => fetchPotInfo(id));
-
-	// flowerpots.clear();
-	// for (const pot of pots.potInfos) {
-	// 	const pose = pot.pose
-	// 	const flowerpot = new THREE.Mesh( flowerpotGeometry, flowerpotMaterial );
-	// 	flowerpot.position.set( pose.position.x, pose.position.y, pose.position.z );
-	// 	flowerpot.rotation.setFromQuaternion(new THREE.Quaternion( pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w ))
-	// 	flowerpots.add(flowerpot);
-	// }
-// }
 
 export { pots, flowerpots }

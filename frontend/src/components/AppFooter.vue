@@ -17,7 +17,7 @@
           <v-progress-circular v-else-if="nodeInfo.percentage == -1" indeterminate/>
           <v-progress-circular v-else :model-value="nodeInfo.percentage" color="primary"/>
           &nbsp;当前任务:&nbsp;
-          {{ nodeInfo.task == '' ? '无' : nodeInfo.task }}
+          {{ stateInfo[nodeInfo.state].task }}
         </v-col>
         <v-col cols="4" class="d-flex justify-start align-center">
           反馈:&nbsp;
@@ -26,7 +26,7 @@
       </v-row>
     </div>
 
-    <v-btn :prepend-icon="scramState.icon" 
+    <v-btn :prepend-icon="scramState.icon" min-width="150"
       :color="scramState.color" variant="elevated" @click="toggleScram" 
       :loading="targetScram !== rosStore.scram"
     >
@@ -79,20 +79,21 @@ const rosState = computed(() => {
 
 const { ctrlMode, nodeInfo } = storeToRefs(rosStore);
 
-const stateInfo: Record<NodeState, {msg: string, color: string}> = {
-  [NodeState.Stop]: { msg: '停止', color: 'red' },
-  [NodeState.Wait]: { msg: '等待', color: 'blue' },
-  [NodeState.Clear_Map]: { msg: '运行中', color: 'green' },
-  [NodeState.Auto_Init_Pose]: { msg: '运行中', color: 'green' },
-  [NodeState.Manual_Init_Pose]: { msg: '运行中', color: 'green' },
-  [NodeState.Save_Map]: { msg: '运行中', color: 'green' },
-  [NodeState.Navigate]: { msg: '运行中', color: 'green' },
-  [NodeState.Auto_Init_Map]: { msg: '运行中', color: 'green' },
-  [NodeState.Manual_Init_Map]: { msg: '运行中', color: 'green' },
-  [NodeState.Inspect]: { msg: '运行中', color: 'green' },
-  [NodeState.Target]: { msg: '运行中', color: 'green' },
-  [NodeState.Auto_Water]: { msg: '运行中', color: 'green' },
+const stateInfo: Record<NodeState, {msg: string, color: string, task: string}> = {
+  [NodeState.Stop]: { msg: '停止', color: 'red', task: '无' },
+  [NodeState.Wait]: { msg: '等待', color: 'blue', task: '等待指令' },
+  [NodeState.Clear_Map]: { msg: '运行中', color: 'green', task: '清除地图' },
+  [NodeState.Auto_Init_Pose]: { msg: '运行中', color: 'green', task: '自动设置机器人位置' },
+  [NodeState.Manual_Init_Pose]: { msg: '运行中', color: 'green', task: '手动设置机器人位置' },
+  [NodeState.Save_Map]: { msg: '运行中', color: 'green', task: '保存地图' },
+  [NodeState.Navigate]: { msg: '运行中', color: 'green', task: '导航' },
+  [NodeState.Auto_Init_Map]: { msg: '运行中', color: 'green', task: '自动建图' },
+  [NodeState.Manual_Init_Map]: { msg: '运行中', color: 'green', task: '手动建图' },
+  [NodeState.Inspect]: { msg: '运行中', color: 'green', task: '缺水巡检' },
+  [NodeState.Target]: { msg: '运行中', color: 'green', task: '指定位置浇水' },
+  [NodeState.Auto_Water]: { msg: '运行中', color: 'green', task: '自动浇水' },
 }
+
 
 const iconInfo: Record<string, { icon: string, color: string}> = {
 	'': {icon: 'mdi-check', color: 'green'},

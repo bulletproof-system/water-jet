@@ -1,0 +1,7 @@
+# /controller/action/AutoWater.action
+
+---
+string result
+---
+uint8 percentage
+uint8 target

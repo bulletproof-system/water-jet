@@ -70,18 +70,19 @@ const disable = computed(() => rosStore.ctrlMode !== ctrlMode.value)
 let theme = useTheme();
 
 // 仅改变当前页面状态即 ctrlMode, rosStore.ctrlMode 由订阅的 info 信息更改
-function changeMode(newMode: CtrlMode, oldMode: CtrlMode) {
+async function changeMode(newMode: CtrlMode, oldMode: CtrlMode) {
 	if (newMode === oldMode) {
 		return;
 	}
 	ctrlMode.value = newMode;
 	// 切换全局模式
-	ctrl.changeMode(newMode).then(() => {
-		// 模式切换成功后启动节点功能
-		ctrl.start();
-	}, () => {
-		ctrlMode.value = rosStore.ctrlMode
-	});
+	try {
+		await ctrl.changeMode(newMode);
+		await ctrl.start();
+	} catch (error) {
+		console.warn('changeMode error: ', error)
+	}
+	
 	if (appStore.debug) {
 		setTimeout(() => {
 			rosStore.setCtrlMode(newMode)

@@ -8,10 +8,18 @@ project(controller)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  message_generation
   roscpp
   rospy
+  std_msgs
+  geometry_msgs
+  sensor_msgs
+  pcl_conversions
+  pcl_ros
 )
 
+## Find OpenCV
+find_package(OpenCV REQUIRED)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -46,31 +54,40 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+FILES
+Hello.msg
+Info.msg
+NodeInfo.msg
+)
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+FILES
+ChangeMode.srv
+Scram.srv
+Start.srv
+Stop.srv
+AutoInitPos.srv
+ClearMap.srv
+ManualInitPos.srv
+SaveMap.srv
+)
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  FILES
+  Target.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+DEPENDENCIES
+std_msgs
+geometry_msgs
+sensor_msgs
+actionlib_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -102,10 +119,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES controller
-#  CATKIN_DEPENDS roscpp rospy
-#  DEPENDS system_lib
+CATKIN_DEPENDS message_runtime roscpp rospy std_msgs
 )
 
 ###########
@@ -115,13 +129,14 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
+${catkin_INCLUDE_DIRS}
+${PCL_INCLUDE_DIRS}
+${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/controller.cpp
+#   src/${PROJECT_NAME}/object_detect.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -132,13 +147,30 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/controller_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/object_detect_node.cpp)
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+
+## Declare a C++ executable
+##add_executable(create_map_objects_3d src/create_map_objects_3d.cpp)
+##target_link_libraries(create_map_objects_3d
+##${catkin_LIBRARIES}
+##${PCL_LIBRARIES}
+##${OpenCV_LIBS} # Make sure to link OpenCV libraries here
+#)
+##add_dependencies(create_map_objects_3d ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Handle Python scripts
+catkin_install_python(PROGRAMS
+  scripts/core.py
+  scripts/target.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -148,7 +180,12 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-
+# target_link_libraries(object_detector
+# ${catkin_LIBRARIES}
+# )
+# target_link_libraries(create_map_objects_3d
+# ${catkin_LIBRARIES}
+# )
 #############
 ## Install ##
 #############
@@ -196,7 +233,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_controller.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_object_detect.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

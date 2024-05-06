@@ -20,7 +20,8 @@
         </v-col>
         <v-col class="d-flex justify-center align-center" cols="2">
           <v-chip :prepend-icon="props.pot.active ? 'mdi-check' : 'mdi-close'"
-            :color="props.pot.active ? 'success' : 'error'" size="small" class="mt-n1">
+            :color="props.pot.active ? 'success' : 'error'" size="small" class="mt-n1"
+          >
             {{ props.pot.active ? "启用" : "忽略" }}
           </v-chip>
         </v-col>
@@ -47,7 +48,7 @@
         <v-btn :loading="switching" :color="props.pot.active ? 'error' : 'success'" variant="text" @click="switchActive">
           {{ props.pot.active ? "忽略" : "启用" }}
         </v-btn>
-        <v-btn color="primary" variant="text">
+        <v-btn color="primary" variant="text" @click="mapStore.locatePot(props.pot.id)">
           定位
         </v-btn>
       </v-card-actions>
@@ -59,6 +60,7 @@
 <script setup lang="ts">
 import { Pot } from '@/ros';
 import { useROSStore, CtrlMode, NodeState } from '@/stores/ros';
+import { useMapStore } from '@/stores/map';
 
 const props = defineProps({
   pot: {
@@ -68,6 +70,7 @@ const props = defineProps({
 })
 
 const rosStore = useROSStore();
+const mapStore = useMapStore();
 
 const target = ref({
   active: props.pot.active,

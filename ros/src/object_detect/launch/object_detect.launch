@@ -1,0 +1,10 @@
+<launch>
+    <node name="object_detector" pkg="object_detect" type="object_detector.py" output="screen" />
+
+    <node name="create_map_objects_3d" pkg="object_detect" type="create_map_objects_3d" output="screen">
+        <param name="topic" type="string" value="/kinect2/sd/points"/>
+        <param name="start" type="bool" value="true"/>  
+    </node>
+</launch>
+
+

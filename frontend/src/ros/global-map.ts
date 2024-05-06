@@ -2,11 +2,6 @@ import { ros, TF, Srv, Msg } from '@/ros'
 import * as ROSLIB from 'roslib';
 import * as THREE from 'three';
 
-let mapService = new ROSLIB.Service({
-	ros: ros,
-	name: '/control/create_map/start',
-	serviceType: 'create_map/Base'
-})
 let mapListener = new ROSLIB.Topic<Msg.nav.OccupancyGrid>({
 	ros: ros,
 	name: '/map',
@@ -32,17 +27,7 @@ let mapMaterial = new THREE.MeshBasicMaterial({ side: THREE.FrontSide, map: mapT
 let mapGrid = new THREE.Mesh(mapGeometry, mapMaterial)
 globalMap.add(mapGrid)
 
-startCreateMap()
 mapListener.subscribe(procMapMsg);
-
-function startCreateMap() {
-	const req: Srv.Base.Request = {
-		request: 'start'
-	}
-	mapService.callService(req, (res: Srv.Base.Response) => {
-		console.log(res)
-	})
-}
 
 function procMapMsg(message: unknown) {
 	function syncMapMetaData() {

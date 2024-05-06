@@ -1,13 +1,6 @@
 import { ros, Msg } from '@/ros'
 import * as ROSLIB from 'roslib';
 import * as THREE from 'three';
-import { useTresContext } from '@tresjs/core';
-import GlobalMap from './GlobalMap.vue';
-import { ShallowRef } from 'vue';
-import { useAppStore } from '@/stores/app';
-
-// const { scene } = useTresContext()
-const appStore = useAppStore()
 
 let navigationPathListener = new ROSLIB.Topic({
 	ros: ros,
@@ -15,27 +8,13 @@ let navigationPathListener = new ROSLIB.Topic({
 	messageType: 'nav_msgs/Path',
 	throttle_rate: 100,
 })
-let navigationAction = {
-	publish: new ROSLIB.Topic({
-		ros: ros,
-		name: '/usr_nav_goal',
-		messageType: 'std_msgs/String',
-		throttle_rate: 100,
-	}),
-	subscribe: new ROSLIB.Topic({
-		ros: ros,
-		name: '/usr_nav_result',
-		messageType: 'std_msgs/String',
-		throttle_rate: 100,
-	})
-}
+
 let pathMsg: Msg.nav.Path
 const geometry = new THREE.BufferGeometry()
 const material = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2, });
 let navigationPath = new THREE.Line(geometry, material)
 
 navigationPathListener.subscribe(procPathMsg)
-navigationAction.subscribe.subscribe(procNavigationResult)
 
 function procPathMsg(message: unknown) {
 	pathMsg = message as unknown as Msg.nav.Path
@@ -46,29 +25,5 @@ function procPathMsg(message: unknown) {
 	}
 	geometry.setFromPoints(point)
 }
-
-// function handleClick(raycaster: THREE.Raycaster, map: ShallowRef<InstanceType<typeof GlobalMap>>) {
-// 	const mapGrid = map.value.getMapGrid()
-// 	const intersects = raycaster.intersectObject(mapGrid, true)
-//     for (let i = 0; i < intersects.length; i++) {
-// 		if (intersects[i].object === mapGrid) {
-// 			const goal = intersects[i].point
-// 			navigate(goal)
-// 			return
-// 		}
-// 	}
-// }
-
-function navigate(goal: THREE.Vector3) {
-	if (appStore.allowNavigation === false) return
-	const goalMsg = new ROSLIB.Message({ data: `${goal.x} ${goal.y} ${goal.z}` })
-	navigationAction.publish.publish(goalMsg)
-}
-
-function procNavigationResult(message: unknown) {
-	const restult = message as unknown as string
-	console.log(restult)
-}
-
 
 export { navigationPath }

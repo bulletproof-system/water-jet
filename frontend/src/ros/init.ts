@@ -1,6 +1,7 @@
 
 import * as ROSLIB from 'roslib';
 import * as THREE from 'three';
+import { Msg } from '.';
 
 import { useROSStore, ConnectState } from '@/stores/ros';
 

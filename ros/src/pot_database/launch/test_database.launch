@@ -1,0 +1,11 @@
+<launch>
+    <!-- Database Node -->
+    <node name="database" pkg="pot_database" type="database.py" output="screen"/>
+    
+    <!-- <node name="test_get_pot_list" pkg="database" type="test_get_pot_list.py" required="true"/> -->
+    <node name="test_set_pot_info" pkg="database" type="test_set_pot_info.py" required="true"/>
+    <!-- <node name="test_set_pot_active" pkg="database" type="test_set_pot_active.py" required="true"/>
+    <node name="test_get_pot_info" pkg="database" type="test_get_pot_info.py" required="true"/>
+    <node name="test_delete_pot" pkg="database" type="test_delete_pot.py" required="true"/> -->
+
+</launch>

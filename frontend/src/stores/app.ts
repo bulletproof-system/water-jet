@@ -11,14 +11,10 @@ export enum ROSState {
 export const useAppStore = defineStore('app', {
   state: () => ({
     debug: true,
-    allowNavigation: false,
-    autoControl: true,
-    allowObjectRecognition: false,
     showPotList: true,
     showOperatorPanel: true,
     selectedPot: '',
     openPot: (id: string) => console.log('unmounted'),
-    locatePot: (id: string) => console.log('unmounted'),
   }),
   actions: {
     setAllowNavigation(allowNavigation: boolean) {
