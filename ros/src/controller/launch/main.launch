@@ -1,6 +1,6 @@
 	<launch>
     <!-- map provider -->
-	<include file="$(find create_map)/launch/main.launch"/>
+	<include file="$(find map_provider)/launch/main.launch"/>
 
 	<!-- navigation -->
 	<include file="$(find navigation)/launch/nav.launch"/>
