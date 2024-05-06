@@ -9,19 +9,17 @@ from controller.msg import Hello, NodeInfo
 from controller.msg import TargetAction, TargetFeedback, TargetResult
 from navigation.msg import NavigateAction, NavigateGoal
 from robot_arm.msg import AimAction,AimGoal
-from database.srv import GetPotInfo
-from object_detect.srv import CheckPot
-from controller.srv import Start,StartResponse,Stop,StopResponse
+from database.srv import *
+from object_detect.srv import *
+from controller.srv import *
+
 """
 State: 
-
-uint8 Stop=0
-uint8 Wait=1
-uint8 Target=10
 """
 STOP = 0
 WAIT = 1
 TARGET = 10
+
 class Target:
     def __init__(self):
         rospy.init_node('ctrl_target')
@@ -65,10 +63,18 @@ class Target:
 
     def handle_stop(self,req):
         """处理停止服务请求，终止当前任务并重置状态"""
-        if self.state != STOP:
+        if self.state == TARGET:
+            # 设置任务结果为'cancel'
+            result = TargetResult()
+            result.result = 'cancel'
+            self.server.set_aborted(result)
             self.state = STOP
+            rospy.loginfo("Target action server stopped.")
+            return StopResponse(True)
+        elif self.state == WAIT:
             if self.server.is_active():
-                self.server.set_preempted()  # 如果有活动的目标任务，提前终止
+                self.server.set_preempted()
+            self.state = STOP
             rospy.loginfo("Target action server stopped.")
             return StopResponse(True)
         else:
@@ -84,7 +90,7 @@ class Target:
 
     def get_target_pose(self, target_id):
         try:
-            get_pot_info = GetPotInfo()
+            get_pot_info = GetPotInfoRequest()
             get_pot_info.id = target_id
             response = self.pot_info_service(get_pot_info)
             if response.success:
@@ -112,7 +118,7 @@ class Target:
     def check_flowerpot(self, pot_id):
         """Check the presence of a flowerpot using the object_detect/check_pot service."""
         try:
-            check_pot = CheckPot(id=pot_id)
+            check_pot = CheckPotRequest(id=pot_id)
             check_pot_service = rospy.ServiceProxy('/object_detect/check_pot',CheckPot)
             response = check_pot_service(check_pot)
 

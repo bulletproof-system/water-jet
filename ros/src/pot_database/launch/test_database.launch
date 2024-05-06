@@ -1,6 +1,6 @@
 <launch>
     <!-- Database Node -->
-    <node name="database" pkg="database" type="database.py" output="screen"/>
+    <node name="database" pkg="pot_database" type="database.py" output="screen"/>
     
     <!-- <node name="test_get_pot_list" pkg="database" type="test_get_pot_list.py" required="true"/> -->
     <node name="test_set_pot_info" pkg="database" type="test_set_pot_info.py" required="true"/>

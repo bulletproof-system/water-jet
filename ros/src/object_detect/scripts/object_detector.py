@@ -4,14 +4,12 @@ import tf
 import rospy
 import message_filters
 import pickle
-import pcl
-from pcl_ros import point_cloud2 as pcl2_ros
 import sensor_msgs.point_cloud2 as pc2
 from geometry_msgs.msg import Pose, Point, Quaternion,PointStamped
 from sensor_msgs.msg import PointCloud2
-from database.msg import PotInfo
-from object_detect.srv import CheckPot,CheckPotResponse
-from database.srv import SetPotInfo
+from pot_database.msg import PotInfo
+from object_detect.srv import *
+from pot_database.srv import *
 from math import sqrt
 
 pots = {}                   # pot的信息字典， id -> (x,y,z,last_scan_time) ;
@@ -39,11 +37,15 @@ class ObjectDetector:
         
     def load_pots_from_database(self):
         """从数据库加载所有花盆的信息"""
-        self.cursor.execute('SELECT id, x, y, z FROM pots')
-        rows = self.cursor.fetchall()
+        request = GetPotListRequest()
+        rospy.wait_for_service('/database/pot/list')
+        client = rospy.ServiceProxy('/database/pot/list',GetPotList)
+        response = client(request)
+
         global pots
-        pots = {row[0]: {'x': row[1], 'y': row[2], 'z': row[3]} for row in rows}
-    
+        pots = {pot_info.id: {'x': pot_info.pose.position.x, 'y': pot_info.pose.position.y, 'z': pot_info.pose.position.z} 
+                        for pot_info in response.pots}
+        
     def handle_check_pot(self,req):
         """检查花盆id所对应的花盆是否存在"""
         pot_id = req.id
@@ -55,14 +57,11 @@ class ObjectDetector:
         
         response = CheckPotResponse()
         if time_difference > TIMEOUT_THRESHOLD:
-            response.sucess = False
+            response.success = False
         else:
-            response.sucess = True
+            response.success = True
         
         return response
-
-    def pointcloud2_to_pcd(pointcloud2_msg):
-        """实现从pointcloud2格式到pcd格式的转换"""
 
     def handle_update_pots(self,obj_center,obj_pointcloud):
         """获取object_center , obj_pointcloud信息,更新花盆信息数据"""
@@ -101,25 +100,30 @@ class ObjectDetector:
             pots[new_id] = {'x': world_point.point.x, 'y': world_point.point.y, 'z': world_point.point.z,'last_scan_time': current_time}
 
             # 处理点云数据
-            cloud = pcl.PointCloud()
-            cloud.from_list(pc2.read_points(obj_pointcloud, skip_nans=True))
-            pcl.save(cloud, 'temp.pcd', binary=True)
-            with open('temp.pcd', 'rb') as f:
-                serialized_cloud = f.read()
+            # pcl_data = pcl_ros.point_cloud2.to_pcl(obj_pointcloud)
+    
+            # # 保存为 PCD 文件
+            # pcl.save(pcl_data, "temp.pcd")           
+            # # cloud.from_list(pc2.read_points(obj_pointcloud, skip_nans=True))
+            # # pcl.save(cloud, 'temp.pcd', binary=True)
+            # with open('temp.pcd', 'rb') as f:
+            #      serialized_cloud = f.read()
+            serialized_cloud = pickle.dumps(obj_pointcloud)
 
             # TODO picture设置
             pot_info = PotInfo()
             pot_info.id = new_id
             pot_info.pose = Pose(Point(world_point.point.x, world_point.point.y, world_point.point.z), Quaternion(0, 0, 0, 1))
             pot_info.data = serialized_cloud
-            pot_info.picture = None
+            pot_info.picture = []
             pot_info.active = True
-            pot_info.last_water_date = None
+            pot_info.last_water_date = ""
 
             # 调用数据库服务
             set_pot_info_service = rospy.ServiceProxy('/database/pot/set', SetPotInfo)
-            response = set_pot_info_service(pot_info)
-        
+            request = SetPotInfoRequest()
+            request.info = pot_info
+            response = set_pot_info_service(request)
         
 
 

@@ -3,8 +3,9 @@
 import rospy
 import sqlite3
 from datetime import datetime
-from database.msg import PotInfo, PotUpdate
-from database.srv import GetPotList, SetPotInfo, SetPotActive, GetPotInfo, DeletePot, GetPotListResponse, SetPotInfoResponse, SetPotActiveResponse, GetPotInfoResponse, DeletePotResponse
+from pot_database.msg import PotInfo, PotUpdate
+from pot_database.srv import *
+import pickle
 
 class Database:
     def __init__(self):
@@ -63,14 +64,24 @@ class Database:
     def handle_set_pot_info(self, request):
         pot = request.info
         try:
-            last_water_date = datetime.strptime(pot.last_water_date, "%Y-%m-%dT%H:%M:%S")
+            if pot.last_water_date == "":
+                last_water_date = None
+            else:
+                last_water_date = datetime.strptime(pot.last_water_date, "%Y-%m-%dT%H:%M:%S")
+
+            # Serialize pose, data, and picture using pickle
+            serialized_pose = pickle.dumps(pot.pose)
+            serialized_data = pickle.dumps(pot.data)
+            serialized_picture = pickle.dumps(pot.picture)            
+
             self.cursor.execute('''
                 INSERT OR REPLACE INTO pots (id, pose, data, picture, active, last_water_date)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (pot.id, pot.pose, pot.data, pot.picture, pot.active, last_water_date))
+            ''', (pot.id, serialized_pose, serialized_data, serialized_picture, pot.active, last_water_date))
             self.conn.commit()
             self.publish_update([pot.id], [])
             return SetPotInfoResponse(success=True)
+    
         except sqlite3.Error as e:
             rospy.logerr("Failed to set pot info, DB error: %s" % str(e))
             self.conn.rollback()
@@ -119,8 +130,13 @@ class Database:
         self.update_pub.publish(update_msg)
 
     def row_to_potinfo(self, row):
+        # 反序列化 pose, data, 和 picture 字段
+        pose = pickle.loads(row[1]) if row[1] else None
+        data = pickle.loads(row[2]) if row[2] else None
+        picture = pickle.loads(row[3]) if row[3] else None
         last_water_date_str = row[5].strftime("%Y-%m-%dT%H:%M:%S") if row[5] else None
-        return PotInfo(id=row[0], pose=row[1], data=row[2], picture=row[3], 
+        
+        return PotInfo(id=row[0], pose=pose, data=data, picture=picture, 
                        active=row[4], last_water_date=last_water_date_str)
 
 if __name__ == '__main__':

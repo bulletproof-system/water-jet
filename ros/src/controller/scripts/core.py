@@ -3,7 +3,7 @@
 import rospy
 from geometry_msgs.msg import Twist
 from controller.msg import Info,Hello
-from controller.srv import Start,StartResponse,Stop,StopResponse,ChangeMode,ChangeModeResponse,Scram,ScramResponse
+from controller.srv import *
 
 """
 Core State 
@@ -28,11 +28,11 @@ class Core:
         self.scram = False
 
         # Subscribers
-        rospy.Subscriber("_cmd_vel",Twist,self._cmd_vel_callback)
+        rospy.Subscriber("/ctrl/cmd_vel",Twist,self._cmd_vel_callback)
         rospy.Subscriber("/hello",Hello,self.hello_callback)
 
         # Publishers
-        self.cmd_vel_pub = rospy.Publisher('/ctrl/cmd_vel',Twist,queue_size=10)
+        self.cmd_vel_pub = rospy.Publisher('/cmd_vel',Twist,queue_size=10)
         self.info_pub = rospy.Publisher('/ctrl/info',Info,queue_size=10)
         
         # Services
@@ -44,7 +44,9 @@ class Core:
         self.mode = 1
         rospy.wait_for_service('/ctrl/pending/start')
         client = rospy.ServiceProxy('ctrl/pending/start',Start)
-        response = client(mode = 1)
+        request = StartRequest()
+        request.mode = 1
+        response = client(request)
     
     def hello_callback(self,hello):
         info = Info(mode=self.mode,scram=self.scram)
@@ -53,7 +55,7 @@ class Core:
     def handle_start(self,start):
         mode = start.mode
         if mode != self.mode:
-            return StartResponse(sucess=False)
+            return StartResponse(success=False)
 
         service_paths = {
             1: '/ctrl/pending/start',
@@ -67,16 +69,22 @@ class Core:
         service_path = service_paths.get(mode)
         rospy.wait_for_service(service_path)
 
+        
         client = rospy.ServiceProxy(service_path, Start)
-        request = Start(mode=mode)
-        response = client(request)
+
+        try:
+            request = StartRequest(mode=mode)
+            response = client(request)
+        except rospy.ServiceException as e:
+            rospy.logerr("Service call failed: {}".format(e))
+            return StartResponse(success=False)
 
         return response
     
     def handle_stop(self,stop):
         mode = stop.mode
         if mode != self.mode:
-            return StopResponse(sucess=False)
+            return StopResponse(success=False)
 
         service_paths = {
             1: '/ctrl/pending/stop',
@@ -90,13 +98,14 @@ class Core:
         rospy.wait_for_service(service_path)
 
         client = rospy.ServiceProxy(service_path, Stop)
-        request = Stop(mode=mode)
-        response = client(request)
+        request = StopRequest(mode=mode)
 
+        response = client(request)
         return response   
          
     def handle_change_mode(self,change_mode):
         mode = change_mode.mode
+
         service_paths = {
             1: '/ctrl/pending/stop',
             2: '/ctrl/auto_map/stop',
@@ -105,26 +114,29 @@ class Core:
             5: '/ctrl/target/stop',    
             6: '/ctrl/auto_water/stop' 
         }
+
         if mode in service_paths:
-            service_path = service_paths[mode]
+            # 关闭当前的mode
+            service_path = service_paths[self.mode]
             rospy.wait_for_service(service_path)
             client = rospy.ServiceProxy(service_path, Stop)
-            request = Stop(mode=mode)
+            request = StopRequest(mode=self.mode)
             response = client(request)
 
-            if response.sucess:
+            if response.success:
+                # 如果成功，切换mode
                 self.mode = mode
                 # 发布info信息
                 info = Info(mode=self.mode,scram=self.scram)
                 self.info_pub.publish(info)
-                change_mode_response = ChangeModeResponse(sucess=True)
+                change_mode_response = ChangeModeResponse(success=True)
                 return change_mode_response
             else:
-                change_mode_response = ChangeModeResponse(sucess=False)
+                change_mode_response = ChangeModeResponse(success=False)
                 return change_mode_response
         else:
             # 更换模式出错
-            change_mode_response = ChangeModeResponse(sucess=False)
+            change_mode_response = ChangeModeResponse(success=False)
             return change_mode_response
 
     def scram_callback(self,scarm):
@@ -134,7 +146,7 @@ class Core:
         info = Info(mode=self.mode,scram=self.scram)
         self.info_pub.publish(info)
 
-        scarm_response = ScramResponse(sucess=True)
+        scarm_response = ScramResponse(success=True)
         return scarm_response
 
     def _cmd_vel_callback(self,twist):
