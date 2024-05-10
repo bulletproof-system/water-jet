@@ -54,6 +54,8 @@ function procMapMsg(message: unknown) {
 	occupancyGrid = message as unknown as Msg.nav.OccupancyGrid;
 	if (syncMapMetaData()) {
 		globalMap.remove(mapGrid)
+		mapGrid.geometry.dispose();
+		mapGrid.material.dispose();
 		color = new Uint8Array(mapInfo.width * mapInfo.height * 4);
 		mapGeometry = new THREE.PlaneGeometry(mapInfo.width, mapInfo.height);
 		mapTexture = new THREE.DataTexture(color, mapInfo.width, mapInfo.height, THREE.RGBAFormat);
