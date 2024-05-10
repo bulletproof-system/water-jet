@@ -43,6 +43,41 @@ class MapProviderNode:
         self.manual_map_server.start()
         rospy.loginfo("Map Provider Node has started.")
 
+        # 检查 maps_dir 下是否存放有 .pgm 和同名 .yaml 文件，有的话直接用 map_server 读取
+        self.check_and_launch_map_server()
+
+    # 检查 maps_dir 下是否存放有 .pgm 和同名 .yaml 文件，有的话直接用 map_server 读取
+    def check_and_launch_map_server(self):
+        rospy.loginfo("Checking for existing maps in %s", maps_dir)
+        if not os.path.exists(maps_dir):
+            rospy.logwarn("Maps directory does not exist: %s", maps_dir)
+            return
+        
+        map_files = [f for f in os.listdir(maps_dir) if os.path.isfile(os.path.join(maps_dir, f))]
+        pgm_files = [f for f in map_files if f.endswith('.pgm')]
+        
+        # 只做一次扫描，有同名 .pgm & .yaml 文件即加载
+        for pgm_file in pgm_files:
+            yaml_file = pgm_file.replace('.pgm', '.yaml')
+            if yaml_file in map_files:
+                rospy.loginfo("Found map pair: %s and %s", pgm_file, yaml_file)
+                map_path = os.path.join(maps_dir, pgm_file)
+                yaml_path = os.path.join(maps_dir, yaml_file)
+                self.launch_map_server(yaml_path)
+                break
+            else:
+                rospy.logwarn("Found .pgm without matching .yaml file: %s", pgm_file)
+
+    def launch_map_server(self, map_yaml_path):
+        rospy.loginfo("Launching map_server with %s", map_yaml_path)
+        map_server_command = "rosrun map_server map_server {} __name:=map_server".format(map_yaml_path)
+        try:
+            self.map_server_process = subprocess.Popen(map_server_command, shell=True)
+            rospy.loginfo("Map server launched.")
+        except Exception as e:
+            rospy.logerr("Failed to launch map server for %s: %s", map_yaml_path, e)
+            self.map_server_process = None
+
     # 保存地图的回调函数
     def save_map_callback(self, data):
         rospy.loginfo("Saving map...")

@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -59,6 +60,7 @@ add_message_files(
   SetPosition.msg
   ManualInitMapStart.msg
   ManualInitMapStop.msg
+  PointArray.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -87,6 +89,7 @@ generate_messages(
   move_base_msgs
   nav_msgs
   std_msgs
+  tf
 )
 
 ################################################
@@ -123,6 +126,7 @@ catkin_package(
 #  LIBRARIES map_provider
 #  CATKIN_DEPENDS actionlib actionlib_msgs geometry_msgs move_base_msgs nav_msgs roscpp rospy std_msgs
 #  DEPENDS system_lib
+  INCLUDE_DIRS include
   LIBRARIES map_provider
   CATKIN_DEPENDS actionlib actionlib_msgs geometry_msgs move_base_msgs nav_msgs roscpp rospy std_msgs
 )
@@ -134,9 +138,15 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
+
+add_executable(global_rrt_detector src/global_rrt_detector.cpp src/functions.cpp src/mtrand.cpp)
+target_link_libraries(global_rrt_detector ${catkin_LIBRARIES})
+
+add_executable(local_rrt_detector src/local_rrt_detector.cpp src/functions.cpp src/mtrand.cpp)
+target_link_libraries(local_rrt_detector ${catkin_LIBRARIES})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
