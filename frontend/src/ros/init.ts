@@ -3,7 +3,7 @@ import * as ROSLIB from 'roslib';
 import * as THREE from 'three';
 import { Msg } from '.';
 
-import { useROSStore, ConnectState } from '@/stores/ros';
+import { useROSStore, ConnectState, CtrlMode } from '@/stores/ros';
 
 const websocket_url = 'ws://localhost:9090';
 const retry = 5; // 最多重试次数

@@ -27,7 +27,10 @@ import { useAppStore } from '@/stores/app';
 
 const appStore = useAppStore();
 const rosStore = useROSStore();
-const ctrlMode = ref<CtrlMode>(rosStore.ctrlMode === CtrlMode.Init ? CtrlMode.Pending : rosStore.ctrlMode);
+const ctrlMode = ref<CtrlMode>(CtrlMode.Init);
+onMounted(() => {
+	ctrlMode.value = rosStore.ctrlMode === CtrlMode.Init ? CtrlMode.Pending : rosStore.ctrlMode;
+})
 const modes = [
 	{
 		name: "等待",

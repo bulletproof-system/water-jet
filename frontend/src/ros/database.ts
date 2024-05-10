@@ -99,19 +99,22 @@ export class Pot {
 }
 
 const pots = ref(new Map<string, Pot>())
-for (let i=1; i<=10; i+=2) {
-	pots.value.set(i.toString(), new Pot({
-		id: i,
-		pose: {
-			position: { x: Math.random() * 3 - 6, y: Math.random() * 3 - 6, z: Math.random() * 3 },
-			orientation: { x: 0, y: 0, z: 0, w: 1 }
-		},
-		data: undefined,
-		picture: undefined,
-		active: true,
-		last_water_date: new Date(),
-	}))
+if (appStore.debug) {
+	for (let i=1; i<=10; i+=2) {
+		pots.value.set(i.toString(), new Pot({
+			id: i,
+			pose: {
+				position: { x: Math.random() * 3 - 6, y: Math.random() * 3 - 6, z: Math.random() * 3 },
+				orientation: { x: 0, y: 0, z: 0, w: 1 }
+			},
+			data: undefined,
+			picture: undefined,
+			active: true,
+			last_water_date: new Date(),
+		}))
+	}
 }
+
 
 const potUpdateTopic = new ROSLIB.Topic({
     ros: ros,
