@@ -241,6 +241,7 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(arm src/arm.cpp)
-add_dependencies(arm ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(arm ${catkin_LIBRARIES})
+# add_executable(arm src/arm.cpp)
+add_executable(arm_test src/arm_test.cpp)
+add_dependencies(arm_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(arm_test ${catkin_LIBRARIES})
