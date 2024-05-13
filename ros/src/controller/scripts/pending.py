@@ -7,6 +7,9 @@ from controller.msg import Hello, NodeInfo
 from controller.srv import *
 import actionlib
 from navigation.msg import *
+from map_provider.msg import SaveMap as SM
+from map_provider.msg import ClearMap as CM
+from map_provider.msg import SetPosition as SP
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
 
@@ -65,7 +68,9 @@ class PendingServer():
             return resp
         self.node_info.state = self.node_info.Clear_Map
         self.node_info_pub.publish(self.node_info)
-        rospy.loginfo("假装清除了已保存的地图")
+        clear_map_pub = rospy.Publisher('/map_provider/clear_map', CM, queue_size=10)
+        clear_map_msg = CM()
+        clear_map_pub.publish(clear_map_msg)
         resp = ClearMapResponse()
         resp.success = True
         self.node_info.state = self.node_info.Wait
@@ -94,22 +99,14 @@ class PendingServer():
         self.node_info.state = self.node_info.Manual_Init_Map
         self.node_info_pub.publish(self.node_info)
         rospy.loginfo("我真的手动设置了机器人初始位置")
-        init_pos_pub = rospy.Publisher('/initialpose', PoseWithCovarianceStamped, queue_size=1)
-        p = PoseWithCovarianceStamped()
-        p.header.stamp = rospy.Time.now()
-        p.header.frame_id = "map"
-        p.pose.pose.position.x = req.pos.position.x
-        p.pose.pose.position.y = req.pos.position.y
-        p.pose.pose.position.z = 0
-        p.pose.pose.orientation.z = req.pos.orientation.z
-        p.pose.pose.orientation.w = req.pos.orientation.w
-        p.pose.covariance[6 * 0 + 0] = 0.5 * 0.5
-        p.pose.covariance[6 * 1 + 1] = 0.5 * 0.5
-        p.pose.covariance[35] =  0.06853892326654787
-        init_pos_pub.publish(p)
-        rospy.sleep(1)
-        init_pos_pub.publish(p)
-        rospy.sleep(1)
+        init_pos_pub = rospy.Publisher('/map_provider/set_position', SP, queue_size=10)
+        msg = SP()
+        msg.pos.position.x = req.pos.position.x
+        msg.pos.position.y = req.pos.position.y
+        msg.pos.position.z = req.pos.position.z
+        msg.pos.orientation.z = req.pos.orientation.z
+        msg.pos.orientation.w = req.pos.orientation.w
+        init_pos_pub.publish(msg)
         resp = ManualInitPosResponse()
         resp.success = True
         self.node_info.state = self.node_info.Wait
@@ -123,7 +120,9 @@ class PendingServer():
             return resp
         self.node_info.state = self.node_info.SaveMap
         self.node_info_pub.publish(self.node_info)
-        rospy.loginfo("假装保存了地图")
+        save_map_pub = rospy.Publisher('/map_provider/save_map', SM, queue_size=10)
+        save_map_msg = SM()
+        save_map_pub.publish(save_map_msg)
         resp = SaveMapResponse()
         resp.success = True
         self.node_info.state = self.node_info.Wait
