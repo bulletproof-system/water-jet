@@ -12,7 +12,7 @@ class Database:
         rospy.init_node('database')
 
         # TODO DATABASE PATH
-        self.db_path = './pots.db'
+        self.db_path = '/home/yanhaojun/catkin_ws/ros/src/pots.db'
         self.connect_to_database()
 
         # Publishers
@@ -71,13 +71,13 @@ class Database:
 
             # Serialize pose, data, and picture using pickle
             serialized_pose = pickle.dumps(pot.pose)
-            serialized_data = pickle.dumps(pot.data)
-            serialized_picture = pickle.dumps(pot.picture)            
+            # serialized_data = pickle.dumps(pot.data)
+            # serialized_picture = pickle.dumps(pot.picture)            
 
             self.cursor.execute('''
                 INSERT OR REPLACE INTO pots (id, pose, data, picture, active, last_water_date)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (pot.id, serialized_pose, serialized_data, serialized_picture, pot.active, last_water_date))
+            ''', (pot.id, serialized_pose, pot.data, pot.picture, pot.active, last_water_date))
             self.conn.commit()
             self.publish_update([pot.id], [])
             return SetPotInfoResponse(success=True)
@@ -85,8 +85,10 @@ class Database:
         except sqlite3.Error as e:
             rospy.logerr("Failed to set pot info, DB error: %s" % str(e))
             self.conn.rollback()
+            print("SQLite error:", e) # 更多的错误输出
             return SetPotInfoResponse(success=False)
         except ValueError as ve:
+            print("Value error:", ve) # 更多的错误输出
             rospy.logerr("Failed to parse last watering date: %s" % str(ve))
             return SetPotInfoResponse(success=False)
 
