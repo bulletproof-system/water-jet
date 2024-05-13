@@ -29,15 +29,30 @@
   </TresCanvas>
   <div style="position: relative;" class="d-flex justify-end">
     <div style="position: absolute; top: -190px" class="d-flex flex-column pa-3">
-        <v-btn  class="ma-1" :icon="mode === MapControlMode.Normal ? 'mdi-map-check-outline' : 'mdi-map-outline'"
+        <v-btn  class="ma-1" icon
           @click="mode = MapControlMode.Normal"
-        />
-        <v-btn  class="ma-1" :icon="mode === MapControlMode.FollowRobot ? 'mdi-robot-happy' : 'mdi-robot'"
+        >
+          <v-icon> {{ mode === MapControlMode.Normal ? 'mdi-map-check-outline' : 'mdi-map-outline' }} </v-icon>
+          <v-tooltip activator="parent" location="start">
+            自由视角
+          </v-tooltip>
+        </v-btn>
+        <v-btn  class="ma-1" icon
           @click="mode = MapControlMode.FollowRobot"
-        />
-        <v-btn  class="ma-1" :icon="enbaleSelectPot ? 'mdi-flower-tulip' : 'mdi-flower-tulip-outline'"
+        >
+          <v-icon> {{ mode === MapControlMode.FollowRobot ? 'mdi-robot-happy' : 'mdi-robot' }} </v-icon>
+          <v-tooltip activator="parent" location="start" >
+            跟随机器人
+          </v-tooltip>
+        </v-btn>
+        <v-btn  class="ma-1" icon
           @click="enbaleSelectPot = !enbaleSelectPot"
-        />
+        >
+          <v-icon> {{ enbaleSelectPot ? 'mdi-flower-tulip' : 'mdi-flower-tulip-outline' }} </v-icon>
+          <v-tooltip activator="parent" location="start" >
+            选择花盆
+          </v-tooltip>
+        </v-btn>
     </div>
     
   </div>
