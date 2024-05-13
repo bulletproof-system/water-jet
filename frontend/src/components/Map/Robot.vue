@@ -11,7 +11,7 @@ const mapStore = useMapStore();
 const { arrow } = storeToRefs(mapStore);
 
 function setPosition() {
-	const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0),  arrow.value.direction.normalize());
+	const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0),  arrow.value.direction.normalize()).normalize();
 	const pos: Msg.geometry.Pose = {
 		position: { ...arrow.value.origin },
 		orientation: { 

@@ -1,14 +1,14 @@
 <template>
 	<v-app-bar height="60">
 		<v-app-bar-title>Water Jet</v-app-bar-title>
-		<v-slide-group v-model="ctrlMode" 
+		<v-slide-group v-model="targetMode" 
 			selected-class="bg-success">
 			<v-slide-group-item v-for="mode in modes" :key="mode.value">
-				<v-btn :class="['rounded-lg', 'ma-4', `bg-${ctrlMode === mode.value ? mode.color : 'grey'}`, { 'cursor-wait': disable,  }]" 
+				<v-btn :class="['rounded-lg', 'ma-4', `bg-${targetMode === mode.value ? mode.color : 'grey'}`, { 'cursor-wait': disable,  }]" 
 					width="150" height="45" :value="mode.value"
-					:loading="ctrlMode === mode.value && disable"
+					:loading="targetMode === mode.value && disable"
 					:disabled="disable"
-					@click="changeMode(mode.value, ctrlMode)" :active="ctrlMode === mode.value">
+					@click="changeMode(mode.value, targetMode)" :active="targetMode === mode.value">
 					{{ mode.name }}
 				</v-btn>
 			</v-slide-group-item>
@@ -27,10 +27,13 @@ import { useAppStore } from '@/stores/app';
 
 const appStore = useAppStore();
 const rosStore = useROSStore();
-const ctrlMode = ref<CtrlMode>(CtrlMode.Init);
-onMounted(() => {
-	ctrlMode.value = rosStore.ctrlMode === CtrlMode.Init ? CtrlMode.Pending : rosStore.ctrlMode;
-})
+const targetMode = ref<CtrlMode>(CtrlMode.Init);
+const { ctrlMode } = storeToRefs(rosStore);
+
+
+// onMounted(() => {
+// 	targetMode.value = rosStore.ctrlMode === CtrlMode.Init ? CtrlMode.Pending : rosStore.ctrlMode;
+// })
 const modes = [
 	{
 		name: "等待",
@@ -69,7 +72,7 @@ const modes = [
 		theme: 'work-mode'
 	}
 ]
-const disable = computed(() => rosStore.ctrlMode !== ctrlMode.value)
+const disable = computed(() => rosStore.ctrlMode !== targetMode.value)
 let theme = useTheme();
 
 // 仅改变当前页面状态即 ctrlMode, rosStore.ctrlMode 由订阅的 info 信息更改
@@ -77,7 +80,7 @@ async function changeMode(newMode: CtrlMode, oldMode: CtrlMode) {
 	if (newMode === oldMode) {
 		return;
 	}
-	ctrlMode.value = newMode;
+	targetMode.value = newMode;
 	// 切换全局模式
 	try {
 		await ctrl.changeMode(newMode);
@@ -94,9 +97,17 @@ async function changeMode(newMode: CtrlMode, oldMode: CtrlMode) {
 		
 }
 
-watch(ctrlMode, (newMode, oldMode) => {
+watch(targetMode, (newMode, oldMode) => {
 	console.log(newMode)
 	theme.global.name.value = modes.find(mode => mode.value === newMode)?.theme || 'dark';
 }, { immediate: true })
+
+watch(ctrlMode, (newMode, oldMode) => {
+	if (newMode !== oldMode) {
+		if (newMode == CtrlMode.Init)
+			targetMode.value = CtrlMode.Pending;
+		else targetMode.value = newMode;
+	}
+}, { immediate: true });
 
 </script>
