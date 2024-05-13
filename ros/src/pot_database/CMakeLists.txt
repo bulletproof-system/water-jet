@@ -164,11 +164,6 @@ ${OpenCV_INCLUDE_DIRS}
 ## Handle Python scripts
 catkin_install_python(PROGRAMS
   scripts/database.py
-  scripts/test_get_pot_list.py
-  scripts/test_set_pot_info.py
-  scripts/test_set_pot_active.py
-  scripts/test_get_pot_info.py
-  scripts/test_delete_pot.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
