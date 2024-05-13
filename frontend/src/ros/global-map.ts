@@ -22,7 +22,7 @@ let globalMap = new THREE.Group()
 let occupancyGrid: Msg.nav.OccupancyGrid = null
 let color = new Uint8Array(1 * 1 * 4)
 let mapTexture: THREE.DataTexture = null
-let mapGeometry = new THREE.PlaneGeometry(10, 1)
+let mapGeometry = new THREE.PlaneGeometry(10, 8)
 let mapMaterial = new THREE.MeshBasicMaterial({ side: THREE.FrontSide, map: mapTexture })
 let mapGrid = new THREE.Mesh(mapGeometry, mapMaterial)
 globalMap.add(mapGrid)
