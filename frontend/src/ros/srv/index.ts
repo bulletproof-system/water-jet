@@ -62,7 +62,7 @@ export namespace controller {
 	}
 
 	// /controller/srv/AutoInitPose.srv
-	export namespace AutoInitPose {
+	export namespace AutoInitPos {
 	    export interface Request {
 	        caller: string
 		}
@@ -72,9 +72,9 @@ export namespace controller {
 	}
 
 	// /controller/srv/ManualInitPose.srv
-	export namespace ManualInitPose {
+	export namespace ManualInitPos {
 	    export interface Request {
-	        pose: Msg.geometry.Pose
+	        pos: Msg.geometry.Pose
 		}
 		export interface Response {
 		    success: boolean

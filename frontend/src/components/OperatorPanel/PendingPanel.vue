@@ -6,13 +6,13 @@
 			{{ nodeInfo.state === NodeState.Navigate ? '取消' : mouseAction === MouseAction.Navigate ? '取消' : '导航' }}
 		</v-btn>
 		<v-btn class="ma-2 bg-primary" size="large" :disabled="nodeInfo.state !== NodeState.Wait || (mouseAction !== MouseAction.Control && mouseAction !== MouseAction.SetPosition)" 
-			:loading="nodeInfo.state === NodeState.Manual_Init_Pose"
-			@click="mouseAction = mouseAction === MouseAction.SetPosition ? MouseAction.Control : MouseAction.SetPosition"
+			:loading="nodeInfo.state === NodeState.Manual_Init_Pos"
+			@click="handleSetPositionClick()"
 		> 
 			{{ mouseAction === MouseAction.SetPosition ? '取消' : '手动设置位置'}}
 		</v-btn>
 		<v-btn class="ma-2 bg-primary" size="large" :disabled="disabled" 
-			:loading="nodeInfo.state === NodeState.Auto_Init_Pose" 
+			:loading="nodeInfo.state === NodeState.Auto_Init_Pos" 
 			@click="ctrl.autoInitPose()"
 		> 
 			自动设置位置 

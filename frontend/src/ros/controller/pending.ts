@@ -57,23 +57,23 @@ function clearMap(): Promise<any> {
 }
 
 // 自动设置机器人位置
-const autoInitPoseService = new ROSLIB.Service({
+const autoInitPosService = new ROSLIB.Service({
     ros: ros,
-    name: '/ctrl/pending/auto_init_pose',
-    serviceType: '/controller/AutoInitPose'
+    name: '/ctrl/pending/auto_init_pos',
+    serviceType: '/controller/AutoInitPos'
 })
-function autoInitPose(): Promise<any> {
+function autoInitPos(): Promise<any> {
 	rosStore.setNodeInfo({
 		feedback: '正在自动设置机器人位置...',
 		result: '',
 	    percentage: -1,
 		cancel: null
 	})
-	const requset: Srv.controller.AutoInitPose.Request = {
+	const requset: Srv.controller.AutoInitPos.Request = {
 	    caller: 'frontend'
 	}
 	return new Promise((resolve, reject) => {
-		autoInitPoseService.callService(requset, (response: Srv.controller.AutoInitPose.Response) => {
+		autoInitPosService.callService(requset, (response: Srv.controller.AutoInitPos.Response) => {
 			if (response.success) {
 				// 自动设置机器人位置成功
 				rosStore.setNodeInfo({
@@ -108,23 +108,23 @@ function autoInitPose(): Promise<any> {
 }
 
 // 手动设置机器人位置
-const manualInitPoseService = new ROSLIB.Service({
+const manualInitPosService = new ROSLIB.Service({
     ros: ros,
-    name: '/ctrl/pending/manual_init_pose',
-    serviceType: '/controller/ManualInitPose'
+    name: '/ctrl/pending/manual_init_pos',
+    serviceType: '/controller/ManualInitPos'
 })
-function manualInitPose(pose: Msg.geometry.Pose): Promise<any> {
+function manualInitPos(pose: Msg.geometry.Pose): Promise<any> {
 	rosStore.setNodeInfo({
 	    feedback: '正在手动设置机器人位置...',
 		result: '',
 	    percentage: -1,
 		cancel: null
 	})
-	const requset: Srv.controller.ManualInitPose.Request = {
-	    pose: pose
+	const requset: Srv.controller.ManualInitPos.Request = {
+	    pos: pose
 	}
 	return new Promise((resolve, reject) => {
-		manualInitPoseService.callService(requset, (response: Srv.controller.ManualInitPose.Response) => {
+		manualInitPosService.callService(requset, (response: Srv.controller.ManualInitPos.Response) => {
 			if (response.success) {
 				// 手动设置机器人位置成功
 				rosStore.setNodeInfo({
@@ -263,8 +263,8 @@ function navigate(pos: Msg.geometry.Pose): Promise<any> {
 
 export { 
 	clearMap,
-	autoInitPose,
-	manualInitPose,
+	autoInitPos as autoInitPose,
+	manualInitPos as manualInitPose,
 	saveMap,
 	navigate,
 }

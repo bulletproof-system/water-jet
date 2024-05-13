@@ -31,4 +31,6 @@ function procRobotDescriptionParam(message: unknown) {
 	robot.add(robotModel)
 }
 
+
+
 export { robot }
