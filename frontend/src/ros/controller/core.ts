@@ -116,9 +116,6 @@ const startService = new ROSLIB.Service({
     serviceType: 'controller/Start'
 });
 export function start(): Promise<any> {
-    if (nodeInfo.value.state !== NodeState.Stop) {
-		return Promise.reject(`node can't start: ${nodeInfo}`);
-	}
 	rosStore.setNodeInfo({
 		feedback: '正在启动节点',
 		result: '',

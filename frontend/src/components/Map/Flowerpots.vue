@@ -17,7 +17,7 @@ const from = new THREE.Vector3(5, 0, 5);
 function locatePot(id: string) {
 	if (pots.value.has(id)) {
 		const pot = pots.value.get(id)
-		mapStore.setTarget(from, new THREE.Vector3().copy(pot.pose.position))
+		mapStore.setTarget(from, new THREE.Vector3().copy(pot.pot_pose.position))
 	}
 }
 

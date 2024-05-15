@@ -12,7 +12,7 @@ const { ctrlMode, nodeInfo } = storeToRefs(rosStore)
 const autoWaterActionClient = new ROSLIB.ActionClient({
     ros: ros,
     serverName: "/ctrl/auto_water/auto_water",
-    actionName: "controller/AutoWater"
+    actionName: "controller/AutoWaterAction"
 })
 const feedbackInfo: Record<string, string> = {
 	'success': '巡检完成',

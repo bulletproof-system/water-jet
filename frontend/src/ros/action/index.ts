@@ -49,14 +49,14 @@ export namespace Controller {
 	// /controller/action/Target.action
 	export namespace Target {
 		export interface Goal {
-		    targets: number[]
+		    targets: string[]
 		}
 		export interface Result {
 		    result: 'success' | 'fail' | 'cancel' | 'error'
 		}
 		export interface Feedback {
 		    percentage: number,
-			target: number
+			target: string
 		}
 	}
 

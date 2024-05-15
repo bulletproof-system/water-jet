@@ -8,7 +8,7 @@ const { ctrlMode, nodeInfo } = storeToRefs(rosStore)
 const autoInitMapActionClient = new ROSLIB.ActionClient({
     ros: ros,
 	serverName: '/ctrl/auto_map/auto_init_map',
-	actionName: 'map_provider/InitMap',
+	actionName: 'map_provider/InitMapAction',
 })
 const feedbackInfo: Record<string, string> = {
 	'success': '导航成功',

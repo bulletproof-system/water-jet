@@ -29,7 +29,8 @@ new Promise(() => {
 
 export class Pot {
 	id: string // 花盆 id
-	pose: Msg.geometry.Pose // 世界坐标
+	pot_pose: Msg.geometry.Pose // 世界坐标
+	robot_pose: Msg.geometry.Pose // 世界坐标
 	// data: Uint8Array // 点云数据 
 	picture: Uint8Array // 花照片
 	active: boolean // 是否自动浇灌
@@ -43,7 +44,8 @@ export class Pot {
 		this.update(info)
 	}
 	update(info: Msg.database.PotInfo) {
-		this.pose = info.pose;
+		this.pot_pose = info.pot_pose;
+		this.robot_pose = info.robot_pose;
 		// this.data = info.data;
 		this.picture = info.picture;
 		this.active = info.active;
@@ -62,8 +64,8 @@ export class Pot {
 			this.pointCloud.userData = {
 				id: this.id
 			}
-			this.pointCloud.position.copy(this.pose.position);
-			this.pointCloud.quaternion.copy(this.pose.orientation);
+			this.pointCloud.position.copy(this.pot_pose.position);
+			this.pointCloud.quaternion.copy(this.pot_pose.orientation);
 			this.pointCloud.visible = this.active;
 			flowerpots.add(this.pointCloud);
 		} catch {
@@ -78,8 +80,8 @@ export class Pot {
 	}
 	delete() {
 		if (this.pointCloud) {
-			this.pointCloud.clear();
-			flowerpots.remove(this.pointCloud);
+			console.log("delete point cloud")
+			this.pointCloud.removeFromParent();
 			this.pointCloud = null;
 		}
 	}
@@ -103,7 +105,11 @@ if (appStore.debug) {
 	for (let i=1; i<=10; i+=2) {
 		pots.value.set(i.toString(), new Pot({
 			id: i,
-			pose: {
+			pot_pose: {
+				position: { x: Math.random() * 3 - 6, y: Math.random() * 3 - 6, z: Math.random() * 3 },
+				orientation: { x: 0, y: 0, z: 0, w: 1 }
+			},
+			robot_pose: {
 				position: { x: Math.random() * 3 - 6, y: Math.random() * 3 - 6, z: Math.random() * 3 },
 				orientation: { x: 0, y: 0, z: 0, w: 1 }
 			},
@@ -119,32 +125,33 @@ if (appStore.debug) {
 const potUpdateTopic = new ROSLIB.Topic({
     ros: ros,
 	name: '/database/pot/update',
-	messageType: 'database/PotUpdate'
+	messageType: 'pot_database/PotUpdate'
 })
 const potListService = new ROSLIB.Service({
 	ros: ros,
 	name: '/database/pot/list',
-	serviceType: 'database/PotList'
+	serviceType: 'pot_database/PotList'
 });
 const getPotInfoService = new ROSLIB.Service({
 	ros: ros,
 	name: '/database/pot/get',
-	serviceType: 'database/GetPotInfo'
+	serviceType: 'pot_database/GetPotInfo'
 })
 const setPotActiveService = new ROSLIB.Service({
 	ros: ros,
 	name: '/database/pot/set_active',
-	serviceType: 'database/SetPotActive'
+	serviceType: 'pot_database/SetPotActive'
 })
 
 
 ros.on('connection', () => {
 	const request: Srv.database.PotList.Request = { };
 	potListService.callService(request, (response: Srv.database.PotList.Response) => {
-		pots.value.forEach((pot) => {
-			pot.delete()
+		let removeList = [];
+		pots.value.forEach((_, key) => {
+		    removeList.push(key);
 		})
-		pots.value.clear()
+		removePot(...removeList)
 		for (const pot of response.pots) {
 		    pots.value.set(pot.id.toString(), new Pot(pot));
 		}
@@ -155,7 +162,7 @@ ros.on('connection', () => {
 potUpdateTopic.subscribe(updatePots);
 function updatePots(message: ROSLIB.Message) {
 	const {update_list: updateList, delete_list: deleteList} = message as unknown as Msg.database.PotUpdate;
-	removePot(...deleteList);
+	removePot(...deleteList.map(id => id.toString()));
 	updateList.forEach(id => fetchPotInfo(id));
 }
 function fetchPotInfo(id: number) {
@@ -175,10 +182,10 @@ function updatePot(pot: Msg.database.PotInfo) {
 	else
 		this.pots.set(pot.id, pot);
 };
-function removePot(...ids: number[]) {
+function removePot(...ids: string[]) {
 	for (const id of ids) {
-		pots.value.get(id.toString()).delete()
-		pots.value.delete(id.toString())
+		pots.value.get(id).delete()
+		pots.value.delete(id)
 	}
 }
 

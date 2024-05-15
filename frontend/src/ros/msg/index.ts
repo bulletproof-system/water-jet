@@ -135,7 +135,8 @@ export namespace database {
 	// database/msg/PotInfo.msg
 	export interface PotInfo {
 		id: number // 花盆 id
-		pose: geometry.Pose // 世界坐标
+		pot_pose: geometry.Pose // 世界坐标
+		robot_pose: geometry.Pose // 世界坐标
 		data: Uint8Array // 点云数据 
 		picture:  Uint8Array // 花照片
 		active: boolean // 是否自动浇灌
