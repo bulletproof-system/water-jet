@@ -118,7 +118,7 @@ class PendingServer():
             resp = ManualInitPosResponse()
             resp.success = False
             return resp
-        self.node_info.state = self.node_info.SaveMap
+        self.node_info.state = self.node_info.Save_Map
         self.node_info_pub.publish(self.node_info)
         save_map_pub = rospy.Publisher('/map_provider/save_map', SM, queue_size=10)
         save_map_msg = SM()
