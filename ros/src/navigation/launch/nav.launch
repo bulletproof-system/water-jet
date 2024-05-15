@@ -10,8 +10,8 @@
 
   <!--- Run move base -->
   <node pkg="move_base" type="move_base" respawn="false" name="move_base"  output="screen">
-    <rosparam file="$(find wpb_home_tutorials)/nav_lidar/costmap_common_params.yaml" command="load" ns="global_costmap" />
-    <rosparam file="$(find wpb_home_tutorials)/nav_lidar/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find navigation)/launch/wj_costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find navigation)/launch/wj_costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find wpb_home_tutorials)/nav_lidar/local_costmap_params.yaml" command="load" />
     <rosparam file="$(find wpb_home_tutorials)/nav_lidar/global_costmap_params.yaml" command="load" />
     <!-- <rosparam file="$(find wpb_home_tutorials)/nav_lidar/local_planner_params.yaml" command="load" /> -->
