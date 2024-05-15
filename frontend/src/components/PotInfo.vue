@@ -86,6 +86,10 @@ onMounted(() => {
   target.value.show_picture = true
 })
 
+onUnmounted(() => {
+  
+})
+
 const icon = computed(() => {
   return props.pot.active ? props.pot.choose ? 'mdi-checkbox-outline' : 'mdi-checkbox-blank-outline' : 'mdi-minus-box-outline';
 })

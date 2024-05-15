@@ -12,7 +12,7 @@ const { ctrlMode, nodeInfo } = storeToRefs(rosStore)
 const inspectActionClient = new ROSLIB.ActionClient({
     ros: ros,
 	serverName: '/ctrl/inspection/inspect',
-	actionName: 'controller/Inspect'
+	actionName: 'controller/InspectAction'
 })
 const feedbackInfo: Record<string, string> = {
 	'success': '巡检完成',

@@ -12,7 +12,7 @@ const { ctrlMode, nodeInfo } = storeToRefs(rosStore)
 const targetActionClient = new ROSLIB.ActionClient({
     ros: ros,
 	serverName: '/ctrl/target/target',
-	actionName: 'controller/Target'
+	actionName: 'controller/TargetAction'
 })
 const feedbackInfo: Record<string, string> = {
 	'success': '浇水完成',
@@ -31,7 +31,7 @@ function target(): Promise<any> {
 	let goal = new ROSLIB.Goal({
 	    actionClient: targetActionClient,
 		goalMessage: {
-			targets: targets.map((target) => parseInt(target)),
+			targets: targets,
 		} as Action.Controller.Target.Goal
 	});
 	rosStore.setNodeInfo({
@@ -41,6 +41,16 @@ function target(): Promise<any> {
 		cancel: goal.cancel.bind(goal)
 	})
 	return new Promise((resolve, reject) => {
+		if (targets.length === 0) {
+			rosStore.setNodeInfo({
+				feedback: '请选择目标花盆',
+				result: '',
+				percentage: 0,
+				cancel: null
+			})
+			reject('no target');
+			return;
+		}
 		goal.on('result', (result: Action.Controller.Target.Result) => {
 			rosStore.setNodeInfo({
 				feedback: feedbackInfo[result.result],
@@ -60,8 +70,8 @@ function target(): Promise<any> {
 				percentage: feedback.percentage,
 				cancel: goal.cancel.bind(goal)
 			})
-			appStore.openPot(feedback.target.toString());
-			mapStore.locatePot(feedback.target.toString());
+			appStore.openPot(feedback.target);
+			mapStore.locatePot(feedback.target);
 		});
 		goal.send();
 	})
