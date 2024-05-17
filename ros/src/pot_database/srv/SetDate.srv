@@ -1,0 +1,6 @@
+# /database/srv/SetDate.srv
+
+uint32 id
+string water_date 
+---
+bool success

@@ -24,6 +24,7 @@ class Database:
         rospy.Service('/database/pot/set_active', SetPotActive, self.handle_set_pot_active)
         rospy.Service('/database/pot/get', GetPotInfo, self.handle_get_pot_info)
         rospy.Service('/database/pot/delete', DeletePot, self.handle_delete_pot)
+        rospy.Service('/database/pot/set_date', SetDate, self.handle_set_date)
 
     def connect_to_database(self):
         try:
@@ -39,7 +40,8 @@ class Database:
             self.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS pots (
                     id INTEGER PRIMARY KEY,
-                    pose BLOB,
+                    pot_pose BLOB,
+                    robot_pose BLOB,
                     data BLOB,
                     picture BLOB,
                     active BOOLEAN,
@@ -61,23 +63,43 @@ class Database:
             rospy.logerr("Failed to retrieve pot list: %s" % str(e))
             return GetPotListResponse(pots=[])
 
+    def handle_set_date(self, request):
+        try:
+            pot_id = request.id
+            water_date = request.water_date
+            water_date = datetime.strptime(water_date, "%Y-%m-%d %H:%M:%S")
+            
+            self.cursor.execute('''
+                UPDATE pots
+                SET last_water_date = ?
+                WHERE id = ?
+            ''', (water_date, pot_id))
+            self.conn.commit()
+
+            return SetDateResponse(success=True)
+        except Exception as e:
+            print("Error updating last water date: {}".format(e))
+            return SetDateResponse(success=False)
+
+
     def handle_set_pot_info(self, request):
         pot = request.info
         try:
             if pot.last_water_date == "":
                 last_water_date = None
             else:
-                last_water_date = datetime.strptime(pot.last_water_date, "%Y-%m-%dT%H:%M:%S")
+                last_water_date = datetime.strptime(pot.last_water_date, "%Y-%m-%d %H:%M:%S")
 
             # Serialize pose, data, and picture using pickle
-            serialized_pose = pickle.dumps(pot.pose)
-            # serialized_data = pickle.dumps(pot.data)
-            # serialized_picture = pickle.dumps(pot.picture)            
+            serialized_pot_pose = pickle.dumps(pot.pot_pose)
+            serialized_robot_pose = pickle.dumps(pot.robot_pose)
+            serialized_data = pickle.dumps(pot.data) if pot.data else pickle.dumps([])
+            serialized_picture = pickle.dumps(pot.picture) if pot.picture else pickle.dumps([])        
 
             self.cursor.execute('''
-                INSERT OR REPLACE INTO pots (id, pose, data, picture, active, last_water_date)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (pot.id, serialized_pose, pot.data, pot.picture, pot.active, last_water_date))
+                INSERT OR REPLACE INTO pots (id, pot_pose,robot_pose,data, picture, active, last_water_date)
+                VALUES (?, ?, ?, ?, ?, ?,?)
+            ''', (pot.id, serialized_pot_pose,serialized_robot_pose, serialized_data, serialized_picture, pot.active, last_water_date))
             self.conn.commit()
             self.publish_update([pot.id], [])
             return SetPotInfoResponse(success=True)
@@ -133,13 +155,20 @@ class Database:
 
     def row_to_potinfo(self, row):
         # 反序列化 pose, data, 和 picture 字段
-        pose = pickle.loads(row[1]) if row[1] else None
-        data = pickle.loads(row[2]) if row[2] else None
-        picture = pickle.loads(row[3]) if row[3] else None
-        last_water_date_str = row[5].strftime("%Y-%m-%dT%H:%M:%S") if row[5] else None
+        pot_pose = pickle.loads(row[1]) if row[1] else None
+        robot_pose = pickle.loads(row[2]) if row[2] else None
+
+        data = pickle.loads(row[3]) if row[3] else []
         
-        return PotInfo(id=row[0], pose=pose, data=data, picture=picture, 
-                       active=row[4], last_water_date=last_water_date_str)
+        picture = pickle.loads(row[4]) if row[4] else []
+
+        last_water_date_str = None
+        if row[6]:
+            last_water_date = datetime.strptime(row[6], "%Y-%m-%d %H:%M:%S")
+            last_water_date_str = last_water_date.strftime("%Y-%m-%d %H:%M:%S")   
+
+        return PotInfo(id=row[0], pot_pose=pot_pose,robot_pose=robot_pose, data=data, picture=picture, 
+                       active=row[5], last_water_date=last_water_date_str)
 
 if __name__ == '__main__':
     try:

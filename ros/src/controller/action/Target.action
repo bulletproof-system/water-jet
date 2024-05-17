@@ -1,8 +1,8 @@
 # /controller/action/Target.action
 
-uint8[] targets # 目标花盆列表
+string[] targets # 目标花盆列表
 ---
 string result # 结果 'success' | 'fail' | 'cancel' | 'error'
 ---
 uint8 percentage # 进度百分数
-uint8 target # 目标花盆 id
+string target # 目标花盆 id

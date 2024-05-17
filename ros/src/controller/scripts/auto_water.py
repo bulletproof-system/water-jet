@@ -9,8 +9,9 @@ from controller.msg import Hello, NodeInfo
 from controller.msg import AutoWaterAction, AutoWaterFeedback, AutoWaterResult
 from navigation.msg import NavigateAction, NavigateGoal
 from robot_arm.msg import AimAction,AimGoal
-from pot_database.srv import GetPotList
-from controller.srv import Start,StartResponse,Stop,StopResponse
+from pot_database.srv import *
+from controller.srv import *
+from controller.srv import *
 
 STOP = 0
 WAIT = 1
@@ -48,7 +49,7 @@ class AutoWaterNode:
         self.all_pots_service = rospy.ServiceProxy('/database/pot/list', GetPotList)
         
         # all pots
-        self.pots = get_all_pots()
+        self.pots = self.get_all_pots()
 
     def handle_start(self,req):
         """处理启动服务请求"""
@@ -62,15 +63,23 @@ class AutoWaterNode:
 
     def handle_stop(self,req):
         """处理停止服务请求，终止当前任务并重置状态"""
-        if self.state != STOP:
+        if self.state == TARGET:
+            # 设置任务结果为'cancel'
+            result = TargetResult()
+            result.result = 'cancel'
+            self.server.set_aborted(result)
             self.state = STOP
+            rospy.loginfo("Auto Water action server stopped.")
+            return StopResponse(True)
+        elif self.state == WAIT:
             if self.server.is_active():
-                self.server.set_preempted()  # 如果有活动的目标任务，提前终止
+                self.server.set_preempted()
+            self.state = STOP
             rospy.loginfo("Auto Water action server stopped.")
             return StopResponse(True)
         else:
             rospy.loginfo("Auto Water action server is not running.")
-            return StopResponse(False)
+            return StopResponse(False)   
 
     def get_all_pots(self):
         response = self.all_pots_service()
@@ -95,17 +104,30 @@ class AutoWaterNode:
         else:
             rospy.logwarn("Navigation failed with result: %s" % nav_result.result)
             return False
+
+    def check_flowerpot(self, pot_id):
+    """Check the presence of a flowerpot using the object_detect/check_pot service."""
+    try:
+        check_pot = CheckPotRequest(id=pot_id)
+        check_pot_service = rospy.ServiceProxy('/object_detect/check_pot',CheckPot)
+        response = check_pot_service(check_pot)
+
+        return response.success
+    except rospy.ServiceException as e:
+        rospy.logwarn("Service call failed: %s" % e)
+        return False
         
-    def execute_cb(self, goal):
+    def execute_cb(self):
         self.state = AUTO_WATER
 
         feedback = AutoWaterFeedback()
         result = AutoWaterResult()
         
         rospy.loginfo("Starting auto watering process")
+        
         for i, target in enumerate(self.pots):
             #* 调用导航模块
-            target_pose = target.pose
+            target_pose = target.robot_pose
             success = self.navigate_to_target(target_pose)
             if not success:
                 result.result = 'fail'
@@ -113,9 +135,18 @@ class AutoWaterNode:
                 self.state = WAIT
                 return
 
+            #* 调用花盆识别模块
+            success = self.check_flowerpot(target.id)
+            if not success:
+                rospy.logwarn("No flowerpot detected")
+                result.result = 'fail'
+                self.server.set_aborted(result)
+                self.state = WAIT
+                return
+
             #* 调用浇水模块
             goal = AimGoal()
-            goal.id = target
+            goal.id = target.id
             self.aim_client.send_goal(goal)
             self.aim_client.wait_for_result()
             aim_result = self.aim_client.get_result()
@@ -129,9 +160,9 @@ class AutoWaterNode:
             
             #* 反馈进度
             feedback.percentage = int((i + 1) * 100.0 / len(self.pots))
-            feedback.target = target
+            feedback.target = str(target + 1)
             self.server.publish_feedback(feedback)
-            rospy.loginfo("Auto Watering at target %d" % target)
+            rospy.loginfo("Auto Watering at target %d" % (target + 1))
 
             #* 中断
             if self.server.is_preempt_requested():

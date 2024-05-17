@@ -68,6 +68,7 @@ GetPotInfo.srv
 GetPotList.srv
 SetPotActive.srv
 SetPotInfo.srv
+SetDate.srv
 )
 
 ## Generate actions in the 'action' folder

@@ -12,6 +12,8 @@ from robot_arm.msg import AimAction,AimGoal
 from pot_database.srv import *
 from object_detect.srv import *
 from controller.srv import *
+from datetime import datetime
+
 
 """
 State: 
@@ -38,7 +40,7 @@ class Target:
         rospy.Service('/ctrl/target/stop',Stop,self.handle_stop)
 
         # Action Server
-        self.server = SimpleActionServer('/ctrl/action/Target', TargetAction, execute_cb=self.execute_cb, auto_start=False)
+        self.server = SimpleActionServer('/ctrl/target/target', TargetAction, execute_cb=self.execute_cb, auto_start=False)
         self.server.start()
 
         # Action Client 
@@ -50,7 +52,8 @@ class Target:
 
         # Service Client
         self.pot_info_service = rospy.ServiceProxy('/database/pot/get', GetPotInfo)
-    
+        self.update_date_service = rospy.ServiceProxy('/database/pot/set_date', SetDate)
+
     def handle_start(self,req):
         """处理启动服务请求"""
         if self.state == STOP:
@@ -90,11 +93,14 @@ class Target:
 
     def get_target_pose(self, target_id):
         try:
-            get_pot_info = GetPotInfoRequest()
-            get_pot_info.id = target_id
+            # print("####################################################")
+            # print(target_id)
+            # print(type(target_id))
+            # print("####################################################")
+            get_pot_info = GetPotInfoRequest(id=int(target_id))
             response = self.pot_info_service(get_pot_info)
             if response.success:
-                return response.info.pose
+                return response.info.robot_pose
             else:
                 rospy.logwarn("Failed to fetch target pose for ID: %s" % target_id)
                 return None
@@ -134,19 +140,28 @@ class Target:
         result = TargetResult()
         
         rospy.loginfo("Starting watering process for targets: %s" % goal.targets)
+
+        #* 反馈初始进度
+        assert len(goal.targets) >= 1
+        feedback.percentage = 0
+        feedback.target = goal.targets[0]
+        self.server.publish_feedback(feedback)
+        rospy.loginfo("Watering at target %d" % int(goal.targets[0]))
+        
         for i, target in enumerate(goal.targets):
             #* 调用导航模块
+            target = int(target)
             target_pose = self.get_target_pose(target)
-            response = self.navigate_to_target(target_pose)
-            if not response.success:
+            success = self.navigate_to_target(target_pose)
+            if not success:
                 result.result = 'fail'
                 self.server.set_aborted(result)
                 self.state = WAIT
                 return
 
             #* 调用花盆识别模块
-            response = self.check_flowerpot(target)
-            if not response.success:
+            success = self.check_flowerpot(target)
+            if not success:
                 rospy.logwarn("No flowerpot detected at target: %d" % target)
                 result.result = 'fail'
                 self.server.set_aborted(result)
@@ -154,24 +169,36 @@ class Target:
                 return
 
             #* 调用浇水模块
-            goal = AimGoal()
-            goal.id = target
-            self.aim_client.send_goal(goal)
+            aim_goal = AimGoal()
+            aim_goal.id = target
+            self.aim_client.send_goal(aim_goal)
             self.aim_client.wait_for_result()
             response = self.aim_client.get_result()
+            success = response.success
 
-            if not response.success:
+            if not success:
                 rospy.logwarn("Unable to aim at target: %d" % target)
                 result.result = 'fail'
                 self.server.set_aborted(result)
                 self.state = WAIT
                 return
+
+            #* 更新浇水日期信息
+            try:
+                water_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                update_date_request = SetDateRequest(id=int(target), water_date=water_date)
+                update_response = self.update_date_service(update_date_request)
+                if not update_response.success:
+                    rospy.logwarn("Failed to update watering date for target: %d" % target)
+            except rospy.ServiceException as e:
+                rospy.logwarn("Service call failed while updating watering date: %s" % e)
             
             #* 反馈进度
-            feedback.percentage = int((i + 1) * 100.0 / len(goal.targets))
-            feedback.target = target
-            self.server.publish_feedback(feedback)
-            rospy.loginfo("Watering at target %d" % target)
+            if i < len(goal.targets):
+                feedback.percentage = int((i + 1) * 100.0 / len(goal.targets))
+                feedback.target = str(target + 1)
+                self.server.publish_feedback(feedback)
+                rospy.loginfo("Watering at target %d" % (target + 1))
 
             #* target中断
             if self.server.is_preempt_requested():
