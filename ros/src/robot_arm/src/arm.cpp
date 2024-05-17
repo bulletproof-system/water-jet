@@ -67,7 +67,7 @@ public:
         if (active) {
           adjust();
           extendArm();
-          ros::Duration(2.0).sleep();
+          ros::Duration(25.0).sleep();
           // simulate the process of jetting
           speak();
           retractArm();
@@ -115,6 +115,7 @@ private:
     sp.volume = 3.0;
     sp.arg = "watering";
     tts_pub_.publish(sp);
+    ros::Duration(5.0).sleep()
   }
 
   void adjust()
