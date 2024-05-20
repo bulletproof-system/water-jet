@@ -189,7 +189,7 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
         segmentation.segment (*planeIndices, *coefficients);
         if (planeIndices->indices.size () == 0)
         {
-            ROS_WARN("Could not estimate a planar model for the given dataset.");
+            // ROS_WARN("Could not estimate a planar model for the given dataset.");
             break;
         }
 
@@ -199,10 +199,10 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
         extract.setNegative (false);
         extract.filter (*plane);
         float plane_height = plane->points[0].z;
-        ROS_INFO("%d - plana: %d points. height =%.2f" ,i, plane->width * plane->height,plane_height);
+        // ROS_INFO("%d - plana: %d points. height =%.2f" ,i, plane->width * plane->height,plane_height);
         if(plane_height > 0.6 && plane_height < 0.85) 
         {
-            ROS_INFO("Final plane: %d points. height =%.2f" , plane->width * plane->height,plane_height);
+            // ROS_INFO("Final plane: %d points. height =%.2f" , plane->width * plane->height,plane_height);
             break;
         }
 
@@ -214,8 +214,9 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
     }
     
 
-    if (planeIndices->indices.size() == 0)
-        std::cout << "Could not find a plane in the scene." << std::endl;
+    if (planeIndices->indices.size() == 0){
+        // std::cout << "Could not find a plane in the scene." << std::endl;
+    }
     else
     {
         // Copy the points of the plane to a new cloud.
@@ -324,23 +325,45 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
                     center_point.header.stamp = ros::Time::now();
                     center_point.header.frame_id = "base_footprint";
 
-                    // calculate center point
-                    float centerX = (boxMarker.xMax + boxMarker.xMin) / 2.0;
-                    float centerY = (boxMarker.yMax + boxMarker.yMin) / 2.0;
-                    float centerZ = (boxMarker.zMax + boxMarker.zMin) / 2.0;
+                    // TODO: Check if the detected object is a flowerpot based on size
+                    float width = boxMarker.xMax - boxMarker.xMin;
+                    float depth = boxMarker.yMax - boxMarker.yMin;
+                    float height = boxMarker.zMax - boxMarker.zMin;
 
-                    center_point.point.x = centerX;
-                    center_point.point.y = centerY;
-                    center_point.point.z = centerZ;
+                    // Define typical flowerpot size ranges (in meters)
+                    float minWidth = 0.01; // minimum width of a flowerpot
+                    float maxWidth = 0.2; // maximum width of a flowerpot
+                    float minHeight = 0.1; // minimum height of a flowerpot
+                    float maxHeight = 0.3; // maximum height of a flowerpot
+                    float minDepth = 0.01; // minimum depth of a flowerpot
+                    float maxDepth = 0.2; // maximum depth of a flowerpot
 
-                    obj_center_pub.publish(center_point);
+                    // Check if the size is within the typical flowerpot dimensions
+                    bool isFlowerpot = (width >= minWidth && width <= maxWidth) &&
+                    (height >= minHeight && height <= maxHeight) &&
+                    (depth >= minDepth && depth <= maxDepth);
+                    
+                    ROS_INFO("Object dimensions - Width: %.2f m, Height: %.2f m, Depth: %.2f m", width, height, depth);
+                    if (isFlowerpot)
+                    {
+                        ROS_INFO("Detected a flowerpot: Width=%.2f, Height=%.2f, Depth=%.2f", width, height, depth);
+                        // Publish the center point as a flowerpot center
+                        center_point.point.x = (boxMarker.xMax + boxMarker.xMin) / 2.0;
+                        center_point.point.y = (boxMarker.yMax + boxMarker.yMin) / 2.0;
+                        center_point.point.z = (boxMarker.zMax + boxMarker.zMin) / 2.0;
+                        obj_center_pub.publish(center_point);
 
-                    // publish the corresponding PointCloud  data
-                    sensor_msgs::PointCloud2 object_cloud_msg;
-                    pcl::toROSMsg(*object_cloud, object_cloud_msg);
-                    object_cloud_msg.header.frame_id = "base_footprint";
-                    object_cloud_msg.header.stamp = ros::Time::now();
-                    pc_pub.publish(object_cloud_msg);
+                        // publish the corresponding PointCloud  data
+                        sensor_msgs::PointCloud2 object_cloud_msg;
+                        pcl::toROSMsg(*object_cloud, object_cloud_msg);
+                        object_cloud_msg.header.frame_id = "base_footprint";
+                        object_cloud_msg.header.stamp = ros::Time::now();
+                        pc_pub.publish(object_cloud_msg);
+                    }
+                    else
+                    {
+                        ROS_WARN("Object is not a flowerpot.");
+                    }
                 }
             }
             SortObjects();
