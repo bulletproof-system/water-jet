@@ -50,7 +50,9 @@ export class Pot {
 		this.picture = info.picture;
 		this.active = info.active;
 		if (!this.active) this.choose = false;
-		this.last_water_date = info.last_water_date;
+		if (info.last_water_date == "")
+			this.last_water_date = null
+		else this.last_water_date = new Date(info.last_water_date)
 
 		// 更新点云
 		this.delete()
@@ -116,7 +118,7 @@ if (appStore.debug) {
 			data: undefined,
 			picture: undefined,
 			active: true,
-			last_water_date: new Date(),
+			last_water_date: "2024-01-01 00:00:00",
 		}))
 	}
 }

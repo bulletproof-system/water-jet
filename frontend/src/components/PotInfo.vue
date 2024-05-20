@@ -15,7 +15,7 @@
         </v-col>
         <v-col class="d-flex justify-center align-center" cols="8">
           <v-fade-transition leave-absolute v-if="!expanded">
-            {{ dateTimeFormat.format(props.pot.last_water_date) }}
+            {{ waterTime }}
           </v-fade-transition>
         </v-col>
         <v-col class="d-flex justify-center align-center" cols="2">
@@ -30,7 +30,7 @@
     <v-expansion-panel-text>
       <v-row>
         <v-col>
-          上次浇水时间: {{ dateTimeFormat.format(props.pot.last_water_date) }}
+          上次浇水时间: {{ waterTime }}
         </v-col>
       </v-row>
       <v-row>
@@ -79,6 +79,13 @@ const target = ref({
 
 const switching = computed(() => {
   return target.value.active != props.pot.active
+})
+
+const waterTime = computed(() => {
+  if (props.pot.last_water_date == null)
+    return "无记录"
+  else
+    return dateTimeFormat.format(props.pot.last_water_date)
 })
 
 onMounted(() => {

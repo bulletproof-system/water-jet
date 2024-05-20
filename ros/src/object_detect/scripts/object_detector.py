@@ -58,7 +58,7 @@ class ObjectDetector:
         response = client(request)
 
         global pots
-        pots = {pot_info.id: {'x': pot_info.pose.position.x, 'y': pot_info.pose.position.y, 'z': pot_info.pose.position.z} 
+        pots = {pot_info.id: {'x': pot_info.pot_pose.position.x, 'y': pot_info.pot_pose.position.y, 'z': pot_info.pot_pose.position.z} 
                         for pot_info in response.pots}
         
     def handle_check_pot(self, req):
@@ -123,7 +123,7 @@ class ObjectDetector:
             pointcloud_serialized = pickle.dumps(obj_pointcloud)
 
             # 处理图像数据
-            if self.latest_imag != []:
+            if self.latest_image != []:
                 image_data = self.bridge.imgmsg_to_cv2(self.latest_image, desired_encoding="passthrough")
                 image_serialized = pickle.dumps(image_data)
             else:
