@@ -138,7 +138,7 @@ export namespace database {
 		pot_pose: geometry.Pose // 世界坐标
 		robot_pose: geometry.Pose // 世界坐标
 		data: Uint8Array // 点云数据 
-		picture:  Uint8Array // 花照片
+		picture: string // 花照片
 		active: boolean // 是否自动浇灌
 		last_water_date: string // 上次浇水时间
 	}

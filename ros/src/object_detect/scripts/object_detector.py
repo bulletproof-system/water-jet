@@ -12,9 +12,11 @@ from object_detect.srv import *
 from pot_database.srv import *
 from math import sqrt
 from cv_bridge import CvBridge
+import cv2
+import numpy as np
 
 pots = {}                           # pot的信息字典， id -> (x,y,z,last_scan_time) ;
-DISTANCE_THRESHOLD = 1.0            # 花盆检测距离阈值
+DISTANCE_THRESHOLD = 0.2            # 花盆检测距离阈值
 TIMEOUT_THRESHOLD = 5.0             # 检测花盆超时阈值
 LINEAR_EPSILON = 0.05               # 线速度阈值
 ANGULAR_EPSILON = 0.02              # 角速度阈值
@@ -67,7 +69,7 @@ class ObjectDetector:
         current_time = rospy.get_time() 
         assert pots.get(pot_id) is not None
 
-        last_scan_time = pots.get(pot_id)
+        last_scan_time = pots.get(pot_id).get('last_scan_time')
         time_difference = current_time - last_scan_time
         
         response = CheckPotResponse()
@@ -94,7 +96,7 @@ class ObjectDetector:
         if self.current_linear_velocity >= LINEAR_EPSILON or self.current_angular_velocity >= ANGULAR_EPSILON:
             return
 
-        self.listener.waitForTransform("/map", obj_center.header.frame_id, obj_center.header.stamp, rospy.Duration(5.0))
+        self.listener.waitForTransform("/map", obj_center.header.frame_id, obj_center.header.stamp, timeout=rospy.Duration(5.0))
         world_point = self.listener.transformPoint("/map", obj_center)
         robot_pose = self.listener.lookupTransform("/map", "/base_link", rospy.Time(0))
 
@@ -125,7 +127,7 @@ class ObjectDetector:
             # 处理图像数据
             if self.latest_image != []:
                 image_data = self.bridge.imgmsg_to_cv2(self.latest_image, desired_encoding="passthrough")
-                image_serialized = pickle.dumps(image_data)
+                image_serialized = np.array(cv2.imencode(".jpeg", image_data)[1]).tobytes() 
             else:
                 image_serialized = []
             

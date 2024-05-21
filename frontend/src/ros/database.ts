@@ -15,16 +15,14 @@ const box = new THREE.BoxHelper( object, 0xffff00 );
 const loader = new GLTFLoader();
 const flowerpots = new THREE.Group();
 let potModel = new THREE.Group();
-new Promise(() => {
-	loader.load('watercolor_succulent.glb',
-		(gltf) => {
-			potModel = gltf.scene
-		}, undefined,
-		(error) => {
-			console.error(error);
-		}
-	)
-})
+loader.load('banana_plant_with_pot.glb',
+	(gltf) => {
+		potModel = gltf.scene
+	}, undefined,
+	(error) => {
+		console.error(error);
+	}
+)
 
 
 export class Pot {
@@ -32,7 +30,7 @@ export class Pot {
 	pot_pose: Msg.geometry.Pose // 世界坐标
 	robot_pose: Msg.geometry.Pose // 世界坐标
 	// data: Uint8Array // 点云数据 
-	picture: Uint8Array // 花照片
+	picture: string // 花照片
 	active: boolean // 是否自动浇灌
 	choose: boolean // 是否被选中
 	last_water_date: Date; // 上次浇水时间
@@ -47,7 +45,16 @@ export class Pot {
 		this.pot_pose = info.pot_pose;
 		this.robot_pose = info.robot_pose;
 		// this.data = info.data;
-		this.picture = info.picture;
+		this.delete()
+		this.picture = "";
+		try {
+			let picture = new Uint8Array(info.picture.length); 
+			atob(info.picture).split('').forEach((c, i) => picture[i] = c.charCodeAt(0))
+			const blob = new Blob([picture], { type: 'image/jpeg' });
+			this.picture = URL.createObjectURL(blob);
+		} catch(error) {
+			console.error(error, `parse picture failed, id: ${this.id}`);
+		}
 		this.active = info.active;
 		if (!this.active) this.choose = false;
 		if (info.last_water_date == "")
@@ -55,19 +62,19 @@ export class Pot {
 		else this.last_water_date = new Date(info.last_water_date)
 
 		// 更新点云
-		this.delete()
-
 		try {
 			const geometry = new THREE.IcosahedronGeometry( 0.2 ); 
 			const material = new THREE.MeshLambertMaterial( {color: 0x00ff00} ); 
 			const capsule = new THREE.Mesh( geometry, material ); 
-			this.pointCloud = capsule;
+			this.pointCloud = potModel.clone();
 			// this.pointCloud = potModel.clone();
 			this.pointCloud.userData = {
 				id: this.id
 			}
 			this.pointCloud.position.copy(this.pot_pose.position);
 			this.pointCloud.quaternion.copy(this.pot_pose.orientation);
+			this.pointCloud.scale.set(0.4, 0.4, 0.4);
+			this.pointCloud.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2));
 			this.pointCloud.visible = this.active;
 			flowerpots.add(this.pointCloud);
 		} catch {
@@ -81,6 +88,7 @@ export class Pot {
 		
 	}
 	delete() {
+		URL.revokeObjectURL(this.picture)
 		if (this.pointCloud) {
 			console.log("delete point cloud")
 			this.pointCloud.removeFromParent();
@@ -182,7 +190,7 @@ function updatePot(pot: Msg.database.PotInfo) {
 	if (pots.value.has(pot.id.toString()))
 		pots.value[pot.id.toString()].update(pot);
 	else
-		this.pots.set(pot.id, pot);
+		pots.value.set(pot.id.toString(), new Pot(pot));
 };
 function removePot(...ids: string[]) {
 	for (const id of ids) {

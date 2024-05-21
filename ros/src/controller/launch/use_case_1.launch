@@ -5,7 +5,7 @@
 	  <!-- wpb_home core-->
   <node pkg="wpb_home_bringup" type="wpb_home_core" name="wpb_home_core" output="screen">
     <param name="serial_port" type="string" value="/dev/ftdi"/>
-    <rosparam file="$(find wpb_home_bringup)/config/wpb_home.yaml" command="load" />
+    <rosparam file="$(find controller)/config/wpb_home.yaml" command="load" />
   </node>
 
   	<!-- tf -->
@@ -48,8 +48,9 @@
 	
 	<!-- <node pkg="tf" type="static_transform_publisher" name="fix_odom" args="0 0 0 0 0 0 odom base_footprint 50" /> -->
 	<!-- Rviz -->
-	<!-- <arg name="rvizconfig" default="$(find wpb_home_tutorials)/rviz/slam.rviz" />
-	<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" /> -->
+	<!-- <arg name="rvizconfig" default="$(find wpb_home_tutorials)/rviz/slam.rviz" /> -->
+  <arg name="rvizconfig" default="$(find wpb_home_bringup)/rviz/sensor.rviz" />
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
 
 	<include file="$(find controller)/launch/main.launch"/>
 
