@@ -18,7 +18,7 @@
 std::string getCurrentTime() {
     std::time_t now = std::time(nullptr);
     std::stringstream ss;
-    ss << std::put_time(std::localtime(&now), "%Y-%m-%dT%H:%M:%S");
+    ss << std::put_time(std::localtime(&now), "%Y-%m-%d %H:%M:%S");
     return ss.str();
 }
 
@@ -29,14 +29,18 @@ public:
   {
     as_.start();
     first_ = true;
-    center_point_sub_ = nh_.subscribe("object_center", 10, &ArmActionServer::objectsCenterCallback, this);
+    center_point_sub_ = nh_.subscribe("obj_centers", 10, &ArmActionServer::objectsCenterCallback, this);
     vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
     mani_ctrl_pub_ = nh_.advertise<sensor_msgs::JointState>("/wpb_home/mani_ctrl", 30);
     tts_pub_ = nh_.advertise<sound_play::SoundRequest>("/robotsound", 20);
     pot_get_client_ = nh_.serviceClient<pot_database::GetPotInfo>("/database/pot/get");
-    ros::service::waitForService("/database/pot/get");
+    if (!ros::service::waitForService("/database/pot/get", ros::Duration(5.0))) {
+      ROS_WARN("Time Out on service /database/pot/get/.........................................");
+    }
     pot_set_client_ = nh_.serviceClient<pot_database::SetPotInfo>("/database/pot/set");
-    ros::service::waitForService("/database/pot/set");
+    if (!ros::service::waitForService("/database/pot/set", ros::Duration(5.0))) {
+      ROS_WARN("Time Out on service /database/pot/set/.........................................");
+    }
 
     // test
     // target_point_.point.x = 1.2;
@@ -55,16 +59,18 @@ public:
 
   void executeCallback(const robot_arm::AimGoalConstPtr& goal)
   {
-    ROS_INFO("Executing arm action...");
+    ROS_INFO("Executing arm action.................................");
   
     pot_database::GetPotInfo getPotInfo;
     getPotInfo.request.id = goal->id;
 
     if (pot_get_client_.call(getPotInfo)) {
+      ROS_INFO("succeed to get pot infomation!!!!!!!!!!!!!!!!!!!!!!!");
       if (getPotInfo.response.success) {
-        ROS_INFO("succeed to get active infomation!");
+        ROS_INFO("succeed to get active infomation!!!!!!!!!!!!!!!!!!!!!!!!!!");
         bool active = getPotInfo.response.info.active;
         if (active) {
+          ROS_INFO("the pot is active!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
           adjust();
           extendArm();
           ros::Duration(25.0).sleep();
@@ -77,11 +83,14 @@ public:
           setPotInfo.request.info.last_water_date = getCurrentTime();
           if (pot_set_client_.call(setPotInfo)) {
             if (setPotInfo.response.success) {
-              ROS_INFO("succeed to set pot's last water date!");
+              ROS_INFO("succeed to set pot's last water date!!!!!!!!!!!!!!!!!!!!!!");
             }
             else {
-              ROS_WARN("fail to set pot's last water date....");
+              ROS_WARN("fail to set pot's last water date..........................");
             }
+          }
+          else {
+            ROS_WARN("fail to Set the pot info.............................");
           }
           robot_arm::AimResult result;
           result.success = true;
@@ -89,22 +98,26 @@ public:
           as_.setSucceeded(result);
         }
         else {
+          ROS_WARN("the pot is not active............................");
           robot_arm::AimResult result;
           result.success = true;
           result.info = "the pot is not active...";
           as_.setSucceeded(result);
         }
       }
+      else {
+        ROS_WARN("fail to get active information.............................");
+      }
     }
     else {
-      ROS_WARN("fail to get pot infomation...");
+      ROS_WARN("fail to get pot infomation...................................");
       robot_arm::AimResult result;
       result.success = false;
-      result.info = "fail to get pot infomation...";
+      result.info = "fail to get pot infomation....";
       as_.setSucceeded(result);
     }
 
-    ROS_INFO("Aim action completed!");
+    ROS_INFO("Aim action completed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   }
 
 private:
@@ -112,7 +125,7 @@ private:
     sound_play::SoundRequest sp;
     sp.sound = sound_play::SoundRequest::SAY;
     sp.command = sound_play::SoundRequest::PLAY_ONCE;
-    sp.volume = 3.0;
+    sp.volume = 1.0;
     sp.arg = "watering";
     tts_pub_.publish(sp);
     ros::Duration(5.0).sleep()
@@ -120,7 +133,7 @@ private:
 
   void adjust()
   {
-    ROS_INFO("begin moving action...");
+    ROS_INFO("begin moving action...................................");
     // here aim to the object pot...
     double target_x = target_point_.point.x;
     double target_y = target_point_.point.y;
@@ -154,7 +167,7 @@ private:
     mani_ctrl_msg.velocity[0] = 0.2;
     mani_ctrl_msg.velocity[1] = 5;
     mani_ctrl_pub_.publish(mani_ctrl_msg);
-    ROS_INFO("finish extending arm...");
+    ROS_INFO("finish extending arm.......................................");
   }
 
   void retractArm()
@@ -172,7 +185,7 @@ private:
     mani_ctrl_msg.velocity[0] = 0.2;
     mani_ctrl_msg.velocity[1] = 5;
     mani_ctrl_pub_.publish(mani_ctrl_msg);
-    ROS_INFO("finish retracting arm...");
+    ROS_INFO("finish retracting arm...........................................");
   }
 
   bool first_;
