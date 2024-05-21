@@ -34,10 +34,20 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-col v-if="target.show_picture">
-          图片
+        <v-col v-if="target.show_picture" cols="12" class="d-flex justify-center align-center">
+          <v-img v-if="props.pot.picture" :src="props.pot.picture" cover height="200" width="300" @error="(e) => console.log(e)">
+            <template v-slot:placeholder>
+              <div class="d-flex align-center justify-center fill-height">
+                <v-progress-circular
+                  color="grey-lighten-4"
+                  indeterminate
+                ></v-progress-circular>
+              </div>
+            </template>
+          </v-img>
+
         </v-col>
-        <v-col v-else>
+        <v-col v-else cols="12" class="d-flex justify-center align-center">
           点云
         </v-col>
       </v-row>

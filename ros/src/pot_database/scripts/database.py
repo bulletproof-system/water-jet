@@ -5,14 +5,18 @@ import sqlite3
 from datetime import datetime
 from pot_database.msg import PotInfo, PotUpdate
 from pot_database.srv import *
-import pickle
+import pickle, os
 
 class Database:
     def __init__(self):
         rospy.init_node('database')
 
         # TODO DATABASE PATH
-        self.db_path = '/home/yanhaojun/catkin_ws/ros/src/pots.db'
+        # 获取当前用户的家目录路径
+        home_dir = os.path.expanduser('~')
+
+        # 设置数据库文件的路径为家目录下的一个特定文件名
+        self.db_path = os.path.join(home_dir, 'pots.db')
         self.connect_to_database()
 
         # Publishers

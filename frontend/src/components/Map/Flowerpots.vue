@@ -23,8 +23,14 @@ function locatePot(id: string) {
 
 function handleClick(raycaster: THREE.Raycaster) {
 	const intersects = raycaster.intersectObjects(flowerpots.children, true);
-	console.log(intersects)
 	if (intersects.length > 0) {
+		while (!intersects[0].object.userData.hasOwnProperty('id') && intersects[0].object.parent) {
+			intersects[0].object = intersects[0].object.parent
+		}
+		if (!intersects[0].object.parent) {
+			console.log('no parent')
+			return;
+		}
 		const id = intersects[0].object.userData.id;
 		locatePot(id);
 		appStore.openPot(id);

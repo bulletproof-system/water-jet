@@ -63,6 +63,7 @@ export function changeMode(mode: CtrlMode): Promise<any> {
 		changeModeService.callService(request, (response: Srv.controller.ChangeMode.Response) => {
 			syncModeState();
 			if (response.success) {
+				ctrlMode.value = mode;
 				resolve(response);
 			} else {
 				console.warn('change mode failed');
