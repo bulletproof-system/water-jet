@@ -73,7 +73,7 @@ public:
           ROS_INFO("the pot is active!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
           adjust();
           extendArm();
-          ros::Duration(25.0).sleep();
+          ros::Duration(15.0).sleep();
           // simulate the process of jetting
           speak();
           retractArm();
@@ -126,9 +126,9 @@ private:
     sp.sound = sound_play::SoundRequest::SAY;
     sp.command = sound_play::SoundRequest::PLAY_ONCE;
     sp.volume = 1.0;
-    sp.arg = "watering";
+    sp.arg = "I am watering now, please watch out. I am watering now, please watch out. I am watering now, please watch out. ";
     tts_pub_.publish(sp);
-    ros::Duration(5.0).sleep()
+    ros::Duration(5.0).sleep();
   }
 
   void adjust()
@@ -145,6 +145,7 @@ private:
     vel_cmd.linear.x = 0;
     vel_cmd.linear.y = 0;
     vel_cmd.angular.z = angle;
+    ROS_INFO("adjust angle is %.2lf !!!!!!!!!!!!!!!!!!!!!!!", angle);
     vel_pub_.publish(vel_cmd);
     ros::Duration(1.0).sleep();
     vel_cmd.angular.z = 0;
@@ -161,7 +162,7 @@ private:
     mani_ctrl_msg.velocity.resize(2);
     mani_ctrl_msg.name[0] = "lift";
     mani_ctrl_msg.name[1] = "gripper";
-    mani_ctrl_msg.position[0] = target_point_.point.z;
+    mani_ctrl_msg.position[0] = target_point_.point.z + 0.15;
     // always hold on
     mani_ctrl_msg.position[1] = 0.032;
     mani_ctrl_msg.velocity[0] = 0.2;

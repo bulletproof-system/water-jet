@@ -14,6 +14,9 @@
 	<!-- database -->
 	<include file="$(find pot_database)/launch/database.launch"/>
 
+	<!-- jet -->
+	<include file="$(find robot_arm)/launch/arm.launch"/>
+
 	<!-- ros web tool -->
 	<node name="keyboard_vel_ctrl" pkg="wpr_simulation" type="keyboard_vel_ctrl" />
 	<node name="tf2_web_republisher" pkg="tf2_web_republisher" type="tf2_web_republisher" />
