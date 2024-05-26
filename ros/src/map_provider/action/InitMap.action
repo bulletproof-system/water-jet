@@ -1,5 +1,8 @@
+# Goal
 string caller
 ---
+# Result
 string result
 ---
+# Feedback
 int8 percentage
