@@ -12,17 +12,44 @@ const sphere = new THREE.SphereGeometry();
 const object = new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( ) );
 const box = new THREE.BoxHelper( object, 0xffff00 );
 
-const loader = new GLTFLoader();
 const flowerpots = new THREE.Group();
-let potModel = new THREE.Group();
-loader.load('banana_plant_with_pot.glb',
-	(gltf) => {
-		potModel = gltf.scene
-	}, undefined,
-	(error) => {
-		console.error(error);
-	}
-)
+// loader.load('banana_plant_with_pot.glb',
+// 	(gltf) => {
+// 		potModel = gltf.scene
+// 	}, undefined,
+// 	(error) => {
+// 		console.error(error);
+// 	}
+// )
+class ModelLoaderSingleton {
+	static instance: ModelLoaderSingleton;
+	model: THREE.Group | null;
+	loader: GLTFLoader;
+	loadingLock: boolean; // 加载锁
+    constructor() {
+        if (!ModelLoaderSingleton.instance) {
+            this.model = null;
+            this.loader = new GLTFLoader();
+            this.loadingLock = false; // 加载锁
+            ModelLoaderSingleton.instance = this;
+        }
+        return ModelLoaderSingleton.instance;
+    }
+
+    async loadModel(url: string) {
+		if (!this.model) {
+            await new Promise((resolve, reject) => {
+                this.loader.load(url, gltf => {
+                    this.model = gltf.scene;
+                    resolve(this.model);
+                }, undefined, reject);
+            });
+        }
+        return this.model;
+    }
+}
+
+const loader = new ModelLoaderSingleton();
 
 
 export class Pot {
@@ -41,7 +68,7 @@ export class Pot {
 		this.choose = false;
 		this.update(info)
 	}
-	update(info: Msg.database.PotInfo) {
+	async update(info: Msg.database.PotInfo) {
 		this.pot_pose = info.pot_pose;
 		this.robot_pose = info.robot_pose;
 		// this.data = info.data;
@@ -63,10 +90,7 @@ export class Pot {
 
 		// 更新点云
 		try {
-			const geometry = new THREE.IcosahedronGeometry( 0.2 ); 
-			const material = new THREE.MeshLambertMaterial( {color: 0x00ff00} ); 
-			const capsule = new THREE.Mesh( geometry, material ); 
-			this.pointCloud = potModel.clone();
+			this.pointCloud = (await loader.loadModel('banana_plant_with_pot.glb')).clone();
 			// this.pointCloud = potModel.clone();
 			this.pointCloud.userData = {
 				id: this.id
