@@ -3,6 +3,7 @@ import { ros } from "../init";
 import { Msg, Srv } from "../";
 import { CtrlMode, NodeState, useROSStore } from "@/stores/ros";
 import { useAppStore } from '@/stores/app';
+import { ControlMode } from '@/stores/map';
 
 const appStore = useAppStore();
 const rosStore = useROSStore();

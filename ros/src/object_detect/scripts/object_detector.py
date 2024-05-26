@@ -95,10 +95,13 @@ class ObjectDetector:
         # 判断当前速度是否不小于某个eps值
         if self.current_linear_velocity >= LINEAR_EPSILON or self.current_angular_velocity >= ANGULAR_EPSILON:
             return
-
-        self.listener.waitForTransform("/map", obj_center.header.frame_id, obj_center.header.stamp, timeout=rospy.Duration(5.0))
-        world_point = self.listener.transformPoint("/map", obj_center)
-        robot_pose = self.listener.lookupTransform("/map", "/base_link", rospy.Time(0))
+        try:
+            self.listener.waitForTransform("/map", obj_center.header.frame_id, obj_center.header.stamp, rospy.Duration(5.0))
+            world_point = self.listener.transformPoint("/map", obj_center)
+            robot_pose = self.listener.lookupTransform("/map", "/base_link", rospy.Time(0))
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            rospy.logwarn("Transform not available. Skipping this update.")
+            return
 
         # 检查是否与已有的花盆坐标相近
         found_match = False
