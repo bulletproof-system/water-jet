@@ -9,7 +9,7 @@
 	<include file="$(find controller)/launch/controller.launch"/>
 
 	<!-- object_detect -->
-	<!-- <include file="$(find object_detect)/launch/object_detect.launch"/> -->
+	<include file="$(find object_detect)/launch/object_detect.launch"/>
 
 	<!-- database -->
 	<include file="$(find pot_database)/launch/database.launch"/>
