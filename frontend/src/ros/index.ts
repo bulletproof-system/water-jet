@@ -5,6 +5,7 @@ export * from './lidar'
 export * from './robot'
 export * from './navigation'
 export * from './database'
+export * from './amcl'
 export * as ctrl from './controller'
 
 export * as Msg from './msg'

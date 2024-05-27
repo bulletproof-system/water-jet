@@ -58,6 +58,25 @@ export namespace geometry {
 		header: Header
 		point: Point
 	}
+
+	// https://docs.ros.org/en/api/geometry_msgs/html/msg/PoseArray.html
+	export interface PoseArray {
+	    header: Header
+	    poses: Pose[]
+	}
+
+	// https://docs.ros.org/en/api/geometry_msgs/html/msg/PoseWithCovarianceStamped.html
+	export interface PoseWithCovarianceStamped {
+	    header: Header
+	    pose: PoseWithCovariance
+	}
+
+	// https://docs.ros.org/en/api/geometry_msgs/html/msg/PoseWithCovariance.html
+	export interface PoseWithCovariance {
+	    pose: Pose
+	    covariance: number[]
+	}
+
 }
 
 export namespace nav {

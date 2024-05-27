@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    Amcl: typeof import('./components/Map/Amcl.vue')['default']
     AppBar: typeof import('./components/AppBar.vue')['default']
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     Auto_MapFooter: typeof import('./components/Auto_Map/Auto_MapFooter.vue')['default']
