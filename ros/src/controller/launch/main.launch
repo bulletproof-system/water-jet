@@ -10,6 +10,7 @@
 
 	<!-- object_detect -->
 	<include file="$(find object_detect)/launch/object_detect.launch"/>
+	<include file="$(find yolo_detector)/launch/main.launch"/>
 
 	<!-- database -->
 	<include file="$(find pot_database)/launch/database.launch"/>
