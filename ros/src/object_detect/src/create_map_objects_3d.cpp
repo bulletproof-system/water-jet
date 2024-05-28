@@ -312,11 +312,6 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
                     tmpObj.probability = 1.0f;
                     arObj.push_back(tmpObj);
 
-                    // coord.name.push_back(obj_id);
-                    // coord.x.push_back(object_x);
-                    // coord.y.push_back(object_y);
-                    // coord.z.push_back(object_z);
-                    // coord.probability.push_back(1.0f);
                     nObjCnt++;
                     ROS_WARN("[obj_%d] xMin= %.2f yMin = %.2f yMax = %.2f",i,boxMarker.xMin, boxMarker.yMin, boxMarker.yMax);
                     
@@ -325,49 +320,26 @@ void ProcCloudCB(const sensor_msgs::PointCloud2 &input)
                     center_point.header.stamp = ros::Time::now();
                     center_point.header.frame_id = "base_footprint";
 
-                    // TODO: Check if the detected object is a flowerpot based on size
                     float width = boxMarker.xMax - boxMarker.xMin;
                     float depth = boxMarker.yMax - boxMarker.yMin;
                     float height = boxMarker.zMax - boxMarker.zMin;
-
-                    // Define typical flowerpot size ranges (in meters)
-                    float minWidth = 0.01; // minimum width of a flowerpot
-                    float maxWidth = 0.2; // maximum width of a flowerpot
-                    float minHeight = 0.1; // minimum height of a flowerpot
-                    float maxHeight = 0.3; // maximum height of a flowerpot
-                    float minDepth = 0.01; // minimum depth of a flowerpot
-                    float maxDepth = 0.2; // maximum depth of a flowerpot
-
-                    // Check if the size is within the typical flowerpot dimensions
-                    bool isFlowerpot = (width >= minWidth && width <= maxWidth) &&
-                    (height >= minHeight && height <= maxHeight) &&
-                    (depth >= minDepth && depth <= maxDepth);
                     
-                    ROS_INFO("Object dimensions - Width: %.2f m, Height: %.2f m, Depth: %.2f m", width, height, depth);
-                    if (isFlowerpot)
-                    {
-                        ROS_INFO("Detected a flowerpot: Width=%.2f, Height=%.2f, Depth=%.2f", width, height, depth);
-                        // Publish the center point as a flowerpot center
-                        center_point.point.x = (boxMarker.xMax + boxMarker.xMin) / 2.0;
-                        center_point.point.y = (boxMarker.yMax + boxMarker.yMin) / 2.0;
-                        center_point.point.z = (boxMarker.zMax + boxMarker.zMin) / 2.0;
-                        obj_center_pub.publish(center_point);
+                    ROS_INFO("Detected a flowerpot: Width=%.2f, Height=%.2f, Depth=%.2f", width, height, depth);
+                    // Publish the center point as a flowerpot center
+                    center_point.point.x = (boxMarker.xMax + boxMarker.xMin) / 2.0;
+                    center_point.point.y = (boxMarker.yMax + boxMarker.yMin) / 2.0;
+                    center_point.point.z = (boxMarker.zMax + boxMarker.zMin) / 2.0;
+                    obj_center_pub.publish(center_point);
 
-                        // publish the corresponding PointCloud  data
-                        sensor_msgs::PointCloud2 object_cloud_msg;
-                        pcl::toROSMsg(*object_cloud, object_cloud_msg);
-                        object_cloud_msg.header.frame_id = "base_footprint";
-                        object_cloud_msg.header.stamp = ros::Time::now();
-                        pc_pub.publish(object_cloud_msg);
-                    }
-                    else
-                    {
-                        ROS_WARN("Object is not a flowerpot.");
-                    }
+                    // publish the corresponding PointCloud  data
+                    sensor_msgs::PointCloud2 object_cloud_msg;
+                    pcl::toROSMsg(*object_cloud, object_cloud_msg);
+                    object_cloud_msg.header.frame_id = "base_footprint";
+                    object_cloud_msg.header.stamp = ros::Time::now();
+                    pc_pub.publish(object_cloud_msg);
                 }
             }
             SortObjects();
-            // coord_pub.publish(coord);
         }
         else std::cout << "The chosen hull is not planar." << std::endl;
     }

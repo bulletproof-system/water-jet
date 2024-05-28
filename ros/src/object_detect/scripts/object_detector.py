@@ -14,6 +14,7 @@ from math import sqrt
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
+from yolo_detector.msg import BoundingBoxes
 
 pots = {}                           # pot的信息字典， id -> (x,y,z,last_scan_time) ;
 DISTANCE_THRESHOLD = 0.2            # 花盆检测距离阈值
@@ -34,7 +35,8 @@ class ObjectDetector:
         self.listener = tf.TransformListener()
         obj_centers_sub = message_filters.Subscriber('obj_centers', PointStamped)
         obj_pointcloud_sub = message_filters.Subscriber('obj_pointcloud', PointCloud2)
-        
+        yolo_bounding_boxes_sub = rospy.Subscriber('/yolo_detector/BoundingBoxes', BoundingBoxes, self.yolo_callback)
+
         ts = message_filters.ApproximateTimeSynchronizer([obj_centers_sub, obj_pointcloud_sub], 10, 0.1)
         ts.registerCallback(self.handle_update_pots)
 
@@ -48,6 +50,7 @@ class ObjectDetector:
         self.current_angular_velocity = 0.0
         self.latest_image = []
         self.bridge = CvBridge()
+        self.detected_pots = []
 
         # Services
         rospy.Service('object_detect/check_pot', CheckPot, self.handle_check_pot)
@@ -62,7 +65,14 @@ class ObjectDetector:
         global pots
         pots = {pot_info.id: {'x': pot_info.pot_pose.position.x, 'y': pot_info.pot_pose.position.y, 'z': pot_info.pot_pose.position.z} 
                         for pot_info in response.pots}
-        
+
+    def yolo_callback(self, bounding_boxes_msg):
+        """处理YOLO检测到的bounding boxes"""
+        self.detected_pots = []
+        for box in bounding_boxes_msg.bounding_boxes:
+            if box.Class == "potted plant":
+                self.detected_pots.append(box)
+
     def handle_check_pot(self, req):
         """检查花盆id所对应的花盆是否存在"""
         pot_id = req.id
@@ -91,10 +101,15 @@ class ObjectDetector:
     
     def handle_update_pots(self, obj_center, obj_pointcloud):
         """获取object_center , obj_pointcloud信息,更新花盆信息数据"""
-
+        # 如果未检测到花盆，返回
+        if not self.detected_pots:
+            return
+        
         # 判断当前速度是否不小于某个eps值
         if self.current_linear_velocity >= LINEAR_EPSILON or self.current_angular_velocity >= ANGULAR_EPSILON:
             return
+
+        # 位置坐标转换
         try:
             self.listener.waitForTransform("/map", obj_center.header.frame_id, obj_center.header.stamp, rospy.Duration(5.0))
             world_point = self.listener.transformPoint("/map", obj_center)
