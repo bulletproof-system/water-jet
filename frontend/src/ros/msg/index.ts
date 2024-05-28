@@ -12,6 +12,11 @@ export interface Header {
 	frame_id: string
 }
 
+// https://docs.ros.org/en/melodic/api/std_msgs/html/msg/String.html
+export interface String {
+	data: string
+}
+
 export namespace geometry {
 	// https://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html
 	export interface Point {
@@ -146,7 +151,7 @@ export namespace sensor {
 		encoding: string
 		is_bigendian: boolean
 		step: number
-		data: Uint8Array
+		data: string
 	}
 }
 
