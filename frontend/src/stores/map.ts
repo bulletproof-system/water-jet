@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import * as THREE from 'three'
+import { string } from 'three/examples/jsm/nodes/shadernode/ShaderNode'
 
 // 鼠标操作(左键)
 export enum MouseAction {
@@ -34,7 +35,9 @@ export const useMapStore = defineStore('map', {
 				to: new THREE.Vector3(),
 			} as Target,
 			locatePot: (id: string) => console.log('unmounted'),
-		}
+		},
+		enableObjectDetect: false,
+		yoloImage: null
     }),
 
 	actions: {

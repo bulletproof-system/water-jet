@@ -10,7 +10,7 @@ export enum ROSState {
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    debug: false,
+    debug: true,
     showPotList: true,
     showOperatorPanel: true,
     selectedPot: '',

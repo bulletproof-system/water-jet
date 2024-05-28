@@ -1,4 +1,18 @@
 <template>
+  <div style="position: relative;" class="d-flex justify-end">
+    <v-expand-transition>
+      <div v-if="enableObjectDetect" style="position: absolute; z-index: 500;" class="d-flex flex-column ">
+        <v-img :src="yoloImage" width="320" height="240">
+          <template v-slot:placeholder>
+            <v-skeleton-loader
+              width="320" height="240"
+              type="image@2"
+            ></v-skeleton-loader>
+          </template>
+        </v-img>
+      </div>
+    </v-expand-transition>
+  </div>
   <TresCanvas ref="canvas" preset="realistic">
     <TresPerspectiveCamera 
       ref="camera"
@@ -31,7 +45,7 @@
     
   </TresCanvas>
   <div style="position: relative;" class="d-flex justify-end">
-    <div style="position: absolute; top: -190px" class="d-flex flex-column pa-3">
+    <div style="position: absolute; top: -240px" class="d-flex flex-column pa-3">
         <v-btn  class="ma-1" icon
           @click="mode = MapControlMode.Normal"
         >
@@ -56,6 +70,15 @@
             选择花盆
           </v-tooltip>
         </v-btn>
+        <v-btn  class="ma-1" icon
+          @click="handleObjectDetect"
+          :loading="objectDetectLoading"
+        >
+          <v-icon> {{ enableObjectDetect ? 'mdi-monitor-eye' : 'mdi-monitor' }} </v-icon>
+          <v-tooltip activator="parent" location="start" >
+            花盆识别
+          </v-tooltip>
+        </v-btn>
     </div>
     
   </div>
@@ -66,9 +89,10 @@
 import * as THREE from 'three';
 import { TresCanvas } from '@tresjs/core'
 import { useMapStore, MouseAction, ControlMode as MapControlMode } from '@/stores/map';
+import { switchYolo } from '@/ros/yolo_detector';
 
 const mapStore = useMapStore();
-const { mouseAction, mode } = storeToRefs(mapStore);
+const { mouseAction, mode, enableObjectDetect, yoloImage } = storeToRefs(mapStore);
 const cameraControl = ref(null)
 const canvas = ref(null)
 const camera = ref(null)
@@ -77,6 +101,7 @@ const robot = ref(null)
 const navigation = ref(null)
 const flowerPots = ref(null)
 const enbaleSelectPot = ref(false)
+const objectDetectLoading = ref(false)
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -176,5 +201,12 @@ function handleMouseUp(event) {
   }
 }
 
+async function handleObjectDetect() {
+  console.log('object detect');
+  
+  objectDetectLoading.value = true;
+  await switchYolo();
+  objectDetectLoading.value = false;
+}
 
 </script>
