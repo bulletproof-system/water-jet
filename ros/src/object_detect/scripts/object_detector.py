@@ -99,7 +99,7 @@ class ObjectDetector:
                     rospy.logwarn('successful get depth')
 
                     # Convert the depth value from millimeters to meters
-                    Z = depth_value
+                    Z = depth_value / 1000.0
 
                     # Compute the normalized image coordinates
                     normalized_x = (center_x - self.cx) / self.fx
