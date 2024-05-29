@@ -59,6 +59,9 @@ class ObjectDetector:
         self.bridge = CvBridge()
         self.detected_pots = []
 
+        # Publishers
+        self.obj_centers_pub = rospy.Publisher('/obj_centers', PointStamped, queue_size=10)
+
         # Services
         rospy.Service('object_detect/check_pot', CheckPot, self.handle_check_pot)
 
@@ -120,6 +123,13 @@ class ObjectDetector:
                         world_point = self.tf_listener.transformPoint("/map", point_camera)
                         robot_pose = self.tf_listener.lookupTransform("/map", "/base_link", rospy.Time(0))
                         rospy.logwarn('successful transform coord')
+
+
+                        # Transform point from camera frame to base_link frame
+                        base_link_point = self.tf_listener.transformPoint("/base_link", point_camera)
+                        # Publish to /obj_centers topic
+                        self.obj_centers_pub.publish(base_link_point)
+
                         self.handle_update_pots(world_point,robot_pose,box)
                         rospy.loginfo("Detected potted plant")
                     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
