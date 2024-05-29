@@ -6,12 +6,12 @@ import message_filters
 import pickle
 import sensor_msgs.point_cloud2 as pc2
 from geometry_msgs.msg import Pose, Point, Quaternion, PointStamped, Twist
-from sensor_msgs.msg import PointCloud2,Image
+from sensor_msgs.msg import PointCloud2,Image,CameraInfo
 from pot_database.msg import PotInfo
 from object_detect.srv import *
 from pot_database.srv import *
 from math import sqrt
-from cv_bridge import CvBridge
+from cv_bridge import CvBridge,CvBridgeError
 import cv2
 import numpy as np
 from yolo_detector.msg import BoundingBoxes
@@ -32,29 +32,99 @@ class ObjectDetector:
         self.load_pots_from_database()
 
         # Subscribers
-        self.listener = tf.TransformListener()
-        obj_centers_sub = message_filters.Subscriber('obj_centers', PointStamped)
-        obj_pointcloud_sub = message_filters.Subscriber('obj_pointcloud', PointCloud2)
-        yolo_bounding_boxes_sub = rospy.Subscriber('/yolo_detector/BoundingBoxes', BoundingBoxes, self.yolo_callback)
+        self.tf_listener = tf.TransformListener()
 
-        ts = message_filters.ApproximateTimeSynchronizer([obj_centers_sub, obj_pointcloud_sub], 10, 0.1)
-        ts.registerCallback(self.handle_update_pots)
+        # Define camera intrinsic parameters placeholders
+        self.fx = 0
+        self.fy = 0
+        self.cx = 0
+        self.cy = 0
+
+        self.image_sub = rospy.Subscriber('/yolo_detector/detection_image', Image, self.image_callback)
+        self.position_sub = rospy.Subscriber('/yolo_detector/BoundingBoxes', BoundingBoxes, self.position_callback)
+        self.depth_sub = rospy.Subscriber('/kinect2/hd/image_depth_rect', Image, self.depth_callback)
+        self.camera_info_sub = rospy.Subscriber('/kinect2/hd/camera_info', CameraInfo, self.camera_info_callback)
+
+        # Initialize variables
+        self.detected_image = None
+        self.bounding_boxes = None
+        self.depth_image = None
+        self.latest_image = []
 
         # Separate subscriber for /cmd_vel
         self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
 
-        # Subscriber for Kinect2 camera image
-        self.image_sub = rospy.Subscriber('/kinect2/hd/image_color_rect', Image, self.image_callback)
-
         self.current_linear_velocity = 0.0
         self.current_angular_velocity = 0.0
-        self.latest_image = []
         self.bridge = CvBridge()
         self.detected_pots = []
 
         # Services
         rospy.Service('object_detect/check_pot', CheckPot, self.handle_check_pot)
-        
+
+    def camera_info_callback(self, msg):
+        self.fx = msg.K[0]
+        self.fy = msg.K[4]
+        self.cx = msg.K[2]
+        self.cy = msg.K[5]
+
+    def image_callback(self, msg):
+        try:
+            self.latest_image = msg
+            self.detected_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        except CvBridgeError as e:
+            rospy.logerr(e)
+
+    def depth_callback(self, msg):
+        try:
+            self.depth_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
+        except CvBridgeError as e:
+            rospy.logerr(e)
+
+    def position_callback(self, msg):
+        self.bounding_boxes = msg.bounding_boxes
+        if self.detected_image is not None and self.bounding_boxes is not None and self.depth_image is not None:
+            for box in self.bounding_boxes:
+                if box.Class == "potted plant":
+                    rospy.logwarn('successful detect potted plant')
+                    # Get the center of the bounding box
+                    center_x = (box.xmin + box.xmax) / 2.0
+                    center_y = (box.ymin + box.ymax) / 2.0
+
+                    # Get the depth value at the center of the bounding box
+                    depth_value = self.depth_image[int(center_y), int(center_x)]
+                    rospy.logwarn('successful get depth')
+
+                    # Convert the depth value from millimeters to meters
+                    Z = depth_value
+
+                    # Compute the normalized image coordinates
+                    normalized_x = (center_x - self.cx) / self.fx
+                    normalized_y = (center_y - self.cy) / self.fy
+
+                    # Compute real-world coordinates
+                    X = normalized_x * Z
+                    Y = normalized_y * Z
+
+                    # Create PointStamped for the detected object
+                    point_camera = PointStamped()
+                    point_camera.header.frame_id = "kinect2_ir_optical_frame" # Replace with your camera frame
+                    point_camera.header.stamp = rospy.Time.now()
+                    point_camera.point.x = X
+                    point_camera.point.y = Y
+                    point_camera.point.z = Z
+
+                    try:
+                        # Transform point from camera frame to map frame
+                        self.tf_listener.waitForTransform("/map",point_camera.header.frame_id,point_camera.header.stamp,rospy.Duration(1.5))
+                        world_point = self.tf_listener.transformPoint("/map", point_camera)
+                        robot_pose = self.tf_listener.lookupTransform("/map", "/base_link", rospy.Time(0))
+                        rospy.logwarn('successful transform coord')
+                        self.handle_update_pots(world_point,robot_pose,box)
+                        rospy.loginfo("Detected potted plant")
+                    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+                        rospy.logerr(e)
+
     def load_pots_from_database(self):
         """从数据库加载所有花盆的信息"""
         request = GetPotListRequest()
@@ -66,12 +136,6 @@ class ObjectDetector:
         pots = {pot_info.id: {'x': pot_info.pot_pose.position.x, 'y': pot_info.pot_pose.position.y, 'z': pot_info.pot_pose.position.z} 
                         for pot_info in response.pots}
 
-    def yolo_callback(self, bounding_boxes_msg):
-        """处理YOLO检测到的bounding boxes"""
-        self.detected_pots = []
-        for box in bounding_boxes_msg.bounding_boxes:
-            if box.Class == "potted plant":
-                self.detected_pots.append(box)
 
     def handle_check_pot(self, req):
         """检查花盆id所对应的花盆是否存在"""
@@ -94,28 +158,12 @@ class ObjectDetector:
         """更新当前的速度状态"""
         self.current_linear_velocity = max(abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z))
         self.current_angular_velocity = max(abs(msg.angular.x), abs(msg.angular.y), abs(msg.angular.z))
-
-    def image_callback(self, img_msg):
-        """缓存最新的图像数据"""
-        self.latest_image = img_msg
     
-    def handle_update_pots(self, obj_center, obj_pointcloud):
-        """获取object_center , obj_pointcloud信息,更新花盆信息数据"""
-        # 如果未检测到花盆，返回
-        if not self.detected_pots:
-            return
-        
+    def handle_update_pots(self, world_point,robot_pose,box):
+        """获取world_point,更新花盆信息数据"""        
+
         # 判断当前速度是否不小于某个eps值
         if self.current_linear_velocity >= LINEAR_EPSILON or self.current_angular_velocity >= ANGULAR_EPSILON:
-            return
-
-        # 位置坐标转换
-        try:
-            self.listener.waitForTransform("/map", obj_center.header.frame_id, obj_center.header.stamp, rospy.Duration(5.0))
-            world_point = self.listener.transformPoint("/map", obj_center)
-            robot_pose = self.listener.lookupTransform("/map", "/base_link", rospy.Time(0))
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            rospy.logwarn("Transform not available. Skipping this update.")
             return
 
         # 检查是否与已有的花盆坐标相近
@@ -140,15 +188,14 @@ class ObjectDetector:
             pots[new_id] = {'x': world_point.point.x, 'y': world_point.point.y, 'z': world_point.point.z, 'last_scan_time': current_time}
 
             # 处理点云数据
-            pointcloud_serialized = pickle.dumps(obj_pointcloud)
+            pointcloud_serialized = []
 
             # 处理图像数据
+            image_serialized = []
             if self.latest_image != []:
                 image_data = self.bridge.imgmsg_to_cv2(self.latest_image, desired_encoding="passthrough")
-                image_serialized = np.array(cv2.imencode(".jpeg", image_data)[1]).tobytes() 
-            else:
-                image_serialized = []
-            
+                image_serialized = np.array(cv2.imencode(".jpeg",image_data )[1]).tobytes() 
+
             # 组装PotInfo
             pot_info = PotInfo()
             pot_info.id = new_id

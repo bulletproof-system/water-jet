@@ -1,4 +1,4 @@
-#!/home/temp/miniconda3/envs/yolo/bin/python
+#!/home/yanhaojun/miniconda3/envs/yolo/bin/python
 # -*- coding: utf-8 -*-
 
 import os
@@ -28,9 +28,11 @@ class YoloDetector:
 
         # device: cpu
         self.device = 'cpu'
-        self.model = YOLO(weight_path, task='detect')
-        self.model.fuse()               # 混合 BN 与相邻的卷积层，加快推理
-        self.model.conf = model_conf
+        # self.model = YOLO(weight_path, task='detect')
+        # self.model.fuse()               # 混合 BN 与相邻的卷积层，加快推理
+        # self.model.conf = model_conf
+        self.model = None
+        self._load_model(weight_path, model_conf)
 
         self.color_image = Image()
         self.get_image_status = False
@@ -63,6 +65,35 @@ class YoloDetector:
             rospy.loginfo("[yolo_detector] Waiting for image.")
             rospy.sleep(1)
 
+    def _load_model(self, weight_path, model_conf):
+        weight_ext = os.path.splitext(weight_path)[1]
+
+        if weight_ext == '.pt':
+            self.model = YOLO(weight_path, task='detect')
+            self.model.fuse()  # 混合 BN 与相邻的卷积层，加快推理
+        elif weight_ext == '.onnx':
+            if not os.path.exists(weight_path):
+                pt_path = weight_path.replace('.onnx', '.pt')
+                if os.path.exists(pt_path):
+                    self.model = YOLO(pt_path, task='detect')
+                    self.model.export(format='onnx')
+                else:
+                    raise FileNotFoundError(f"Neither {weight_path} nor {pt_path} exists.")
+            self.model = YOLO(weight_path, task='detect')
+        elif 'openvino' in weight_path:
+            if not os.path.exists(weight_path):
+                pt_path = weight_path.replace('_openvino_model', '.pt')
+                if os.path.exists(pt_path):
+                    self.model = YOLO(pt_path, task='detect')
+                    self.model.export(format='openvino')
+                else:
+                    raise FileNotFoundError(f"Neither {weight_path} nor {pt_path} exists.")
+            self.model = YOLO(weight_path, task='detect')
+        else:
+            raise ValueError(f"Unsupported weight file extension: {weight_ext}")
+
+        self.model.conf = model_conf
+
     def image_callback(self, image: BoundingBoxes):
         self.boundingBoxes = BoundingBoxes()
         self.boundingBoxes.header = image.header
@@ -74,14 +105,26 @@ class YoloDetector:
             image.data,
             dtype=np.uint8
         ).reshape(image.height, image.width, -1)
-        self.color_image = cv2.cvtColor(self.color_image, cv2.COLOR_BGR2RGB)
+
+        # Check the number of channels
+        if self.color_image.shape[2] == 1:
+            # Single channel (grayscale) image
+            self.color_image = cv2.cvtColor(self.color_image, cv2.COLOR_GRAY2RGB)
+        elif self.color_image.shape[2] == 2:
+            # Two channels, handle appropriately, for example, using only one channel
+            self.color_image = cv2.cvtColor(self.color_image[:, :, 0], cv2.COLOR_GRAY2RGB)
+        elif self.color_image.shape[2] == 3:
+            # Standard BGR image
+            self.color_image = cv2.cvtColor(self.color_image, cv2.COLOR_BGR2RGB)
+        else:
+            raise ValueError(f"Unexpected number of channels: {self.color_image.shape[2]}")
 
         # 检测
         results = self.model(self.color_image, show=False, conf=0.3)
 
         # 显示和发布结果
-        # self.show_detection(results, image.height, image.width)
-        # cv2.waitKey(3)
+        self.show_detection(results, image.height, image.width)
+        cv2.waitKey(3)
 
         # 控制发送速率
         self.rate.sleep()
