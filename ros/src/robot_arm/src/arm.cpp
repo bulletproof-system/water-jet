@@ -14,6 +14,9 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
 
 std::string getCurrentTime() {
     std::time_t now = std::time(nullptr);
@@ -46,6 +49,20 @@ public:
     // target_point_.point.x = 1.2;
     // target_point_.point.y = 4.0;
     // target_point_.point.z = 1.2;
+    // To be decided....
+    serialPort = open("/dev/ttyUSB0", O_RDWR);
+    if (serialPort < 0) {
+      ROS_ERROR("fail to open /dev/ttyUSB0...");
+    }
+
+    struct termios tty;
+    memset(&tty, 0, sizeof tty);
+
+    tty.c_cflag = B9600 | CS8 | CLOCAL | CREAD;
+    tty.c_iflag = 0;
+    tty.c_oflag = 0;
+    tty.c_lflag = 0;
+    usleep(1);
   }
 
   void objectsCenterCallback(const geometry_msgs::PointStamped::ConstPtr& msg)
@@ -75,7 +92,7 @@ public:
           extendArm();
           ros::Duration(15.0).sleep();
           // simulate the process of jetting
-          speak();
+          jet();
           retractArm();
 
           pot_database::SetPotInfo setPotInfo;
@@ -121,14 +138,19 @@ public:
   }
 
 private:
-  void speak() {
+  void jet() {
     sound_play::SoundRequest sp;
     sp.sound = sound_play::SoundRequest::SAY;
     sp.command = sound_play::SoundRequest::PLAY_ONCE;
     sp.volume = 1.0;
     sp.arg = "I am watering now, please watch out. I am watering now, please watch out. I am watering now, please watch out. ";
     tts_pub_.publish(sp);
-    ros::Duration(5.0).sleep();
+    int n_written = write(serialPort, "O", 1);
+    usleep((1 + n_written) * 100);
+    ros::Duration(10.0).sleep();
+    
+    n_written = write(serialPort, "Q", 1);
+    usleep((1 + n_written) * 100);
   }
 
   void adjust()
@@ -199,6 +221,7 @@ private:
   ros::ServiceClient pot_get_client_;
   ros::ServiceClient pot_set_client_;
   geometry_msgs::PointStamped target_point_;
+  int serialPort;
 };
 
 int main(int argc, char** argv)
