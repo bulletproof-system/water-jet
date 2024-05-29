@@ -115,6 +115,7 @@ export class Pot {
 		URL.revokeObjectURL(this.picture)
 		if (this.pointCloud) {
 			console.log("delete point cloud")
+			this.pointCloud.visible = false;
 			this.pointCloud.removeFromParent();
 			this.pointCloud = null;
 		}
