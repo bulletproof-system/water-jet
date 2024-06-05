@@ -390,6 +390,7 @@ class MapProviderNode:
         if self.slam_process is None:
             try:
                 subprocess.call(["rosnode", "kill", "/map_server"])
+                subprocess.call(["rosnode", "kill", "/amcl"])
                 # 启动SLAM进程
                 self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'dev-slam_gmapping.launch'])
                 rospy.loginfo("SLAM process started.")
@@ -448,6 +449,9 @@ class MapProviderNode:
 
                 # 启动 map_server
                 self.check_and_launch_map_server()
+
+                # 启动 amcl 
+                subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
             except Exception as e:
                 rospy.logerr("Failed to terminate SLAM process: %s", e)
                 result.result = 'fail'
