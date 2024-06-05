@@ -10,13 +10,21 @@ from ultralytics import YOLO
 from std_msgs.msg import Header
 from sensor_msgs.msg import Image
 from yolo_detector.msg import BoundingBox, BoundingBoxes
-
+from controller.msg import Info
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 pkg_dir = os.path.dirname(cur_dir)
 weights_dir = os.path.join(pkg_dir, 'weights')
 
 class YoloDetector:
     def __init__(self):
+
+        self.start = True
+        self.start_sub = rospy.Subscriber(
+            "/ctrl/info",
+            Info,
+            self.start_callback,
+            queue_size=1,
+        )
         # 加载参数
         weight_path = rospy.get_param('~weight_path', os.path.join(weights_dir, 'yolov8n.pt'))
         image_topic = rospy.get_param('~image_topic', '/image_topic')
@@ -64,6 +72,13 @@ class YoloDetector:
         while not self.get_image_status:
             rospy.loginfo("[yolo_detector] Waiting for image.")
             rospy.sleep(1)
+    
+    def start_callback(self,info):
+        mode = info.mode
+        if mode == 2 or mode == 3:
+            self.start = False
+        else:
+            self.start = True
 
     def _load_model(self, weight_path, model_conf):
         weight_ext = os.path.splitext(weight_path)[1]
@@ -95,6 +110,9 @@ class YoloDetector:
         self.model.conf = model_conf
 
     def image_callback(self, image: BoundingBoxes):
+
+        # ("./nodeInfo")
+
         self.boundingBoxes = BoundingBoxes()
         self.boundingBoxes.header = image.header
         self.boundingBoxes.image_header = image.header
@@ -119,15 +137,16 @@ class YoloDetector:
         else:
             raise ValueError(f"Unexpected number of channels: {self.color_image.shape[2]}")
 
-        # 检测
-        results = self.model(self.color_image, show=False, conf=0.3)
+        if self.start:
+            # 检测
+            results = self.model(self.color_image, show=False, conf=0.3)
 
-        # 显示和发布结果
-        self.show_detection(results, image.height, image.width)
-        cv2.waitKey(3)
-
-        # 控制发送速率
-        self.rate.sleep()
+            # 显示和发布结果
+            self.show_detection(results, image.height, image.width)
+            cv2.waitKey(3)
+            
+            # 控制发送速率
+            self.rate.sleep()
 
     # 显示结果
     def show_detection(self, results, height, width):
