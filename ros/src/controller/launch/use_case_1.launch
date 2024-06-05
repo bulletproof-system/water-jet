@@ -44,7 +44,7 @@
   <param name="axis_angular" value="0" type="int"/>
   <param name="scale_linear" value="1" type="double"/>
   <param name="scale_angular" value="1" type="double"/>
-  <node pkg="wpb_home_bringup" type="wpb_home_js_vel" name="teleop"/>
+  <node pkg="controller" type="js_vel" name="teleop"/>
 	
 	<!-- <node pkg="tf" type="static_transform_publisher" name="fix_odom" args="0 0 0 0 0 0 odom base_footprint 50" /> -->
 	<!-- Rviz -->
