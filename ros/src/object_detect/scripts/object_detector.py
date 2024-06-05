@@ -175,6 +175,14 @@ class ObjectDetector:
     def handle_update_pots(self, world_point,robot_pose,box):
         """获取world_point,更新花盆信息数据"""        
 
+        # 判断机器人位置和世界位置不能过于接近
+        x1 = world_point.point.x
+        y1 = world_point.point.y
+        x2 = robot_pose[0][0]
+        y2 =  robot_pose[0][1]
+        if sqrt((x1 - x2)**2 + (y1 - y2) ** 2 ) < 0.3:
+            return 
+
         # 判断当前速度是否不小于某个eps值
         if self.current_linear_velocity >= LINEAR_EPSILON or self.current_angular_velocity >= ANGULAR_EPSILON:
             return
