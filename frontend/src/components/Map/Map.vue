@@ -41,7 +41,7 @@
     <!-- 花盆 -->
     <Flowerpots ref="flowerPots" />
     <!-- amcl -->
-    <Amcl ref="amcl"/>
+    <!-- <Amcl ref="amcl"/> -->
     
   </TresCanvas>
   <div style="position: relative;" class="d-flex justify-end">
