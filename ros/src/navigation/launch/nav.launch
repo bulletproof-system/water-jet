@@ -6,7 +6,7 @@
   </node>
 
   <!--- Run AMCL -->
-  <include file="$(find wpb_home_tutorials)/nav_lidar/amcl_omni.launch" />
+  <!-- <include file="$(find wpb_home_tutorials)/nav_lidar/amcl_omni.launch" /> -->
 
   <!--- Run move base -->
   <node pkg="move_base" type="move_base" respawn="false" name="move_base"  output="screen">
