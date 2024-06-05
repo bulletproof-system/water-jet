@@ -389,7 +389,7 @@ class MapProviderNode:
 
         if self.slam_process is None:
             try:
-                subprocess.check_call(["rosnode", "kill", "/map_server"])
+                subprocess.call(["rosnode", "kill", "/map_server"])
                 # 启动SLAM进程
                 self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'dev-slam_gmapping.launch'])
                 rospy.loginfo("SLAM process started.")
