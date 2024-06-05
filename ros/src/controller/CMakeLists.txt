@@ -16,6 +16,9 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   pcl_conversions
   pcl_ros
+  joy
+  sensor_msgs
+  genmsg
 )
 
 ## Find OpenCV
@@ -165,6 +168,10 @@ ${OpenCV_INCLUDE_DIRS}
 ##${OpenCV_LIBS} # Make sure to link OpenCV libraries here
 #)
 ##add_dependencies(create_map_objects_3d ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(js_vel src/js_vel.cpp)
+target_link_libraries(js_vel
+  ${catkin_LIBRARIES}
+)
 
 ## Handle Python scripts
 catkin_install_python(PROGRAMS
