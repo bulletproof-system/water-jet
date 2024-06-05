@@ -159,6 +159,9 @@ class Target:
                 self.state = WAIT
                 return
 
+            #* 导航到达目的地后，先等待4s，再调用花盆识别
+            rospy.sleep(4)
+
             #* 调用花盆识别模块
             success = self.check_flowerpot(target)
             if not success:

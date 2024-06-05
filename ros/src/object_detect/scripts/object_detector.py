@@ -18,9 +18,9 @@ from yolo_detector.msg import BoundingBoxes
 
 pots = {}                           # pot的信息字典， id -> (x,y,z,last_scan_time) ;
 DISTANCE_THRESHOLD = 0.2            # 花盆检测距离阈值
-TIMEOUT_THRESHOLD = 5.0             # 检测花盆超时阈值
-LINEAR_EPSILON = 0.05               # 线速度阈值
-ANGULAR_EPSILON = 0.02              # 角速度阈值
+TIMEOUT_THRESHOLD = 4.0             # 检测花盆超时阈值
+LINEAR_EPSILON = 0.01               # 线速度阈值
+ANGULAR_EPSILON = 0.01              # 角速度阈值
 
 class ObjectDetector:
     def __init__(self):
@@ -111,7 +111,7 @@ class ObjectDetector:
 
                     # Create PointStamped for the detected object
                     point_camera = PointStamped()
-                    point_camera.header.frame_id = "kinect2_ir_optical_frame" # Replace with your camera frame
+                    point_camera.header.frame_id = "kinect2_rgb_optical_frame"
                     point_camera.header.stamp = rospy.Time.now()
                     point_camera.point.x = X
                     point_camera.point.y = Y
@@ -152,15 +152,18 @@ class ObjectDetector:
         pot_id = req.id
         current_time = rospy.get_time() 
         assert pots.get(pot_id) is not None
-
         last_scan_time = pots.get(pot_id).get('last_scan_time')
-        time_difference = current_time - last_scan_time
-        
-        response = CheckPotResponse()
-        if time_difference > TIMEOUT_THRESHOLD:
+        if last_scan_time is None:  # 没有last_scan_time
+            response = CheckPotResponse()
             response.success = False
         else:
-            response.success = True
+            time_difference = current_time - last_scan_time
+            
+            response = CheckPotResponse()
+            if time_difference > TIMEOUT_THRESHOLD:
+                response.success = False
+            else:
+                response.success = True
         
         return response
 
