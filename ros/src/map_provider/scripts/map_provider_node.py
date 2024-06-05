@@ -416,6 +416,7 @@ class MapProviderNode:
                     self.save_map('saved_map')
                     # 使用rosnode kill命令结束slam_gmapping节点
                     # subprocess.check_call(["rosnode", "kill", "/slam_gmapping"])
+                    subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
                     rospy.loginfo("SLAM process has been terminated using rosnode kill.")
                 except subprocess.CalledProcessError as e:
                     rospy.logerr("Failed to terminate SLAM process with rosnode kill: %s", e)
