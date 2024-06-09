@@ -93,10 +93,6 @@ class Target:
 
     def get_target_pose(self, target_id):
         try:
-            # print("####################################################")
-            # print(target_id)
-            # print(type(target_id))
-            # print("####################################################")
             get_pot_info = GetPotInfoRequest(id=int(target_id))
             response = self.pot_info_service(get_pot_info)
             if response.success:
@@ -158,9 +154,6 @@ class Target:
                 self.server.set_aborted(result)
                 self.state = WAIT
                 return
-
-            #* 导航到达目的地后，先等待4s，再调用花盆识别
-            rospy.sleep(4)
 
             #* 调用花盆识别模块
             success = self.check_flowerpot(target)
