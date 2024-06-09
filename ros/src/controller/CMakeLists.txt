@@ -82,6 +82,7 @@ add_action_files(
   FILES
   AutoWater.action
   Target.action
+  Inspect.action
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -177,6 +178,7 @@ target_link_libraries(js_vel
 catkin_install_python(PROGRAMS
   scripts/core.py
   scripts/target.py
+  scripts/inspection.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
