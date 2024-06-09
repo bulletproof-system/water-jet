@@ -211,14 +211,14 @@ class MapProviderNode:
         initial_pose_msg.header.frame_id = "map"  # 或者是地图的 frame_id，如果它被重命名了
         initial_pose_msg.pose.pose = data.pos  # 使用从 SetPosition 消息接收到的位姿
         # 这里可以设置协方差，但是通常默认值就足够了
-        # 0609更新：设置协方差矩阵默认为单位矩阵 1.0 * 36
+        # 0609更新：设置协方差矩阵默认为 0.12I
         initial_pose_msg.pose.covariance = [0.0] * 36
-        initial_pose_msg.pose.covariance[0] = 1.0   # x 方向的位置协方差
-        initial_pose_msg.pose.covariance[7] = 1.0   # y 方向的位置协方差
-        initial_pose_msg.pose.covariance[14] = 1.0  # z 方向的位置协方差
-        initial_pose_msg.pose.covariance[21] = 1.0  # x 方向的姿态协方差
-        initial_pose_msg.pose.covariance[28] = 1.0  # y 方向的姿态协方差
-        initial_pose_msg.pose.covariance[35] = 1.0  # z 方向的姿态协方差
+        initial_pose_msg.pose.covariance[0] = 0.12      # x 方向的位置协方差
+        initial_pose_msg.pose.covariance[7] = 0.12      # y 方向的位置协方差
+        initial_pose_msg.pose.covariance[14] = 0.12     # z 方向的位置协方差
+        initial_pose_msg.pose.covariance[21] = 0.12     # x 方向的姿态协方差
+        initial_pose_msg.pose.covariance[28] = 0.12     # y 方向的姿态协方差
+        initial_pose_msg.pose.covariance[35] = 0.12     # z 方向的姿态协方差
 
         # 发布初始化位姿到 /initialpose 主题，让导航堆栈知道机器人在地图上的初始位置
         self.initial_pose_pub.publish(initial_pose_msg)
