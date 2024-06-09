@@ -1,4 +1,4 @@
-#!/home/yanhaojun/miniconda3/envs/yolo/bin/python
+#!/home/robot/miniconda3/envs/yolo/bin/python
 # -*- coding: utf-8 -*-
 
 import os
@@ -9,6 +9,7 @@ from ultralytics import YOLO
 
 from std_msgs.msg import Header
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import PoseWithCovarianceStamped,Twist
 from yolo_detector.msg import BoundingBox, BoundingBoxes
 from controller.msg import Info
 cur_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,14 +18,16 @@ weights_dir = os.path.join(pkg_dir, 'weights')
 
 class YoloDetector:
     def __init__(self):
+        # 订阅速度
+        self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
+        self.current_linear_velocity = 0.0
+        self.current_angular_velocity = 0.0
 
-        self.start = True
-        self.start_sub = rospy.Subscriber(
-            "/ctrl/info",
-            Info,
-            self.start_callback,
-            queue_size=1,
-        )
+        # 订阅amcl_pose
+        self.amcl_pose_sub = rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, self.amcl_pose_callback)
+        self.position_uncertainty = 0
+    
+
         # 加载参数
         weight_path = rospy.get_param('~weight_path', os.path.join(weights_dir, 'yolov8n.pt'))
         image_topic = rospy.get_param('~image_topic', '/image_topic')
@@ -73,12 +76,17 @@ class YoloDetector:
             rospy.loginfo("[yolo_detector] Waiting for image.")
             rospy.sleep(1)
     
-    def start_callback(self,info):
-        mode = info.mode
-        if mode == 2 or mode == 3:
-            self.start = False
-        else:
-            self.start = True
+    def cmd_vel_callback(self, msg):
+        self.current_linear_velocity = max(abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z))
+        self.current_angular_velocity = max(abs(msg.angular.x), abs(msg.angular.y), abs(msg.angular.z))
+
+    def amcl_pose_callback(self,msg):
+        # 提取位置和协方差矩阵
+        position = msg.pose.pose.position
+        covariance = msg.pose.covariance
+
+        # 计算位置的不确定性（例如协方差矩阵中的位置部分）
+        self.position_uncertainty = covariance[0] + covariance[7] + covariance[14]  # x, y, z的协方差
 
     def _load_model(self, weight_path, model_conf):
         weight_ext = os.path.splitext(weight_path)[1]
@@ -109,9 +117,15 @@ class YoloDetector:
 
         self.model.conf = model_conf
 
-    def image_callback(self, image: BoundingBoxes):
+    def image_callback(self, image: BoundingBoxes):    
+        rospy.logwarn("AMCL uncertainty:%.2f", self.position_uncertainty)
 
-        # ("./nodeInfo")
+        # 判断当前速度与pose的置信度
+        if self.current_linear_velocity >= 0.01 or self.current_angular_velocity >= 0.01:
+            return
+
+        if self.position_uncertainty >  0.1 : 
+            return 
 
         self.boundingBoxes = BoundingBoxes()
         self.boundingBoxes.header = image.header
@@ -137,16 +151,14 @@ class YoloDetector:
         else:
             raise ValueError(f"Unexpected number of channels: {self.color_image.shape[2]}")
 
-        if self.start:
-            # 检测
-            results = self.model(self.color_image, show=False, conf=0.3)
+        results = self.model(self.color_image, show=False, conf=0.3)
 
-            # 显示和发布结果
-            self.show_detection(results, image.height, image.width)
-            cv2.waitKey(3)
+        # 显示和发布结果
+        self.show_detection(results, image.height, image.width)
+        cv2.waitKey(3)
             
-            # 控制发送速率
-            self.rate.sleep()
+        # 控制发送速率
+        self.rate.sleep()
 
     # 显示结果
     def show_detection(self, results, height, width):
@@ -155,7 +167,7 @@ class YoloDetector:
         print(results[0].speed['inference'], flush=True)
 
         # 计算并显示FPS
-        fps = 1000.0/ results[0].speed['inference']
+        fps = 1000.0 / results[0].speed['inference']
         cv2.putText(
             self.frame,
             f'FPS: {int(fps)}',
