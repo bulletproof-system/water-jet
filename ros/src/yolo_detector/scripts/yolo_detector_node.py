@@ -25,7 +25,7 @@ class YoloDetector:
 
         # 订阅amcl_pose
         self.amcl_pose_sub = rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, self.amcl_pose_callback)
-        self.position_uncertainty = [0,0,0]
+        self.uncertainty = [[0,0,0],[0,0,0]]
     
 
         # 加载参数
@@ -85,10 +85,13 @@ class YoloDetector:
         position = msg.pose.pose.position
         covariance = msg.pose.covariance
 
-        # 提取位置的不确定性
-        self.position_uncertainty[0] = covariance[0]
-        self.position_uncertainty[1] = covariance[7]
-        self.position_uncertainty[2] = covariance[14]
+        # 提取不确定性
+        self.uncertainty[0][0] = covariance[0]
+        self.uncertainty[0][1] = covariance[7]
+        self.uncertainty[0][2] = covariance[14]
+        self.uncertainty[1][0] = covariance[21]
+        self.uncertainty[1][1] = covariance[28]
+        self.uncertainty[1][2] = covariance[35]
 
     def _load_model(self, weight_path, model_conf):
         weight_ext = os.path.splitext(weight_path)[1]
@@ -120,14 +123,19 @@ class YoloDetector:
         self.model.conf = model_conf
 
     def image_callback(self, image: BoundingBoxes):    
-        rospy.logwarn("AMCL uncertainty:%.2f,%.2f,%.2f", self.position_uncertainty[0], self.position_uncertainty[1], self.position_uncertainty[2])
+        rospy.logwarn("AMCL uncertainty:%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+            self.uncertainty[0][0], self.uncertainty[0][1], self.uncertainty[0][2], 
+            self.uncertainty[1][0], self.uncertainty[1][1], self.uncertainty[1][2])
 
         # 判断当前速度与pose的置信度
         if self.current_linear_velocity >= 0.01 or self.current_angular_velocity >= 0.01:
             return
 
-        if self.position_uncertainty[0] >  0.1 or self.position_uncertainty[1] > 0.1  \
-            or self.position_uncertainty[2] > 0.1: 
+        if self.uncertainty[0][0] >  0.1 or self.uncertainty[0][1] > 0.1  \
+            or self.uncertainty[0][2] > 0.1: 
+            return 
+        if self.uncertainty[1][0] >  0.01 or self.uncertainty[1][1] > 0.01  \
+            or self.uncertainty[1][2] > 0.01: 
             return 
 
         self.boundingBoxes = BoundingBoxes()
