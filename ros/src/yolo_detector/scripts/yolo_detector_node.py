@@ -25,7 +25,7 @@ class YoloDetector:
 
         # 订阅amcl_pose
         self.amcl_pose_sub = rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, self.amcl_pose_callback)
-        self.position_uncertainty = 0
+        self.position_uncertainty = [0,0,0]
     
 
         # 加载参数
@@ -85,8 +85,10 @@ class YoloDetector:
         position = msg.pose.pose.position
         covariance = msg.pose.covariance
 
-        # 计算位置的不确定性（例如协方差矩阵中的位置部分）
-        self.position_uncertainty = covariance[0] + covariance[7] + covariance[14]  # x, y, z的协方差
+        # 提取位置的不确定性
+        self.position_uncertainty[0] = covariance[0]
+        self.position_uncertainty[1] = covariance[7]
+        self.position_uncertainty[2] = covariance[14]
 
     def _load_model(self, weight_path, model_conf):
         weight_ext = os.path.splitext(weight_path)[1]
@@ -118,13 +120,14 @@ class YoloDetector:
         self.model.conf = model_conf
 
     def image_callback(self, image: BoundingBoxes):    
-        rospy.logwarn("AMCL uncertainty:%.2f", self.position_uncertainty)
+        rospy.logwarn("AMCL uncertainty:%.2f,%.2f,%.2f", self.position_uncertainty[0], self.position_uncertainty[1], self.position_uncertainty[2])
 
         # 判断当前速度与pose的置信度
         if self.current_linear_velocity >= 0.01 or self.current_angular_velocity >= 0.01:
             return
 
-        if self.position_uncertainty >  0.1 : 
+        if self.position_uncertainty[0] >  0.1 or self.position_uncertainty[1] > 0.1  \
+            or self.position_uncertainty[2] > 0.1: 
             return 
 
         self.boundingBoxes = BoundingBoxes()
