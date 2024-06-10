@@ -21,7 +21,7 @@ INSPECTION = 4
 
 class Inspection:
     def __init__(self):
-        rospy.init_node('ctrl_inspection')
+        rospy.init_node('inspection')
         
         # state
         self.state = STOP
