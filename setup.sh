@@ -27,6 +27,7 @@ fi
 
 cd frontend 
 pnpm install
+pnpm build
 cd ..
 
 # ROS 端
@@ -57,6 +58,6 @@ bash ./scripts/setup_miniconda.sh
 # 部署 ROS 到指定目录
 bash ./scripts/deploy_water_jet.sh ${src_dir} ${workspace_dir} ${deploy_name}
 
-cd ros
+cd /home/robot/catkin_ws
 catkin_make
 cd ..
