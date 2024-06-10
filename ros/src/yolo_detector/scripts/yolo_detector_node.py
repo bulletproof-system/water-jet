@@ -134,8 +134,8 @@ class YoloDetector:
         if self.uncertainty[0][0] >  0.1 or self.uncertainty[0][1] > 0.1  \
             or self.uncertainty[0][2] > 0.1: 
             return 
-        if self.uncertainty[1][0] >  0.01 or self.uncertainty[1][1] > 0.01  \
-            or self.uncertainty[1][2] > 0.01: 
+        if self.uncertainty[1][0] >  0.1 or self.uncertainty[1][1] > 0.1  \
+            or self.uncertainty[1][2] > 0.1: 
             return 
 
         self.boundingBoxes = BoundingBoxes()
