@@ -164,13 +164,7 @@ private:
     double angle = atan2(target_y, target_x);
     geometry_msgs::Twist vel_cmd;
 
-    if (target_x <= 0.8) {
-      vel_cmd.linear.x = -0.6;
-    }
-    else {
-      vel_cmd.linear.x = 0;
-    }
-    // vel_cmd.linear.x = 0;
+    vel_cmd.linear.x = 0;
     vel_cmd.linear.y = 0;
     vel_cmd.angular.z = angle;
     ROS_INFO("adjust angle is %.2lf !!!!!!!!!!!!!!!!!!!!!!!", angle);
@@ -178,6 +172,14 @@ private:
     ros::Duration(1.0).sleep();
     vel_cmd.angular.z = 0;
     vel_pub_.publish(vel_cmd);
+
+    if (target_x <= 0.8) {
+      vel_cmd.linear.x = -0.5;
+      vel_pub_.publish(vel_cmd);
+      ros::Duration(1.0).sleep();
+      vel_cmd.linear.x = 0;
+      vel_pub_.publish(vel_cmd);      
+    }
     return;
   }
 
