@@ -179,6 +179,7 @@ catkin_install_python(PROGRAMS
   scripts/core.py
   scripts/target.py
   scripts/inspection.py
+  scripts/auto_water.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

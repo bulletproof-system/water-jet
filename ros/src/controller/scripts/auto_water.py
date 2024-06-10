@@ -11,7 +11,6 @@ from navigation.msg import NavigateAction, NavigateGoal
 from robot_arm.msg import AimAction,AimGoal
 from pot_database.srv import *
 from controller.srv import *
-from controller.srv import *
 
 STOP = 0
 WAIT = 1
