@@ -54,7 +54,7 @@ const modes = [
 		theme: 'work-mode'
 	},
 	{
-		name: "缺水巡检",
+		name: "巡检",
 		value: CtrlMode.Inspection,
 		color: 'orange',
 		theme: 'work-mode'

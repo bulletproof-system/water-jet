@@ -11,10 +11,10 @@ const manualInitMapActionClient = new ROSLIB.ActionClient({
 	actionName: 'map_provider/InitMapAction',
 })
 const feedbackInfo: Record<string, string> = {
-	'success': '导航成功',
-	'fail': '导航失败',
-	'error': '导航异常',
-	'cancel': '导航取消',
+	'success': '建图成功',
+	'fail': '建图失败',
+	'error': '建图异常',
+	'cancel': '建图取消',
 }
 function manualInitMap(): Promise<any> {
 	let goal = new ROSLIB.Goal({
