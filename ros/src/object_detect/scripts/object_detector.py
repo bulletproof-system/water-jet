@@ -34,6 +34,11 @@ class ObjectDetector:
         # Subscribers
         self.tf_listener = tf.TransformListener()
 
+        # 订阅速度
+        self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
+        self.current_linear_velocity = 0.0
+        self.current_angular_velocity = 0.0
+
         # Define camera intrinsic parameters placeholders
         self.fx = None
         self.fy = None
@@ -68,6 +73,10 @@ class ObjectDetector:
         # Services
         rospy.Service('object_detect/check_pot', CheckPot, self.handle_check_pot)
 
+    def cmd_vel_callback(self, msg):
+        self.current_linear_velocity = max(abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z))
+        self.current_angular_velocity = max(abs(msg.angular.x), abs(msg.angular.y), abs(msg.angular.z))
+
     def camera_info_callback(self,camera_info_msg):
         # update camera_info_msg
         self.fx = camera_info_msg.K[0]
@@ -76,12 +85,13 @@ class ObjectDetector:
         self.cy = camera_info_msg.K[5]
 
     def synced_callback(self, image_msg, bounding_boxes_msg, depth_msg):
-        # make sure that the camera_info_msg is updated
-        if self.fx is None or self.fy is None or self.cx is None or self.cy is None:
-            return 
-        
         # update the time of the last synced message
         self.last_synced_time = rospy.Time.now()
+        
+        if self.fx is None or self.fy is None or self.cx is None or self.cy is None:
+            return 
+        if self.current_linear_velocity >= 0.01 or self.current_angular_velocity >= 0.01:
+            return
         
         # image_msg
         try:
