@@ -17,7 +17,7 @@ import numpy as np
 from yolo_detector.msg import BoundingBoxes
 
 pots = {}                           # pot的信息字典， id -> (x,y,z,last_scan_time) ;
-DISTANCE_THRESHOLD = 0.5            # 花盆检测距离阈值
+DISTANCE_THRESHOLD = 1.0           # 花盆检测距离阈值
 TIMEOUT_THRESHOLD = 5.0             # 检测花盆超时阈值
 LINEAR_EPSILON = 0.01               # 线速度阈值
 ANGULAR_EPSILON = 0.01              # 角速度阈值
@@ -106,7 +106,7 @@ class ObjectDetector:
                     rospy.logwarn('successful detect potted plant')
                     # Get the center of the bounding box
                     center_x = (box.xmin + box.xmax) / 2.0
-                    center_y = (box.ymin + box.ymax) / 2.0
+                    center_y = box.ymin + (box.ymax - box.ymin) / 3.0
 
                     # Get the depth value at the center of the bounding box
                     depth_value = self.depth_image[int(center_y), int(center_x)]
@@ -188,7 +188,7 @@ class ObjectDetector:
 
                     # Get the center of the bounding box
                     center_x = (box.xmin + box.xmax) / 2.0
-                    center_y = (box.ymin + box.ymax) / 2.0
+                    center_y = box.ymin + (box.ymax - box.ymin) / 3.0
 
                     # Get the depth value at the center of the bounding box
                     depth_value = self.depth_image[int(center_y), int(center_x)]
