@@ -87,17 +87,16 @@ class Inspection:
 
     def get_pose(self):
         try:
-            # print("####################################################")
-            # print(target_id)
-            # print(type(target_id))
-            # print("####################################################")
             get_pot_info = GetPotListRequest()
             response = self.pot_info_service(get_pot_info)
-            if response.success:
-                return response.pots
-            else:
-                rospy.logwarn("Failed to fetch pots list")
-                return None
+            pots = []
+            for pot in response.pots:
+                if pot.active:
+                    pots.append(pot)
+            
+            return pots
+
+            
         except rospy.ServiceException as e:
             rospy.logwarn("Service call failed: %s" % e)
             return None        
@@ -133,7 +132,7 @@ class Inspection:
         feedback = InspectFeedback()
         result = InspectResult()
         
-        pots = get_pot_info()
+        pots = self.get_pose()
         
         for i, pot in enumerate(pots):
             feedback.percentage = i * 100 / len(pots)
@@ -141,8 +140,8 @@ class Inspection:
             self.server.publish_feedback(feedback)
 
             #* 调用导航模块
-            pot_pose = pot.pot_pose
-            success = self.navigate_to_target(pot_pose)
+            robot_pose = pot.robot_pose
+            success = self.navigate_to_target(robot_pose)
             if not success:
                 result.result = 'fail'
                 rospy.logwarn("inspection: 导航失败")
