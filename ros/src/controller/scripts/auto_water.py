@@ -118,16 +118,16 @@ class AutoWaterNode:
             return False
 
     def check_flowerpot(self, pot_id):
-    """Check the presence of a flowerpot using the object_detect/check_pot service."""
-    try:
-        check_pot = CheckPotRequest(id=pot_id)
-        check_pot_service = rospy.ServiceProxy('/object_detect/check_pot',CheckPot)
-        response = check_pot_service(check_pot)
+        """Check the presence of a flowerpot using the object_detect/check_pot service."""
+        try:
+            check_pot = CheckPotRequest(id=pot_id)
+            check_pot_service = rospy.ServiceProxy('/object_detect/check_pot',CheckPot)
+            response = check_pot_service(check_pot)
 
-        return response.success
-    except rospy.ServiceException as e:
-        rospy.logwarn("Service call failed: %s" % e)
-        return False
+            return response.success
+        except rospy.ServiceException as e:
+            rospy.logwarn("Service call failed: %s" % e)
+            return False
         
     def execute_cb(self):
         self.state = AUTO_WATER
