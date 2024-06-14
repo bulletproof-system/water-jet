@@ -10,6 +10,7 @@ from sensor_msgs.msg import PointCloud2,Image,CameraInfo
 from pot_database.msg import PotInfo
 from object_detect.srv import *
 from pot_database.srv import *
+import math
 from math import sqrt
 from cv_bridge import CvBridge,CvBridgeError
 import cv2
