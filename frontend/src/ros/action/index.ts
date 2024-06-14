@@ -70,7 +70,7 @@ export namespace Controller {
 		}
 		export interface Feedback {
 		    percentage: number, 
-			target: number // 目标花盆 id
+			target: string // 目标花盆 id
 		}
 	}
 }

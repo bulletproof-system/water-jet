@@ -5,4 +5,4 @@ string caller
 string result
 ---
 uint8 percentage
-uint8 target
+string target
