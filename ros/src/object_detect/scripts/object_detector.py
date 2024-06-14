@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 import tf
+import tf.transformations as tft
 import rospy
 import message_filters
 import pickle
@@ -114,14 +115,14 @@ class ObjectDetector:
         if self.detected_image is not None and self.bounding_boxes is not None and self.depth_image is not None:
             for box in self.bounding_boxes:
                 if box.Class == "potted plant":
-                    rospy.logwarn('successful detect potted plant')
+                    # rospy.logwarn('successful detect potted plant')
                     # Get the center of the bounding box
                     center_x = (box.xmin + box.xmax) / 2.0
                     center_y = box.ymin + (box.ymax - box.ymin) / 3.0
 
                     # Get the depth value at the center of the bounding box
                     depth_value = self.depth_image[int(center_y), int(center_x)]
-                    rospy.logwarn('successful get depth')
+                    # rospy.logwarn('successful get depth')
 
                     # Convert the depth value from millimeters to meters
                     Z = depth_value / 1000.0
@@ -147,10 +148,17 @@ class ObjectDetector:
                         self.tf_listener.waitForTransform("/map",point_camera.header.frame_id,point_camera.header.stamp,rospy.Duration(1.5))
                         world_point = self.tf_listener.transformPoint("/map", point_camera)
                         robot_pose = self.tf_listener.lookupTransform("/map", "/base_link", rospy.Time(0))
-                        rospy.logwarn('successful transform coord')
+                        # rospy.logwarn('successful transform coord')
 
                         # Transform point from camera frame to base_link frame
                         base_link_point = self.tf_listener.transformPoint("/base_link", point_camera)
+
+                        # Calculate the desired quaternion to face the potted plant
+                        dx = world_point.point.x - robot_pose[0][0]
+                        dy = world_point.point.y - robot_pose[0][1]
+                        desired_yaw = math.atan2(dy, dx)
+                        quaternion = tft.quaternion_from_euler(0, 0, desired_yaw)
+                        robot_pose = (robot_pose[0], (quaternion[0], quaternion[1], quaternion[2], quaternion[3]))
 
                         # Publish to /obj_centers topic
                         self.obj_centers_pub.publish(base_link_point)

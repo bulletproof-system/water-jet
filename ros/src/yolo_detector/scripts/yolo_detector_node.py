@@ -25,7 +25,7 @@ class YoloDetector:
 
         # 订阅amcl_pose
         self.amcl_pose_sub = rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, self.amcl_pose_callback)
-        self.uncertainty = [[0,0,0],[0,0,0]]
+        self.uncertainty = [[0.15,0.15,0.15],[0.15,0.15,0.15]]
     
 
         # 加载参数
