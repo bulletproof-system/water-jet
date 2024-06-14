@@ -90,7 +90,7 @@ def node():
 # wait if any of robots' global costmap map is not received yet
     for i in range(0, n_robots):
         while (len(globalmaps[i].data) < 1):
-            rospy.loginfo('Waiting for the global costmap!!!')
+            rospy.loginfo('[map_provider - auto_map - filter.py] Waiting for the global costmap!!!')
             rospy.sleep(0.1)
             pass
 
@@ -111,7 +111,7 @@ def node():
     pub2 = rospy.Publisher('centroids', Marker, queue_size=10)
     filterpub = rospy.Publisher('filtered_points', PointArray, queue_size=10)
 
-    rospy.loginfo("the map and global costmaps are received")
+    rospy.loginfo("[map_provider - auto_map - filter.py] the map and global costmaps are received")
 
     # wait if no frontier is received yet
     while len(frontiers) < 1:
