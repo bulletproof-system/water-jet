@@ -63,7 +63,7 @@ export namespace Controller {
 	// /controller/action/AutoWater.action
 	export namespace AutoWater {
 		export interface Goal {
-		    caller: string
+		    none: string
 		}
 		export interface Result {
 		    result: 'success' | 'fail' | 'cancel' | 'error'

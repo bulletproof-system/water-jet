@@ -24,7 +24,7 @@ function autoWater(): Promise<any> {
 	let goal = new ROSLIB.Goal({
 		actionClient: autoWaterActionClient,
 		goalMessage: {
-		    caller: 'frontend'
+		    none: 'frontend'
 		} as Action.Controller.AutoWater.Goal
 	})
 	rosStore.setNodeInfo({
