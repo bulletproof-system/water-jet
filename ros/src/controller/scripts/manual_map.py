@@ -122,7 +122,7 @@ class ManualMap:
         self.manual_map_client.wait_for_result()
         response = self.manual_map_client.get_result()
 
-        if not hasattr(response, 'success') or not response.success:
+        if not hasattr(response, 'result') or (response.result != "success"):
             rospy.logwarn("[ManualMap] Failed to complete manual mapping.")
             result.result = "fail"
             self.server.set_aborted(result)

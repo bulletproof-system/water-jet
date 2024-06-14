@@ -405,7 +405,7 @@ class MapProviderNode:
             # rospy.loginfo('[ManualMap] into while')
             if self.manual_map_server.is_preempt_requested():
                 rospy.loginfo('Preempted Manual Map')
-                result = InitMapResult(result='cancel')
+                result = InitMapResult(result='success')
                 try:
                     # Save the map once mapping is complete.
                     self.save_map('saved_map')
