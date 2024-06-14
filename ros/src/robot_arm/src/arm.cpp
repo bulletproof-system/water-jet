@@ -174,11 +174,18 @@ private:
     vel_pub_.publish(vel_cmd);
 
     if (target_x <= 0.8) {
-      vel_cmd.linear.x = -0.5;
+      vel_cmd.linear.x = -0.6;
       vel_pub_.publish(vel_cmd);
       ros::Duration(1.0).sleep();
       vel_cmd.linear.x = 0;
       vel_pub_.publish(vel_cmd);      
+    }
+    else if (target_x > 1.5) {
+      vel_cmd.linear.x = 0.1;
+      vel_pub_.publish(vel_cmd);
+      ros::Duration(1.0).sleep();
+      vel_cmd.linear.x = 0;
+      vel_pub_.publish(vel_cmd);
     }
     return;
   }
