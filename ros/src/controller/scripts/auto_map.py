@@ -114,6 +114,9 @@ class AutoMap:
             if self.server.is_preempt_requested():
                 rospy.loginfo('[AutoMap] Preempted Auto Map.')
                 self.auto_map_client.cancel_goal()
+                result.result = 'cancel'
+                self.server.set_preempted(result)
+                self.state = WAIT
                 break
             if self.auto_map_client.get_result() == None:
                 rospy.sleep(1)  # 休眠，以避免过度占用CPU
@@ -123,16 +126,12 @@ class AutoMap:
             if not hasattr(response, 'result') or (response.result != "success"):
                 rospy.logwarn("[AutoMap] Failed to complete automatic mapping.")
                 result.result = "fail"
-                feedback.percentage = 100   # 无论如何，终止时都为 100
-                self.server.publish_feedback(feedback)
                 self.server.set_aborted(result)
                 self.state = WAIT
                 return
             
             rospy.loginfo("[AutoMap] Successfully completed automatic mapping.")
             result.result = 'success'
-            feedback.percentage = 100
-            self.server.publish_feedback(feedback)
             self.server.set_succeeded(result)
             self.state = WAIT
             return
