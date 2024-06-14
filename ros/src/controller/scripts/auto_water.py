@@ -75,9 +75,9 @@ class AutoWaterNode:
 
     def handle_stop(self,req):
         """处理停止服务请求，终止当前任务并重置状态"""
-        if self.state == TARGET:
+        if self.state == AUTO_WATER:
             # 设置任务结果为'cancel'
-            result = TargetResult()
+            result = AutoWaterResult()
             result.result = 'cancel'
             self.server.set_aborted(result)
             self.state = STOP
