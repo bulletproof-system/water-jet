@@ -125,12 +125,16 @@ class ManualMap:
         if not hasattr(response, 'result') or (response.result != "success"):
             rospy.logwarn("[ManualMap] Failed to complete manual mapping.")
             result.result = "fail"
+            feedback.percentage = 100   # 无论如何，终止时都为 100
+            self.server.publish_feedback(feedback)
             self.server.set_aborted(result)
             self.state = WAIT
             return
 
         rospy.loginfo("[ManualMap] Successfully completed manual mapping.")
         result.result = 'success'
+        feedback.percentage = 100
+        self.server.publish_feedback(feedback)
         self.server.set_succeeded(result)
         self.state = WAIT
 
