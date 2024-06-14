@@ -34,7 +34,7 @@ function manualInitMap(): Promise<any> {
 			rosStore.setNodeInfo({
 				feedback: feedbackInfo[result.result],
 				result: result.result,
-				percentage: -1,
+				percentage: 100,
 				cancel: null
 			})
 			goal = null;
