@@ -79,7 +79,8 @@ int main(int argc, char **argv)
   ros::param::param<std::string>(ns+"/robot_frame", base_frame_topic, "/robot_1/base_link"); 
 //---------------------------------------------------------------
 ros::Subscriber sub= nh.subscribe(map_topic, 100 ,mapCallBack);	
-ros::Subscriber rviz_sub= nh.subscribe("/clicked_point", 100 ,rvizCallBack);	
+// ros::Subscriber rviz_sub= nh.subscribe("/clicked_point", 100 ,rvizCallBack);
+ros::Subscriber rviz_sub= nh.subscribe("/rrt_publish_point", 100 ,rvizCallBack);
 
 ros::Publisher targetspub = nh.advertise<geometry_msgs::PointStamped>("/detected_points", 10);
 ros::Publisher pub = nh.advertise<visualization_msgs::Marker>(ns+"_shapes", 10);
@@ -134,7 +135,7 @@ while(points.points.size()<5)
 {
 ros::spinOnce();
 
-pub.publish(points) ;
+// pub.publish(points) ;
 }
 
 
@@ -176,7 +177,7 @@ xnew.push_back( trans.x);xnew.push_back( trans.y);
 V.push_back(xnew);
 
 points.points.clear();
-pub.publish(points) ;
+// pub.publish(points) ;
 
 
 
@@ -226,7 +227,7 @@ int8_t   checking=ObstacleFree(x_nearest,x_new,mapData);
 			p.z=0.0;
 					
           	points.points.push_back(p);
-          	pub.publish(points) ;
+          	// pub.publish(points) ;
           	targetspub.publish(exploration_goal);
 		  	points.points.clear();
 		  	V.clear();
@@ -267,7 +268,7 @@ int8_t   checking=ObstacleFree(x_nearest,x_new,mapData);
 
 
 
-pub.publish(line);  
+// pub.publish(line);  
 
 
    

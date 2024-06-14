@@ -1,8 +1,12 @@
+#!/usr/bin/env python
+# coding=utf-8
+
 import rospy
 import tf
 from numpy import array
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from actionlib_msgs.msg import GoalStatus
 from nav_msgs.srv import GetPlan
 from geometry_msgs.msg import PoseStamped
 from numpy import floor
@@ -11,7 +15,7 @@ from numpy import inf
 # ________________________________________________________________________________
 
 
-class robot:
+class Robot:
     goal = MoveBaseGoal()
     start = PoseStamped()
     end = PoseStamped()
@@ -29,7 +33,7 @@ class robot:
         cond = 0
         while cond == 0:
             try:
-                rospy.loginfo('Waiting for the robot transform')
+                rospy.loginfo('[map_provider - auto_map - functions.py] Waiting for the robot transform')
                 (trans, rot) = self.listener.lookupTransform(
                     self.global_frame, self.name+'/'+self.robot_frame, rospy.Time(0))
                 cond = 1
@@ -40,14 +44,14 @@ class robot:
         self.client = actionlib.SimpleActionClient(
             self.name+'/move_base', MoveBaseAction)
         self.client.wait_for_server()
-        robot.goal.target_pose.header.frame_id = 'map'
-        robot.goal.target_pose.header.stamp = rospy.Time.now()
+        Robot.goal.target_pose.header.frame_id = 'map'
+        Robot.goal.target_pose.header.stamp = rospy.Time.now()
 
         rospy.wait_for_service(self.name+self.plan_service)
         self.make_plan = rospy.ServiceProxy(
             self.name+self.plan_service, GetPlan)
-        robot.start.header.frame_id = self.global_frame
-        robot.end.header.frame_id = self.global_frame
+        Robot.start.header.frame_id = self.global_frame
+        Robot.end.header.frame_id = self.global_frame
 
     def getPosition(self):
         cond = 0
@@ -61,12 +65,30 @@ class robot:
         self.position = array([trans[0], trans[1]])
         return self.position
 
-    def sendGoal(self, point):
-        robot.goal.target_pose.pose.position.x = point[0]
-        robot.goal.target_pose.pose.position.y = point[1]
-        robot.goal.target_pose.pose.orientation.w = 1.0
-        self.client.send_goal(robot.goal)
+    def sendGoal(self, point, exit=False, escape=False):
+        if not self.isReachable(self.getPosition(), point) and not escape:
+            rospy.logwarn("[map_provider - auto_map - functions.py] Goal is not reachable: %s", point)
+            return False
+
+        Robot.goal.target_pose.pose.position.x = point[0]
+        Robot.goal.target_pose.pose.position.y = point[1]
+        Robot.goal.target_pose.pose.orientation.w = 1.0
+        
+        self.client.send_goal(Robot.goal)
         self.assigned_point = array(point)
+
+        if exit:
+            self.client.wait_for_result()
+            state = self.client.get_state()
+
+            if state == GoalStatus.SUCCEEDED:
+                rospy.loginfo("[map_provider - auto_map - functions.py] Navigation to (0, 0, 0, 0) succeeded!")
+                return True
+            else:
+                rospy.logwarn("[map_provider - auto_map - functions.py] Navigation failed with state: %s", state)
+                return False
+        else:
+            return True
 
     def cancelGoal(self):
         self.client.cancel_goal()
@@ -76,15 +98,34 @@ class robot:
         return self.client.get_state()
 
     def makePlan(self, start, end):
-        robot.start.pose.position.x = start[0]
-        robot.start.pose.position.y = start[1]
-        robot.end.pose.position.x = end[0]
-        robot.end.pose.position.y = end[1]
-        start = self.listener.transformPose(self.name+'map', robot.start)
-        end = self.listener.transformPose(self.name+'map', robot.end)
+        Robot.start.pose.position.x = start[0]
+        Robot.start.pose.position.y = start[1]
+        Robot.end.pose.position.x = end[0]
+        Robot.end.pose.position.y = end[1]
+        start = self.listener.transformPose(self.name+'map', Robot.start)
+        end = self.listener.transformPose(self.name+'map', Robot.end)
         plan = self.make_plan(start=start, goal=end, tolerance=0.0)
-        rospy.loginfo("make plan")
+        # rospy.loginfo("[map_provider - auto_map - functions.py] maked plan")
         return plan.plan.poses
+    
+    def isReachable(self, start, end):
+        # 检查从 start 到 end 是否有可行路径
+        plan = self.makePlan(start, end)
+        if len(plan) > 0:
+            return True
+        return False
+    
+    def getNearbyReachablePoint(self, radius=0.5):
+        directions = [
+            [0, radius], [0, -radius], [radius, 0], [-radius, 0],  # 前后左右
+            [radius, radius], [radius, -radius], [-radius, radius], [-radius, -radius]  # 左上右上左下右下
+        ]
+        current_position = self.getPosition()
+        for direction in directions:
+            potential_point = current_position + array(direction)
+            if self.isReachable(current_position, potential_point):
+                return potential_point
+        return None
 # ________________________________________________________________________________
 
 
