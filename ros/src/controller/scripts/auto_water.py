@@ -20,6 +20,8 @@ WAIT = 1
 AUTO_WATER = 11
 
 def check_water_threshold(last_day_str):
+    if last_day_str == None:
+        return True
     date_format = "%Y-%m-%d %H:%M:%S"
     last_date = datetime.strptime(last_day_str, date_format).date()
     today_date = datetime.now().strftime(date_format).date()
@@ -139,37 +141,38 @@ class AutoWaterNode:
         
         for i, target in enumerate(self.pots):
             #* 调用导航模块
-            target_pose = target.robot_pose
-            success = self.navigate_to_target(target_pose)
-            if not success:
-                result.result = 'fail'
-                self.server.set_aborted(result)
-                self.state = WAIT
-                return
-            
-            if check_water_threshold(target.last_water_date):
-                #* 调用花盆识别模块
-                success = self.check_flowerpot(target.id)
+            if target.active:
+                target_pose = target.robot_pose
+                success = self.navigate_to_target(target_pose)
                 if not success:
-                    rospy.logwarn("No flowerpot detected")
                     result.result = 'fail'
                     self.server.set_aborted(result)
                     self.state = WAIT
                     return
+                
+                if check_water_threshold(target.last_water_date):
+                    #* 调用花盆识别模块
+                    success = self.check_flowerpot(target.id)
+                    if not success:
+                        rospy.logwarn("No flowerpot detected")
+                        result.result = 'fail'
+                        self.server.set_aborted(result)
+                        self.state = WAIT
+                        return
 
-                #* 调用浇水模块
-                goal = AimGoal()
-                goal.id = target.id
-                self.aim_client.send_goal(goal)
-                self.aim_client.wait_for_result()
-                aim_result = self.aim_client.get_result()
+                    #* 调用浇水模块
+                    goal = AimGoal()
+                    goal.id = target.id
+                    self.aim_client.send_goal(goal)
+                    self.aim_client.wait_for_result()
+                    aim_result = self.aim_client.get_result()
 
-                if not aim_result.success:
-                    rospy.logwarn("Unable to aim at target: %d" % target)
-                    result.result = 'fail'
-                    self.server.set_aborted(result)
-                    self.state = WAIT
-                    return
+                    if not aim_result.success:
+                        rospy.logwarn("Unable to aim at target: %d" % target)
+                        result.result = 'fail'
+                        self.server.set_aborted(result)
+                        self.state = WAIT
+                        return
             
             #* 反馈进度
             feedback.percentage = int((i + 1) * 100.0 / len(self.pots))
