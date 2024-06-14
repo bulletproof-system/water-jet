@@ -47,7 +47,7 @@ class AutoWaterNode:
         rospy.Service('/ctrl/auto_water/stop',Stop, self.handle_stop)
         
         # Action Server
-        self.server = SimpleActionServer('/ctrl/action/AutoWater', AutoWaterAction, execute_cb=self.execute_cb, auto_start=False)
+        self.server = SimpleActionServer('/ctrl/auto_water/auto_water', AutoWaterAction, execute_cb=self.execute_cb, auto_start=False)
         self.server.start()
 
         # Action Client 
@@ -129,7 +129,7 @@ class AutoWaterNode:
             rospy.logwarn("Service call failed: %s" % e)
             return False
         
-    def execute_cb(self):
+    def execute_cb(self,goal):
         self.state = AUTO_WATER
 
         feedback = AutoWaterFeedback()

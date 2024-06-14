@@ -1,6 +1,6 @@
 # /controller/action/AutoWater.action
 
-string none
+string caller
 ---
 string result
 ---
