@@ -100,7 +100,7 @@ class AutoMap:
         
         rospy.loginfo("[AutoMap] Starting auto_map: %s" % goal)
 
-        # 反馈初始进度(始终为-1)
+        # 反馈初始进度(建图中始终为 -1，结束时为 100)
         feedback.percentage = -1
         self.server.publish_feedback(feedback)
 
@@ -119,19 +119,23 @@ class AutoMap:
                 rospy.sleep(1)  # 休眠，以避免过度占用CPU
                 continue
             response = self.auto_map_client.get_result()
-            if not hasattr(response, 'success') or not response.success:
+
+            if not hasattr(response, 'result') or (response.result != "success"):
                 rospy.logwarn("[AutoMap] Failed to complete automatic mapping.")
                 result.result = "fail"
+                feedback.percentage = 100   # 无论如何，终止时都为 100
+                self.server.publish_feedback(feedback)
                 self.server.set_aborted(result)
                 self.state = WAIT
                 return
+            
             rospy.loginfo("[AutoMap] Successfully completed automatic mapping.")
             result.result = 'success'
+            feedback.percentage = 100
+            self.server.publish_feedback(feedback)
             self.server.set_succeeded(result)
             self.state = WAIT
             return
-        # self.auto_map_client.wait_for_result()
-        # response = self.auto_map_client.get_result()
         
 
 if __name__ == '__main__':
