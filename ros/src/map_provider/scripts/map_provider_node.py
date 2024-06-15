@@ -365,13 +365,6 @@ class MapProviderNode:
                 rospy.loginfo('[map_provider - auto_map] Preempted auto map')
                 result = InitMapResult(result='cancel')
                 try:
-                    # 保存地图
-                    self.save_map('saved_map')
-                    rospy.loginfo("[map_provider - auto_map] Auto map canceled, map saved.")
-
-                    # 重启 amcl
-                    subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
-
                     # 终止 rrt_process 和 assigner_process
                     if self.rrt_process is not None:
                         rospy.loginfo("[map_provider - auto_map] Terminating rrt_process...")
@@ -395,6 +388,13 @@ class MapProviderNode:
                             self.assigner_process.kill()
                             self.assigner_process.wait()
                         self.assigner_process = None
+                    
+                    # 保存地图
+                    self.save_map('saved_map')
+                    rospy.loginfo("[map_provider - auto_map] Auto map canceled, map saved.")
+
+                    # 重启 amcl
+                    subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
                     
                     # 反馈结果
                     result = InitMapResult(result='cancel')
