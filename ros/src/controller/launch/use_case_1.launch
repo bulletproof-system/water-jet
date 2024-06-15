@@ -16,7 +16,7 @@
 	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
 
-  <include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch" />
+  <include file="$(find controller)/launch/kinect2_bridge.launch" />
 
     <!--- Run Rplidar -->
   <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
@@ -49,8 +49,8 @@
 	<!-- <node pkg="tf" type="static_transform_publisher" name="fix_odom" args="0 0 0 0 0 0 odom base_footprint 50" /> -->
 	<!-- Rviz -->
 	<!-- <arg name="rvizconfig" default="$(find wpb_home_tutorials)/rviz/slam.rviz" /> -->
-  <arg name="rvizconfig" default="$(find wpb_home_bringup)/rviz/sensor.rviz" />
-	<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+  <!-- <arg name="rvizconfig" default="$(find wpb_home_bringup)/rviz/sensor.rviz" />
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" /> -->
 
 	<include file="$(find controller)/launch/main.launch"/>
 
