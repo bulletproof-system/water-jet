@@ -126,7 +126,7 @@ class AutoWaterNode:
         """Check the presence of a flowerpot using the object_detect/check_pot service."""
         try:
             check_pot = CheckPotRequest(id=pot_id)
-            check_pot_service = rospy.ServiceProxy('/object_detect/check_pot',CheckPot)
+            check_pot_service = rospy.ServiceProxy('/object_detect/check_pot', CheckPot)
             response = check_pot_service(check_pot)
 
             return response.success
@@ -146,7 +146,7 @@ class AutoWaterNode:
         feedback.percentage = 0
         feedback.target = self.pots[0].id
         self.server.publish_feedback(feedback)
-        rospy.loginfo("Auto Watering at target %d" % self.pots[0].id)
+        rospy.loginfo("Auto Watering at target %d" % int(self.pots[0].id))
         
         for i, target in enumerate(self.pots):
             #* 调用导航模块
@@ -176,7 +176,7 @@ class AutoWaterNode:
                 aim_result = self.aim_client.get_result()
 
                 if not aim_result.success:
-                    rospy.logwarn("Unable to aim at target: %d" % target.id)
+                    rospy.logwarn("Unable to aim at target: %d" % int(target.id))
                     result.result = 'fail'
                     self.server.set_aborted(result)
                     self.state = WAIT
@@ -188,7 +188,7 @@ class AutoWaterNode:
                     update_date_request = SetDateRequest(id=int(target.id), water_date=water_date)
                     update_response = self.update_date_service(update_date_request)
                     if not update_response.success:
-                        rospy.logwarn("Failed to update (auto) watering date for target: %d" % target.id)
+                        rospy.logwarn("Failed to update (auto) watering date for target: %d" % int(target.id))
                 except rospy.ServiceException as e:
                     rospy.logwarn("Service call failed while updating (auto) watering date: %s" % e)
 
@@ -196,9 +196,9 @@ class AutoWaterNode:
             #* 反馈进度
             if i < len(self.pots):
                 feedback.percentage = int((i + 1) * 100.0 / len(self.pots))
-                feedback.target = str(target.id + 1)
+                feedback.target = str(int(target.id) + 1)
                 self.server.publish_feedback(feedback)
-                rospy.loginfo("Watering at target %d" % (target.id + 1))
+                rospy.loginfo("Watering at target %d" % (int(target.id) + 1))
             
 
             #* 中断
