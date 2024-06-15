@@ -199,7 +199,7 @@ private:
     mani_ctrl_msg.velocity.resize(2);
     mani_ctrl_msg.name[0] = "lift";
     mani_ctrl_msg.name[1] = "gripper";
-    mani_ctrl_msg.position[0] = target_point_.point.z + 0.15;
+    mani_ctrl_msg.position[0] = target_point_.point.z + 0.1;
     // always hold on
     mani_ctrl_msg.position[1] = 0.032;
     mani_ctrl_msg.velocity[0] = 0.2;
