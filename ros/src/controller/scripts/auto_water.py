@@ -20,6 +20,8 @@ WAIT = 1
 AUTO_WATER = 11
 
 def check_water_threshold(last_day_str):
+    # test, always return True
+    return True
     if last_day_str == None:
         return True
     date_format = "%Y-%m-%d %H:%M:%S"
@@ -61,6 +63,7 @@ class AutoWaterNode:
 
         # Service Client
         self.all_pots_service = rospy.ServiceProxy('/database/pot/list', GetPotList)
+        self.update_date_service = rospy.ServiceProxy('/database/pot/set_date', SetDate)
         
         # all pots
         self.pots = self.get_all_pots()
@@ -137,11 +140,17 @@ class AutoWaterNode:
         feedback = AutoWaterFeedback()
         result = AutoWaterResult()
         
-        rospy.loginfo("Starting auto watering process")
+        rospy.loginfo("Starting Auto Watering process")
+
+        assert len(self.pots) >= 1
+        feedback.percentage = 0
+        feedback.target = self.pots[0].id
+        self.server.publish_feedback(feedback)
+        rospy.loginfo("Auto Watering at target %d" % self.pots[0].id)
         
         for i, target in enumerate(self.pots):
             #* 调用导航模块
-            if target.active:
+            if target.active and check_water_threshold(target.last_water_date):
                 target_pose = target.robot_pose
                 success = self.navigate_to_target(target_pose)
                 if not success:
@@ -150,35 +159,47 @@ class AutoWaterNode:
                     self.state = WAIT
                     return
                 
-                if check_water_threshold(target.last_water_date):
-                    #* 调用花盆识别模块
-                    success = self.check_flowerpot(target.id)
-                    if not success:
-                        rospy.logwarn("No flowerpot detected")
-                        result.result = 'fail'
-                        self.server.set_aborted(result)
-                        self.state = WAIT
-                        return
+                #* 调用花盆识别模块
+                success = self.check_flowerpot(target.id)
+                if not success:
+                    rospy.logwarn("No flowerpot detected at target: %d" % target.id)
+                    result.result = 'fail'
+                    self.server.set_aborted(result)
+                    self.state = WAIT
+                    return
 
-                    #* 调用浇水模块
-                    goal = AimGoal()
-                    goal.id = target.id
-                    self.aim_client.send_goal(goal)
-                    self.aim_client.wait_for_result()
-                    aim_result = self.aim_client.get_result()
+                #* 调用浇水模块
+                goal = AimGoal()
+                goal.id = target.id
+                self.aim_client.send_goal(goal)
+                self.aim_client.wait_for_result()
+                aim_result = self.aim_client.get_result()
 
-                    if not aim_result.success:
-                        rospy.logwarn("Unable to aim at target: %d" % target)
-                        result.result = 'fail'
-                        self.server.set_aborted(result)
-                        self.state = WAIT
-                        return
-            
+                if not aim_result.success:
+                    rospy.logwarn("Unable to aim at target: %d" % target.id)
+                    result.result = 'fail'
+                    self.server.set_aborted(result)
+                    self.state = WAIT
+                    return
+
+                #* 更新浇水日期信息
+                try:
+                    water_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    update_date_request = SetDateRequest(id=int(target.id), water_date=water_date)
+                    update_response = self.update_date_service(update_date_request)
+                    if not update_response.success:
+                        rospy.logwarn("Failed to update (auto) watering date for target: %d" % target.id)
+                except rospy.ServiceException as e:
+                    rospy.logwarn("Service call failed while updating (auto) watering date: %s" % e)
+
+
             #* 反馈进度
-            feedback.percentage = int((i + 1) * 100.0 / len(self.pots))
-            feedback.target = str(target + 1)
-            self.server.publish_feedback(feedback)
-            rospy.loginfo("Auto Watering at target %d" % (target + 1))
+            if i < len(self.pots):
+                feedback.percentage = int((i + 1) * 100.0 / len(self.pots))
+                feedback.target = str(target.id + 1)
+                self.server.publish_feedback(feedback)
+                rospy.loginfo("Watering at target %d" % (target.id + 1))
+            
 
             #* 中断
             if self.server.is_preempt_requested():
