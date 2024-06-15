@@ -365,13 +365,44 @@ class MapProviderNode:
                 rospy.loginfo('[map_provider - auto_map] Preempted auto map')
                 result = InitMapResult(result='cancel')
                 try:
+                    # 保存地图
                     self.save_map('saved_map')
                     rospy.loginfo("[map_provider - auto_map] Auto map canceled, map saved.")
+
+                    # 重启 amcl
+                    subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
+
+                    # 终止 rrt_process 和 assigner_process
+                    if self.rrt_process is not None:
+                        rospy.loginfo("[map_provider - auto_map] Terminating rrt_process...")
+                        self.rrt_process.terminate()
+                        try:
+                            self.rrt_process.wait(timeout=5)  # 等待进程结束，最多等待5秒
+                            rospy.loginfo("[map_provider - auto_map] rrt_process terminated gracefully.")
+                        except Exception:
+                            rospy.logwarn("[map_provider - auto_map] rrt_process did not terminate gracefully, killing it.")
+                            self.rrt_process.kill()
+                            self.rrt_process.wait()
+                        self.rrt_process = None
+                    if self.assigner_process is not None:
+                        rospy.loginfo("[map_provider - auto_map] Terminating assigner_process...")
+                        self.assigner_process.terminate()
+                        try:
+                            self.assigner_process.wait(timeout=5)  # 等待进程结束，最多等待5秒
+                            rospy.loginfo("[map_provider - auto_map] assigner_process terminated gracefully.")
+                        except Exception:
+                            rospy.logwarn("[map_provider - auto_map] assigner_process did not terminate gracefully, killing it.")
+                            self.assigner_process.kill()
+                            self.assigner_process.wait()
+                        self.assigner_process = None
+                    
+                    # 反馈结果
+                    result = InitMapResult(result='cancel')
+                    self.auto_map_server.set_preempted(result)
                 except subprocess.CalledProcessError as e:
                     rospy.logerr("Failed to save map: %s", e)
-                    result.result = 'error'
-                finally:
-                    self.auto_map_server.set_preempted(result)
+                    result.result = 'fail'  # 无法处理 error，改成 fail
+                    self.auto_map_server.set_aborted(result)
                 break
 
             rospy.sleep(2)  # 休眠，以避免过度占用CPU
