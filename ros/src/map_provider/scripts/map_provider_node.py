@@ -41,7 +41,6 @@ class MapProviderNode:
         # Action servers
         self.auto_map_server = actionlib.SimpleActionServer('/map_provider/auto_init_map', InitMapAction, self.auto_map, False)
         self.manual_map_server = actionlib.SimpleActionServer('/map_provider/manual_init_map', InitMapAction, self.manual_map, False)
-        # self.manual_map_server.register_preempt_callback(self.manual_preeme_cb)
 
         # subprocess
         self.slam_process = None        # 用于存储 SLAM 进程的引用
@@ -104,7 +103,8 @@ class MapProviderNode:
             subprocess.check_call(["rosnode", "kill", "/slam_gmapping"])
             rospy.sleep(1)
 
-            self.check_and_launch_map_server()  # 启动 map_server
+            # 启动 map_server
+            self.check_and_launch_map_server()  
 
             if retcode == 0:
                 rospy.loginfo("[map_provider - save_map] Map saved successfully")
@@ -149,13 +149,13 @@ class MapProviderNode:
     # 实现：清空 maps_dir 下的所有文件
     # data 暂时用不到
     def clear_map_callback(self, data):
-        rospy.loginfo("Clearing map...")
+        rospy.loginfo("[map_provider - clear_map] Clearing map...")
         for _ in range(3):  # 重复清除地图三次
-            rospy.loginfo("Attempt to clear all maps in the directory {}.".format(maps_dir))
+            rospy.loginfo("[map_provider - clear_map] Attempt to clear all maps in the directory {}.".format(maps_dir))
 
             # 检查目录是否存在
             if not os.path.isdir(maps_dir):
-                rospy.logerr("The directory %s does not exist.", maps_dir)
+                rospy.logerr("[map_provider - clear_map] The directory %s does not exist.", maps_dir)
                 break
 
             try:
@@ -171,17 +171,21 @@ class MapProviderNode:
                         elif os.path.isdir(file_path):
                             shutil.rmtree(file_path)  # 用于删除目录
                     except Exception as e:
-                        rospy.logerr("Failed to delete %s. Reason: %s", file_path, e)
+                        rospy.logerr("[map_provider - clear_map] Failed to delete %s. Reason: %s", file_path, e)
 
                 # 检查是否还有文件，即目录是否已清空
                 if not os.listdir(maps_dir):
-                    rospy.loginfo("All maps in %s have been successfully deleted.", maps_dir)
+                    rospy.loginfo("[map_provider - clear_map] All maps in %s have been successfully deleted.", maps_dir)
                     break  # 如果目录已空，退出循环
                 else:
-                    rospy.logwarn("Maps directory is not empty after deletion attempt.")
+                    rospy.logwarn("[map_provider - clear_map] Maps directory is not empty after deletion attempt.")
             except Exception as e:
-                rospy.logerr("Error occurred while deleting maps: %s", e)
+                rospy.logerr("[map_provider - clear_map] Error occurred while deleting maps: %s", e)
                 break  # 遇到异常时退出循环
+        
+        # 启动 map_server
+        rospy.loginfo("[map_provider - clear_map] Restart /map_server")
+        self.check_and_launch_map_server()
 
     # 手动设定位置的回调函数
     # data 是 geometry_msgs/Pose pos，yaml 格式的 data 如下（示例见test_set_pos.yaml）：
@@ -361,13 +365,44 @@ class MapProviderNode:
                 rospy.loginfo('[map_provider - auto_map] Preempted auto map')
                 result = InitMapResult(result='cancel')
                 try:
+                    # 保存地图
                     self.save_map('saved_map')
                     rospy.loginfo("[map_provider - auto_map] Auto map canceled, map saved.")
+
+                    # 重启 amcl
+                    subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
+
+                    # 终止 rrt_process 和 assigner_process
+                    if self.rrt_process is not None:
+                        rospy.loginfo("[map_provider - auto_map] Terminating rrt_process...")
+                        self.rrt_process.terminate()
+                        try:
+                            self.rrt_process.wait(timeout=5)  # 等待进程结束，最多等待5秒
+                            rospy.loginfo("[map_provider - auto_map] rrt_process terminated gracefully.")
+                        except Exception:
+                            rospy.logwarn("[map_provider - auto_map] rrt_process did not terminate gracefully, killing it.")
+                            self.rrt_process.kill()
+                            self.rrt_process.wait()
+                        self.rrt_process = None
+                    if self.assigner_process is not None:
+                        rospy.loginfo("[map_provider - auto_map] Terminating assigner_process...")
+                        self.assigner_process.terminate()
+                        try:
+                            self.assigner_process.wait(timeout=5)  # 等待进程结束，最多等待5秒
+                            rospy.loginfo("[map_provider - auto_map] assigner_process terminated gracefully.")
+                        except Exception:
+                            rospy.logwarn("[map_provider - auto_map] assigner_process did not terminate gracefully, killing it.")
+                            self.assigner_process.kill()
+                            self.assigner_process.wait()
+                        self.assigner_process = None
+                    
+                    # 反馈结果
+                    result = InitMapResult(result='cancel')
+                    self.auto_map_server.set_preempted(result)
                 except subprocess.CalledProcessError as e:
                     rospy.logerr("Failed to save map: %s", e)
-                    result.result = 'error'
-                finally:
-                    self.auto_map_server.set_preempted(result)
+                    result.result = 'fail'  # 无法处理 error，改成 fail
+                    self.auto_map_server.set_aborted(result)
                 break
 
             rospy.sleep(2)  # 休眠，以避免过度占用CPU
@@ -409,8 +444,7 @@ class MapProviderNode:
                 try:
                     # Save the map once mapping is complete.
                     self.save_map('saved_map')
-                    # 使用rosnode kill命令结束slam_gmapping节点
-                    # subprocess.check_call(["rosnode", "kill", "/slam_gmapping"])
+                    
                     # 重启 amcl
                     subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
                     rospy.loginfo("SLAM process has been terminated using rosnode kill.")
@@ -427,35 +461,6 @@ class MapProviderNode:
             rospy.sleep(1)  # 休眠，以避免过度占用CPU
         
         rospy.loginfo("[map_provider] Successfully completed manual mapping.")
-        # result = InitMapResult(result='success')
-        # self.manual_map_server.set_succeeded(result)
-
-    # 手动建图 preempt 时的处理函数，但不知道为什么触发不了
-    def manual_preeme_cb(self):
-        rospy.loginfo("Manual mapping has been preempted/cancelled.")
-        result = InitMapResult()
-        if self.slam_process:
-            try:
-                # Save the map once mapping is complete.
-                self.save_map('saved_map')
-                # 使用rosnode kill命令结束slam_gmapping节点
-                self.slam_process.terminate()
-                rospy.loginfo("SLAM process has been terminated.")
-                result.result = 'success'
-                self.slam_process = None
-
-                # 启动 map_server
-                self.check_and_launch_map_server()
-
-                # 启动 amcl 
-                subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
-            except Exception as e:
-                rospy.logerr("Failed to terminate SLAM process: %s", e)
-                result.result = 'fail'
-        else:
-            rospy.loginfo("No active SLAM process to cancel.")
-            result.result = 'fail'
-        self.manual_map_server.set_succeeded(result)  # 设置操作已被取消的结果
     
     # ====================================== deprecated ====================================== #
     # 尝试使用 Msg 机制来触发手动建图
