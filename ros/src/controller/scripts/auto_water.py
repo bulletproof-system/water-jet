@@ -99,7 +99,8 @@ class AutoWaterNode:
             return StopResponse(False)   
 
     def get_all_pots(self):
-        response = self.all_pots_service()
+        all_pots_request = GetPotListRequest()
+        response = self.all_pots_service(all_pots_request)
         return response.pots
         
     def hello_callback(self, msg):
