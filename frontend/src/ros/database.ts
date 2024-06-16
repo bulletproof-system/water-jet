@@ -122,6 +122,7 @@ export class Pot {
 	}
 	setActive(active: boolean) {
 		setPotActive(this.id, active).then(() => {
+			this.active = active;
 			if (this.pointCloud) {
 				this.pointCloud.visible = active;
 			}
