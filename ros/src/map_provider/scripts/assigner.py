@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-#--------导入模块---------------
+# -------- 导入模块 ---------------
 import rospy
 from copy import copy
 from numpy import array
@@ -11,7 +11,7 @@ from nav_msgs.msg import OccupancyGrid
 from map_provider.msg import PointArray
 from functions import Robot, informationGain, discount
 
-# 订阅者的回调函数------------------------------
+# 订阅者的回调函数
 mapData = OccupancyGrid()
 frontiers = []
 global1 = OccupancyGrid()
@@ -29,8 +29,7 @@ def mapCallBack(data):
     global mapData
     mapData = data
 
-# Node----------------------------------------------
-
+# 节点
 def node():
     global frontiers, mapData, global1, global2, global3, globalmaps
     rospy.init_node('assigner', anonymous=False)
@@ -107,8 +106,7 @@ def node():
         for ir in na:
             all_unreachable = True  # 标识位，假设所有点都不可达
             for ip in range(0, len(centroids)):
-                cost = norm(robots[ir].getPosition() - centroids[ip])       
-                threshold = 1
+                cost = norm(robots[ir].getPosition() - centroids[ip])
                 information_gain = infoGain[ip]
                 if (norm(robots[ir].getPosition() - centroids[ip]) <= hysteresis_radius):
                     information_gain *= hysteresis_gain
