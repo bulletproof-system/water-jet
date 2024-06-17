@@ -24,7 +24,7 @@ stages:          # List of stages for jobs, and their order of execution
   - test
   - deploy
 
-build-job:       # This job runs in the build stage, which runs first.
+frontend-build-job:  # 前端构建
   stage: build
   cache:
     untracked: true
@@ -40,6 +40,22 @@ build-job:       # This job runs in the build stage, which runs first.
     paths:
       - frontend/dist/
 
+ros-build-job: # ros 构建
+  stage: build
+  cache:
+    untracked: true
+    paths:
+      - ros/build/
+  script:
+    - echo "start build ros..."
+    - export CXX=/usr/bin/g++
+    - source /opt/ros/melodic/setup.bash
+    - cd ros && catkin_make
+  artifacts:
+    paths:
+      - ros/build/
+      - ros/devel/
+    
 
 unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.

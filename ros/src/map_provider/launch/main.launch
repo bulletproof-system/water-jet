@@ -1,0 +1,19 @@
+<launch>
+
+    <!-- map_provider -->
+    <node name="map_provider_node" pkg="map_provider" type="map_provider_node.py" output="screen">
+    </node>
+
+	<!--- Run AMCL -->
+ 	<include file="$(find map_provider)/launch/amcl_omni.launch" />
+
+    <!-- Gmapping -->
+    <!-- <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
+		<param name="xmin" value="-10"/>
+		<param name="xmax" value="10"/>
+		<param name="ymin" value="-10"/>
+		<param name="ymax" value="10"/>
+		<param name="delta" value="0.05"/>
+	</node> -->
+
+</launch>

@@ -1,0 +1,8 @@
+# navigation/action
+# 导航 action
+geometry_msgs/Pose pos# 导航位置, 世界坐标 position x y z orientation x y z w
+---
+string result # 结果 'success' 'fail' 'cancel'
+---
+uint8 percentage # 进度
+string cur_state # 'normal' 'barrier' 'planning'

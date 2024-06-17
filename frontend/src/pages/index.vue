@@ -1,22 +1,23 @@
 <template>
-  <v-app class="rounded rounded-md app" >
-    <v-app-bar title="Water Jet"></v-app-bar>
-
-    <v-navigation-drawer>
-      <v-list style="padding-left: 10px;">
+  <v-layout class="rounded rounded-md app" >
+    <AppBar />
+      <!-- <v-list style="padding-left: 10px;">
         <v-switch v-model="appStore.allowNavigation" label="启用导航" color="primary"></v-switch>
         <v-switch v-model="appStore.autoControl" label="自动跟随" color="primary"></v-switch>
         <v-switch v-model="appStore.allowObjectRecognition" label="花盆识别" color="primary"></v-switch>
-      </v-list>
-    </v-navigation-drawer>
+      </v-list> -->
 
     <v-main class="d-flex align-center justify-center">
-      <Map />
+      <v-layout  class="rounded rounded-md" full-height>
+        <PotList /> 
+        <OperatorPanel />
+        <v-main>
+          <Map />
+        </v-main>
+      </v-layout>
     </v-main>
 
-    <AppFooter />
-  </v-app>
-
+  </v-layout>
 </template>
 
 <script lang="ts" setup>
@@ -27,6 +28,7 @@ definePage({
 })
 
 const appStore = useAppStore()
+const id = ref('')
 
 </script>
 
@@ -38,8 +40,17 @@ const appStore = useAppStore()
   height: $app-height;
 }
 
+.main {
+  height: calc(100% - $app-header-height);
+  width: 100%;
+}
+
 .footer {
   height: $footer-height;
 }
+
+// .footer {
+//   height: $footer-height;
+// }
 </style>
 

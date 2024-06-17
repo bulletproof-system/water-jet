@@ -1,0 +1,4 @@
+# /controller/srv/AutoInitPos.srv
+string caller
+---
+bool success # 结果

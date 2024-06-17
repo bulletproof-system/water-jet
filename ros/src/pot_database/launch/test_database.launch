@@ -1,0 +1,7 @@
+<launch>
+    <!-- Database Node -->
+    <node name="database" pkg="pot_database" type="database.py" output="screen"/>
+    
+    <node name="test_database" pkg="pot_database" type="test_database.py" output="screen" test="true" />
+
+</launch>

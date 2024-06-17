@@ -1,0 +1,9 @@
+# Goal
+uint32 id
+---
+# Result
+bool success
+string info
+---
+# Feedback
+uint32 percentage

@@ -1,0 +1,20 @@
+robot_radius: 0.25
+inflation_radius: 0.5
+obstacle_range: 6.0
+raytrace_range: 6.0
+observation_sources: base_lidar head_kinect2
+base_lidar: {
+    data_type: LaserScan,
+    topic: /scan, 
+    marking: true, 
+    clearing: true
+    }
+
+head_kinect2: {
+    data_type: PointCloud2,
+    topic: /kinect2/sd/points,
+    marking: true,
+    clearing: true,
+    max_obstacle_height: 1.5,
+    min_obstacle_height: 0.2
+}

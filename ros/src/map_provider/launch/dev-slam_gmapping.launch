@@ -1,0 +1,12 @@
+<launch>
+
+    <!-- Gmapping -->
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
+		<param name="xmin" value="-10"/>
+		<param name="xmax" value="10"/>
+		<param name="ymin" value="-10"/>
+		<param name="ymax" value="10"/>
+		<param name="delta" value="0.03"/>
+	</node>
+
+</launch>
