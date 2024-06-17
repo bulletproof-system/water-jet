@@ -234,7 +234,7 @@ class MapProviderNode:
         # todo_0: 关闭 /map_server 和 /amcl, 启动 /slam_gmapping
         subprocess.call(["rosnode", "kill", "/map_server"])
         subprocess.call(["rosnode", "kill", "/amcl"])
-        self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'dev-slam_gmapping.launch'])
+        self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'slam_gmapping.launch'])
         rospy.loginfo("[map_provider - auto_map] SLAM process started.")
 
         # todo_1: 启动 rrt_start.launch & rrt_assigner.launch
@@ -422,7 +422,7 @@ class MapProviderNode:
                 subprocess.call(["rosnode", "kill", "/map_server"])
                 subprocess.call(["rosnode", "kill", "/amcl"])
                 # 启动SLAM进程
-                self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'dev-slam_gmapping.launch'])
+                self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'slam_gmapping.launch'])
                 rospy.loginfo("SLAM process started.")
             except Exception as e:
                 rospy.logerr("Launching SLAM process failed: %s", e)
@@ -475,7 +475,7 @@ class MapProviderNode:
             nodes = subprocess.check_output(["rosnode", "list"]).decode('utf-8').strip().split("\n")
             if '/slam_gmapping' not in nodes:
                 rospy.loginfo("/slam_gmapping node is not running, starting it...")
-                self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'dev-slam_gmapping.launch'])
+                self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'slam_gmapping.launch'])
             else:
                 rospy.loginfo("/slam_gmapping node already running.")
         except Exception as e:
