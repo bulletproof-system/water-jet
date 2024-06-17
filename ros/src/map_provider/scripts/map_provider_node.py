@@ -2,18 +2,14 @@
 # coding=utf-8
 
 import os
-import rospy, roslaunch
+import rospy
 import shutil
 import subprocess
-
 import actionlib
 
-from actionlib_msgs.msg import GoalStatus
-from std_msgs.msg import String, Header
 from map_provider.msg import *              # action 也包含在内
 from nav_msgs.msg import OccupancyGrid
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-from geometry_msgs.msg import Pose, Point, Quaternion
 from geometry_msgs.msg import PoseStamped, PointStamped, PoseWithCovarianceStamped
 
 
@@ -223,7 +219,6 @@ class MapProviderNode:
         rospy.loginfo("Robot initial position has been set.")
 
     # 自动建图的回调函数
-    # TODO: 实现自动建图逻辑
     def auto_map(self, goal):
         rospy.loginfo("[map_provider - auto_map] Starting automatic mapping...")
         # 示例的进度反馈和结果发布
@@ -231,13 +226,13 @@ class MapProviderNode:
         feedback.percentage = -1    # 简化版本，不关心进度
         self.auto_map_server.publish_feedback(feedback)
 
-        # todo_0: 关闭 /map_server 和 /amcl, 启动 /slam_gmapping
+        # step_0: 关闭 /map_server 和 /amcl, 启动 /slam_gmapping
         subprocess.call(["rosnode", "kill", "/map_server"])
         subprocess.call(["rosnode", "kill", "/amcl"])
         self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'slam_gmapping.launch'])
         rospy.loginfo("[map_provider - auto_map] SLAM process started.")
 
-        # todo_1: 启动 rrt_start.launch & rrt_assigner.launch
+        # step_1: 启动 rrt_start.launch & rrt_assigner.launch
         try:
             rospy.loginfo("[map_provider - auto_map] Launching rrt_start.launch...")
             self.rrt_process = subprocess.Popen(['roslaunch', 'map_provider', 'rrt_start.launch'])
@@ -257,7 +252,7 @@ class MapProviderNode:
         rospy.sleep(1.5)
         rospy.loginfo("[map_provider - auto_map] awoken")
 
-        # todo_2: 向 /rrt_publish_point 发布四个边界点
+        # step_2: 向 /rrt_publish_point 发布四个边界点
         points = [
             (-3.0, 3.0, 0.0),
             (4.0, 3.0, 0.0),
@@ -275,7 +270,7 @@ class MapProviderNode:
             rospy.loginfo("[map_provider - auto_map] Published point: (%s, %s, %s)", x, y, z)
             rospy.sleep(0.1)  # 确保每个点都被正确发布
 
-        # todo_3: 向 /rrt_publish_point 发布一个初始目标点
+        # step_3: 向 /rrt_publish_point 发布一个初始目标点
         goal_point = (1.0, 1.0, 0.0)
         goal_msg = PointStamped()
         goal_msg.header.stamp = rospy.Time.now()
@@ -291,7 +286,7 @@ class MapProviderNode:
         rospy.sleep(1.5)
         rospy.loginfo("[map_provider - auto_map] awoken")
 
-        # todo_4: 向 /move_base_simple/goal 发布一个初始目标点
+        # step_4: 向 /move_base_simple/goal 发布一个初始目标点
         def auto_map_send_nav_goal(x, y, z, w, save_map):
             # 创建一个SimpleActionClient，使用move_base的MoveBaseAction接口
             client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
@@ -356,7 +351,7 @@ class MapProviderNode:
                     result = InitMapResult(result='success')
                     self.auto_map_server.set_succeeded(result)
                 except subprocess.CalledProcessError as e:
-                    rospy.logerr("Failed to save map: %s", e)
+                    rospy.logerr("[map_provider] Failed to save map: %s", e)
                     result = InitMapResult(result='error')
                     self.auto_map_server.set_aborted(result)
                 break
@@ -400,7 +395,7 @@ class MapProviderNode:
                     result = InitMapResult(result='cancel')
                     self.auto_map_server.set_preempted(result)
                 except subprocess.CalledProcessError as e:
-                    rospy.logerr("Failed to save map: %s", e)
+                    rospy.logerr("[map_provider] Failed to save map: %s", e)
                     result.result = 'fail'  # 无法处理 error，改成 fail
                     self.auto_map_server.set_aborted(result)
                 break
@@ -423,14 +418,14 @@ class MapProviderNode:
                 subprocess.call(["rosnode", "kill", "/amcl"])
                 # 启动SLAM进程
                 self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'slam_gmapping.launch'])
-                rospy.loginfo("SLAM process started.")
+                rospy.loginfo("[map_provider] SLAM process started.")
             except Exception as e:
-                rospy.logerr("Launching SLAM process failed: %s", e)
+                rospy.logerr("[map_provider] Launching SLAM process failed: %s", e)
                 result = InitMapResult(result='error')
                 self.manual_map_server.set_aborted(result)
                 return
         else:
-            rospy.logwarn("SLAM process is already running.")
+            rospy.logwarn("[map_provider] SLAM process is already running.")
             result = InitMapResult(result='error')
             self.manual_map_server.set_aborted(result)
             return
@@ -447,13 +442,13 @@ class MapProviderNode:
                     
                     # 重启 amcl
                     subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
-                    rospy.loginfo("SLAM process has been terminated using rosnode kill.")
+                    rospy.loginfo("[map_provider] SLAM process has been terminated using rosnode kill.")
                 except subprocess.CalledProcessError as e:
-                    rospy.logerr("Failed to terminate SLAM process with rosnode kill: %s", e)
+                    rospy.logerr("[map_provider] Failed to terminate SLAM process with rosnode kill: %s", e)
                     result.result = 'error'
                 finally:
                     # self.save_map('saved_map')
-                    rospy.loginfo("SLAM process completed and map has been saved.")
+                    rospy.loginfo("[map_provider] SLAM process completed and map has been saved.")
                     self.slam_process = None  # Reset the SLAM process variable
                     self.manual_map_server.set_preempted(result)  # 设置操作已被取消的结果
                     # self.check_and_launch_map_server()  # 启动 map_server
