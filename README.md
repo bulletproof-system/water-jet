@@ -69,7 +69,7 @@ frontend
 
 ## 📃开源许可证
 
-本项目采用 [GNU General Public License v3.0 开源许可证]([water-jet/LICENSE at main · bulletproof-system/water-jet (github.com)](https://github.com/bulletproof-system/water-jet/blob/main/LICENSE))。
+本项目采用 [GNU General Public License v3.0 开源许可证](https://github.com/bulletproof-system/water-jet/blob/main/LICENSE)。
 
 
 
