@@ -1,4 +1,4 @@
-# water jet
+# Water-Jet
 北京航空航天大学 BUAA 2024 春季 软件工程 嵌入式项目 软工 嵌入式 Embedded SE Software Engineering
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/bulletproof-system/water-jet?style=social)](https://github.com/bulletproof-system/water-jet/stargazers)
@@ -18,7 +18,9 @@ source deploy.sh
 ```
 
 
+
 ## 前端
+
 ### 文件说明
 ```none
 frontend
@@ -38,7 +40,7 @@ frontend
 
 
 
-## ros
+## ROS
 ### 文件说明
 ```none
 
