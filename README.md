@@ -10,21 +10,19 @@
 
 ## 🚀 部署
 运行部署脚本
-1. 安装 pnpm
-2. 安装 ros 依赖
-3. 部署到 `/home/robot/catkin_ws` 下 
 ```bash
 source deploy.sh
 ```
 
-
+> [!warning]
+>
+> 可能需要再次运行 `scripts/setup_miniconda.sh` 
 
 ## 🖥 前端
 
 ### 文件说明
 ```none
 frontend
-├── node_modules
 ├── public
 ├── src
 │   ├── assets
