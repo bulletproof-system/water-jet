@@ -19,9 +19,13 @@ STOP = 0
 WAIT = 1
 AUTO_WATER = 11
 
+"""calculate water condition"""
+import math
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
 def check_water_threshold(last_day_str):
-    # test, always return True
-    return True
+    """if first water, always return True"""
     if last_day_str == None:
         return True
     date_format = "%Y-%m-%d %H:%M:%S"
@@ -29,7 +33,9 @@ def check_water_threshold(last_day_str):
     today_date = datetime.now().strftime(date_format).date()
     diff = today_date - last_date
     rospy.loginfo("the date diff is %d..............", diff)
-    if diff >= 2:
+    
+    """if no watering for long time(about 2 days), return True"""
+    if 1 - sigmoid(diff) <= 0.12:
         return True
     return False
 
@@ -66,7 +72,7 @@ class AutoWaterNode:
         self.update_date_service = rospy.ServiceProxy('/database/pot/set_date', SetDate)
         
         # all pots
-        self.pots = self.get_all_pots()
+        self.pots = []
 
     def handle_start(self,req):
         """处理启动服务请求"""
@@ -143,9 +149,10 @@ class AutoWaterNode:
         
         rospy.loginfo("Starting Auto Watering process")
 
-        assert len(self.pots) >= 1
+        self.pots = self.get_all_pots()
+
         feedback.percentage = 0
-        feedback.target = self.pots[0].id
+        feedback.target = str(self.pots[0].id)
         self.server.publish_feedback(feedback)
         rospy.loginfo("Auto Watering at target %d" % int(self.pots[0].id))
         
@@ -163,7 +170,7 @@ class AutoWaterNode:
                 #* 调用花盆识别模块
                 success = self.check_flowerpot(target.id)
                 if not success:
-                    rospy.logwarn("No flowerpot detected at target: %d" % target.id)
+                    rospy.logwarn("No flowerpot detected at target: %d" % int(target.id))
                     result.result = 'fail'
                     self.server.set_aborted(result)
                     self.state = WAIT
@@ -197,9 +204,9 @@ class AutoWaterNode:
             #* 反馈进度
             if i < len(self.pots):
                 feedback.percentage = int((i + 1) * 100.0 / len(self.pots))
-                feedback.target = str(int(target.id) + 1)
+                feedback.target = str(int(target.id))
                 self.server.publish_feedback(feedback)
-                rospy.loginfo("Watering at target %d" % (int(target.id) + 1))
+                rospy.loginfo("Watering at target %d" % (int(target.id)))
             
 
             #* 中断
@@ -221,4 +228,3 @@ if __name__ == '__main__':
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
-
