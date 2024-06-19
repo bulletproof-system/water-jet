@@ -1,17 +1,21 @@
 #!/usr/bin/env python
+# coding=utf-8
 
 # --------Include modules---------------
-from copy import copy
+
+import tf
 import rospy
-from visualization_msgs.msg import Marker
+from copy import copy
+
 from geometry_msgs.msg import Point
 from nav_msgs.msg import OccupancyGrid
+from visualization_msgs.msg import Marker
 from geometry_msgs.msg import PointStamped
-import tf
-from numpy import array, vstack, delete
-from functions import gridValue, informationGain
+
 from sklearn.cluster import MeanShift
+from numpy import array, vstack, delete
 from map_provider.msg import PointArray
+from functions import gridValue, informationGain
 
 # Subscribers' callbacks------------------------------
 mapData = OccupancyGrid()
