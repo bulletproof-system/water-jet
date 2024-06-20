@@ -7,14 +7,15 @@ import shutil
 import subprocess
 import actionlib
 
-from map_provider.msg import *              # action 也包含在内
+from map_provider.msg import *  # action 也包含在内
 from nav_msgs.msg import OccupancyGrid
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import PoseStamped, PointStamped, PoseWithCovarianceStamped
 
-cur_dir = os.path.dirname(os.path.abspath(__file__))    # 当前文件夹
-pkg_dir = os.path.dirname(cur_dir)                      # map_provider 包目录
-maps_dir = os.path.join(pkg_dir, 'maps')                # map_provider/maps，用于存放地图
+cur_dir = os.path.dirname(os.path.abspath(__file__))  # 当前文件夹
+pkg_dir = os.path.dirname(cur_dir)  # map_provider 包目录
+maps_dir = os.path.join(pkg_dir, 'maps')  # map_provider/maps，用于存放地图
+
 
 class MapProviderNode:
     def __init__(self):
@@ -32,15 +33,17 @@ class MapProviderNode:
         self.initial_pose_pub = rospy.Publisher('/initialpose', PoseWithCovarianceStamped, queue_size=10)
 
         # Action servers
-        self.auto_map_server = actionlib.SimpleActionServer('/map_provider/auto_init_map', InitMapAction, self.auto_map, False)
-        self.manual_map_server = actionlib.SimpleActionServer('/map_provider/manual_init_map', InitMapAction, self.manual_map, False)
+        self.auto_map_server = actionlib.SimpleActionServer('/map_provider/auto_init_map', InitMapAction, self.auto_map,
+                                                            False)
+        self.manual_map_server = actionlib.SimpleActionServer('/map_provider/manual_init_map', InitMapAction,
+                                                              self.manual_map, False)
 
         # subprocess
-        self.slam_process = None        # 用于存储 SLAM 进程的引用
+        self.slam_process = None  # 用于存储 SLAM 进程的引用
         self.map_server_process = None  # map_server 进程
-        self.amcl_process = None        # amcl 进程
-        self.rrt_process = None         # rrt 主进程
-        self.assigner_process = None    # rrt.assigner 进程
+        self.amcl_process = None  # amcl 进程
+        self.rrt_process = None  # rrt 主进程
+        self.assigner_process = None  # rrt.assigner 进程
 
         # 启动 server
         self.auto_map_server.start()
@@ -56,10 +59,10 @@ class MapProviderNode:
         if not os.path.exists(maps_dir):
             rospy.logwarn("[map_provider] Maps directory does not exist: %s", maps_dir)
             return
-        
+
         map_files = [f for f in os.listdir(maps_dir) if os.path.isfile(os.path.join(maps_dir, f))]
         pgm_files = [f for f in map_files if f.endswith('.pgm')]
-        
+
         # 只做一次扫描，有同名 .pgm & .yaml 文件即加载
         for pgm_file in pgm_files:
             yaml_file = pgm_file.replace('.pgm', '.yaml')
@@ -87,7 +90,7 @@ class MapProviderNode:
     def save_map(self, map_name):
         rospy.loginfo("[map_provider - save_map] Saving map...")
         save_target_path = os.path.join(maps_dir, map_name)
-        
+
         try:
             rospy.loginfo("[map_provider - save_map] before...")
             retcode = subprocess.call(['rosrun', 'map_server', 'map_saver', '-f', save_target_path])
@@ -98,7 +101,7 @@ class MapProviderNode:
             rospy.sleep(1)
 
             # 启动 map_server
-            self.check_and_launch_map_server()  
+            self.check_and_launch_map_server()
 
             if retcode == 0:
                 rospy.loginfo("[map_provider - save_map] Map saved successfully")
@@ -110,6 +113,7 @@ class MapProviderNode:
 
     # 保存地图的回调函数
     def save_map_callback(self, data):
+        global maps_dir
         rospy.loginfo("[map_provider - save_map_callback] Saving map...")
         map_name = data.name
         save_target_path = os.path.join(maps_dir, map_name)
@@ -176,7 +180,7 @@ class MapProviderNode:
             except Exception as e:
                 rospy.logerr("[map_provider - clear_map] Error occurred while deleting maps: %s", e)
                 break  # 遇到异常时退出循环
-        
+
         # 启动 map_server
         rospy.loginfo("[map_provider - clear_map] Restart /map_server")
         self.check_and_launch_map_server()
@@ -195,6 +199,7 @@ class MapProviderNode:
         z: 0.0
         w: 10.0
     """
+
     def set_position_callback(self, data):
         rospy.loginfo("Setting initial robot position...")
         # 创建一个带协方差的位姿消息，这通常用于设置初始位姿
@@ -205,12 +210,12 @@ class MapProviderNode:
         # 这里可以设置协方差，但是通常默认值就足够了
         # 0609更新：设置协方差矩阵默认为 0.12I
         initial_pose_msg.pose.covariance = [0.0] * 36
-        initial_pose_msg.pose.covariance[0] = 0.12      # x 方向的位置协方差
-        initial_pose_msg.pose.covariance[7] = 0.12      # y 方向的位置协方差
-        initial_pose_msg.pose.covariance[14] = 0.12     # z 方向的位置协方差
-        initial_pose_msg.pose.covariance[21] = 0.12     # x 方向的姿态协方差
-        initial_pose_msg.pose.covariance[28] = 0.12     # y 方向的姿态协方差
-        initial_pose_msg.pose.covariance[35] = 0.12     # z 方向的姿态协方差
+        initial_pose_msg.pose.covariance[0] = 0.12  # x 方向的位置协方差
+        initial_pose_msg.pose.covariance[7] = 0.12  # y 方向的位置协方差
+        initial_pose_msg.pose.covariance[14] = 0.12  # z 方向的位置协方差
+        initial_pose_msg.pose.covariance[21] = 0.12  # x 方向的姿态协方差
+        initial_pose_msg.pose.covariance[28] = 0.12  # y 方向的姿态协方差
+        initial_pose_msg.pose.covariance[35] = 0.12  # z 方向的姿态协方差
 
         # 发布初始化位姿到 /initialpose 主题，让导航堆栈知道机器人在地图上的初始位置
         self.initial_pose_pub.publish(initial_pose_msg)
@@ -221,7 +226,7 @@ class MapProviderNode:
         rospy.loginfo("[map_provider - auto_map] Starting automatic mapping...")
         # 示例的进度反馈和结果发布
         feedback = InitMapFeedback()
-        feedback.percentage = -1    # 简化版本，不关心进度
+        feedback.percentage = -1  # 简化版本，不关心进度
         self.auto_map_server.publish_feedback(feedback)
 
         # step_0: 关闭 /map_server 和 /amcl, 启动 /slam_gmapping
@@ -312,7 +317,7 @@ class MapProviderNode:
 
             rospy.loginfo("[map_provider - auto_map] First goal (%s, %s, %s, %s) to /move_base", x, y, z, w)
             client.send_goal(goal)
-        
+
         # 初始向 (0, -1, 0) 移动，可以调整
         auto_map_send_nav_goal(0.0, -1.0, 0.0, 1.0, save_map=False)
 
@@ -336,7 +341,8 @@ class MapProviderNode:
                             self.rrt_process.wait(timeout=5)  # 等待进程结束，最多等待5秒
                             rospy.loginfo("[map_provider - auto_map] rrt_process terminated gracefully.")
                         except Exception:
-                            rospy.logwarn("[map_provider - auto_map] rrt_process did not terminate gracefully, killing it.")
+                            rospy.logwarn(
+                                "[map_provider - auto_map] rrt_process did not terminate gracefully, killing it.")
                             self.rrt_process.kill()
                             self.rrt_process.wait()
                         self.rrt_process = None
@@ -363,7 +369,8 @@ class MapProviderNode:
                             self.rrt_process.wait(timeout=5)  # 等待进程结束，最多等待5秒
                             rospy.loginfo("[map_provider - auto_map] rrt_process terminated gracefully.")
                         except Exception:
-                            rospy.logwarn("[map_provider - auto_map] rrt_process did not terminate gracefully, killing it.")
+                            rospy.logwarn(
+                                "[map_provider - auto_map] rrt_process did not terminate gracefully, killing it.")
                             self.rrt_process.kill()
                             self.rrt_process.wait()
                         self.rrt_process = None
@@ -374,18 +381,19 @@ class MapProviderNode:
                             self.assigner_process.wait(timeout=5)  # 等待进程结束，最多等待5秒
                             rospy.loginfo("[map_provider - auto_map] assigner_process terminated gracefully.")
                         except Exception:
-                            rospy.logwarn("[map_provider - auto_map] assigner_process did not terminate gracefully, killing it.")
+                            rospy.logwarn(
+                                "[map_provider - auto_map] assigner_process did not terminate gracefully, killing it.")
                             self.assigner_process.kill()
                             self.assigner_process.wait()
                         self.assigner_process = None
-                    
+
                     # 保存地图
                     self.save_map('saved_map')
                     rospy.loginfo("[map_provider - auto_map] Auto map canceled, map saved.")
 
                     # 重启 amcl
                     subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
-                    
+
                     # 反馈结果
                     result = InitMapResult(result='cancel')
                     self.auto_map_server.set_preempted(result)
@@ -396,7 +404,7 @@ class MapProviderNode:
                 break
 
             rospy.sleep(2)  # 休眠，以避免过度占用CPU
-        
+
         rospy.loginfo("[map_provider] Successfully completed automatic mapping.")
 
     # 手动建图回调函数
@@ -434,7 +442,7 @@ class MapProviderNode:
                 try:
                     # Save the map once mapping is complete.
                     self.save_map('saved_map')
-                    
+
                     # 重启 amcl
                     subprocess.Popen(['roslaunch', 'map_provider', 'amcl_omni.launch'])
                     rospy.loginfo("[map_provider] SLAM process has been terminated using rosnode kill.")
@@ -449,8 +457,9 @@ class MapProviderNode:
                     # self.check_and_launch_map_server()  # 启动 map_server
                 break
             rospy.sleep(1)  # 休眠，以避免过度占用CPU
-        
+
         rospy.loginfo("[map_provider] Successfully completed manual mapping.")
+
 
 if __name__ == '__main__':
     try:
