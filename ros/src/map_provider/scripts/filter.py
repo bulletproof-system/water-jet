@@ -18,12 +18,12 @@ from map_provider.msg import PointArray
 from functions import gridValue, informationGain
 
 # Subscribers' callbacks------------------------------
-mapData = OccupancyGrid()
+map_data = OccupancyGrid()
 frontiers = []
-globalmaps = []
+global_maps = []
 
 
-def callBack(data, args):
+def callback(data, args):
     global frontiers, min_distance
     transformedPoint = args[0].transformPoint(args[1], data)
     x = [array([transformedPoint.point.x, transformedPoint.point.y])]
@@ -33,32 +33,32 @@ def callBack(data, args):
         frontiers = x
 
 
-def mapCallBack(data):
-    global mapData
+def map_callback(data):
+    global map_data
     mapData = data
 
 
 def globalMap(data):
-    global global1, globalmaps, litraIndx, namespace_init_count, n_robots
+    global global1, global_maps, litraIndx, namespace_init_count, n_robots
     global1 = data
     if n_robots > 1:
         # print(data._connection_header['topic'],data._connection_header['topic'][litraIndx])-namespace_init_count
         indx = int(data._connection_header['topic'][litraIndx+1])-namespace_init_count
     elif n_robots == 1:
         indx = 0
-    globalmaps[indx] = data
+    global_maps[indx] = data
+
 
 # Node----------------------------------------------
-
-
 def node():
-    global frontiers, mapData, global1, global2, global3, globalmaps, litraIndx, n_robots, namespace_init_count
+    global frontiers, map_data, global1, global2, global3, global_maps, litraIndx, n_robots, namespace_init_count
     rospy.init_node('filter', anonymous=False)
 
     # fetching all parameters
     map_topic = rospy.get_param('~map_topic', '/map')
     threshold = rospy.get_param('~costmap_clearing_threshold', 70)
-    # this can be smaller than the laser scanner range, >> smaller >>less computation time>> too small is not good, info gain won't be accurate
+    # this can be smaller than the laser scanner range, >> smaller >>less computation time>> too small is not good,
+    # info gain won't be accurate
     info_radius = rospy.get_param('~info_radius', 1.0)
     goals_topic = rospy.get_param('~goals_topic', '/detected_points')
     n_robots = rospy.get_param('~n_robots', 1)
@@ -70,14 +70,14 @@ def node():
 
     litraIndx = len(namespace)
     rate = rospy.Rate(rateHz)
-# -------------------------------------------
-    rospy.Subscriber(map_topic, OccupancyGrid, mapCallBack)
+    # -------------------------------------------
+    rospy.Subscriber(map_topic, OccupancyGrid, map_callback)
 
 
-# ---------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------------------------------------------
 
     for i in range(0, n_robots):
-        globalmaps.append(OccupancyGrid())
+        global_maps.append(OccupancyGrid())
 
     if len(namespace) > 0:
         for i in range(0, n_robots):
@@ -86,31 +86,31 @@ def node():
             # rospy.Subscriber(global_costmap_topic, OccupancyGrid, globalMap)                             
     elif len(namespace) == 0:
         rospy.Subscriber(global_costmap_topic, OccupancyGrid, globalMap)
-# wait if map is not received yet
+    # wait if map is not received yet
     while (len(mapData.data) < 1):
         rospy.loginfo('Waiting for the map')
         rospy.sleep(0.1)
         pass
-# wait if any of robots' global costmap map is not received yet
+    # wait if any of robots' global costmap map is not received yet
     for i in range(0, n_robots):
-        while (len(globalmaps[i].data) < 1):
+        while (len(global_maps[i].data) < 1):
             rospy.loginfo('[map_provider - auto_map - filter.py] Waiting for the global costmap!!!')
             rospy.sleep(0.1)
             pass
 
     global_frame = "/"+mapData.header.frame_id
 
-    tfLisn = tf.TransformListener()
+    tf_listener = tf.TransformListener()
     if len(namespace) > 0:
         for i in range(0, n_robots):
-            tfLisn.waitForTransform(global_frame[1:], namespace+str(
-                i+namespace_init_count)+'/'+robot_frame, rospy.Time(0), rospy.Duration(10.0))
+            tf_listener.waitForTransform(global_frame[1:], namespace + str(
+                i+namespace_init_count) +'/' + robot_frame, rospy.Time(0), rospy.Duration(10.0))
     elif len(namespace) == 0:
-        tfLisn.waitForTransform(
+        tf_listener.waitForTransform(
             global_frame[1:], '/'+robot_frame, rospy.Time(0), rospy.Duration(10.0))
 
-    rospy.Subscriber(goals_topic, PointStamped, callback=callBack,
-                     callback_args=[tfLisn, global_frame[1:]])
+    rospy.Subscriber(goals_topic, PointStamped, callback=callback,
+                     callback_args=[tf_listener, global_frame[1:]])
     pub = rospy.Publisher('frontiers', Marker, queue_size=10)
     pub2 = rospy.Publisher('centroids', Marker, queue_size=10)
     filterpub = rospy.Publisher('filtered_points', PointArray, queue_size=10)
@@ -123,7 +123,7 @@ def node():
 
     points = Marker()
     points_clust = Marker()
-# Set the frame ID and timestamp.  See the TF tutorials for information on these.
+    # Set the frame ID and timestamp.  See the TF tutorials for information on these.
     points.header.frame_id = mapData.header.frame_id
     points.header.stamp = rospy.Time.now()
 
@@ -132,7 +132,7 @@ def node():
 
     points.type = Marker.POINTS
 
-# Set the marker action for latched frontiers.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
+    # Set the marker action for latched frontiers.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
     points.action = Marker.ADD
 
     points.pose.orientation.w = 1.0
@@ -162,7 +162,7 @@ def node():
 
     points_clust.type = Marker.POINTS
 
-# Set the marker action for centroids.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
+    # Set the marker action for centroids.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
     points_clust.action = Marker.ADD
 
     points_clust.pose.orientation.w = 1.0
@@ -184,9 +184,10 @@ def node():
     arraypoints = PointArray()
     tempPoint = Point()
     tempPoint.z = 0.0
-# -------------------------------------------------------------------------
-# ---------------------     Main   Loop     -------------------------------
-# -------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------
+    # ---------------------     Main   Loop     -------------------------------
+    # -------------------------------------------------------------------------
     while not rospy.is_shutdown():
         # -------------------------------------------------------------------------
         # Clustering frontier points
@@ -201,8 +202,8 @@ def node():
         if len(front) == 1:
             centroids = front
         frontiers = copy(centroids)
-# -------------------------------------------------------------------------
-# clearing old frontiers
+        # -------------------------------------------------------------------------
+        # clearing old frontiers
 
         z = 0
         while z < len(centroids):
@@ -210,16 +211,16 @@ def node():
             temppoint.point.x = centroids[z][0]
             temppoint.point.y = centroids[z][1]
             for i in range(0, n_robots):
-                transformedPoint = tfLisn.transformPoint(globalmaps[i].header.frame_id, temppoint)
+                transformedPoint = tf_listener.transformPoint(global_maps[i].header.frame_id, temppoint)
                 x = array([transformedPoint.point.x, transformedPoint.point.y])
-                cond = (gridValue(globalmaps[i], x) > threshold) or cond
+                cond = (gridValue(global_maps[i], x) > threshold) or cond
             if (cond or (informationGain(mapData, [centroids[z][0], centroids[z][1]], info_radius*0.5)) < 0.2):
                 centroids = delete(centroids, (z), axis=0)
                 z = z-1
             z += 1
         # rospy.loginfo(z)            
-# -------------------------------------------------------------------------
-# publishing
+        # -------------------------------------------------------------------------
+        # publishing
         arraypoints.points = []
         # print(centroids)
         for i in centroids:
@@ -242,7 +243,6 @@ def node():
         pub.publish(points)
         pub2.publish(points_clust)
         rate.sleep()
-# -------------------------------------------------------------------------
 
 
 if __name__ == '__main__':
