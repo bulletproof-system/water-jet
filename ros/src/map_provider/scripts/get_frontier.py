@@ -6,18 +6,19 @@ import cv2
 import numpy as np
 from copy import copy
 
+
 # 获取前沿点函数
-def getfrontier(mapData):
+def get_frontier(mapData):
     data = mapData.data
     w = mapData.info.width
     h = mapData.info.height
     resolution = mapData.info.resolution
     Xstartx = mapData.info.origin.position.x
     Xstarty = mapData.info.origin.position.y
-     
+
     # 创建空白图像
     img = np.zeros((h, w, 1), np.uint8)
-    
+
     # 填充图像数据
     for i in range(h):
         for j in range(w):
@@ -27,21 +28,21 @@ def getfrontier(mapData):
                 img[i, j] = 255
             elif data[i * w + j] == -1:
                 img[i, j] = 205
-    
+
     # 阈值处理
     o = cv2.inRange(img, 0, 1)
     edges = cv2.Canny(img, 0, 255)
     im2, contours, hierarchy = cv2.findContours(o, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(o, contours, -1, (255, 255, 255), 5)
-    o = cv2.bitwise_not(o) 
+    o = cv2.bitwise_not(o)
     res = cv2.bitwise_and(o, edges)
-    
+
     # 复制结果并找到前沿点
     frontier = copy(res)
     im2, contours, hierarchy = cv2.findContours(frontier, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(frontier, contours, -1, (255, 255, 255), 2)
     im2, contours, hierarchy = cv2.findContours(frontier, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    
+
     all_pts = []
     if len(contours) > 0:
         for i in range(len(contours)):
@@ -56,5 +57,5 @@ def getfrontier(mapData):
                 all_pts = np.vstack([all_pts, pt])
             else:
                 all_pts = pt
-    
+
     return all_pts
