@@ -1,4 +1,4 @@
-#pot_database包说明
+# pot_database包说明
 ## 功能
 
 - 保存花盆信息列表
