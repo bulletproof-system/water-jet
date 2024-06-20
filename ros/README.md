@@ -18,7 +18,7 @@ roslaunch controller use_case_1_sim.launch # 仿真环境
 ros
 ├── build
 ├── devel
-└── src
+├── src
 │   ├── controller # 控制器
 │   ├── map_provider # 地图
 │   ├── navigation # 导航
