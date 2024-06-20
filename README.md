@@ -37,6 +37,7 @@ roslaunch controller use_case_1.launch # 真实环境
 roslaunch controller use_case_1_sim.launch # 仿真环境
 ```
 
+详细介绍见 [ROS端 README](ros/README.md)
 
 ## 🏅 致谢
 
