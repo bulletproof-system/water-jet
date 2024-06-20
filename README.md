@@ -9,7 +9,8 @@
 
 
 ## 🚀 部署
-运行部署脚本
+
+一键部署脚本
 ```bash
 source deploy.sh
 ```
@@ -20,26 +21,24 @@ source deploy.sh
 
 ## 🖥 前端
 
-### 文件说明
-```none
-frontend
-├── public
-├── src
-│   ├── assets
-│   ├── components
-│   ├── layouts
-│   ├── pages
-│   ├── plugins
-│   ├── router
-│   ├── stores
-│   └── styles
-└── README.md
+```bash
+# 启动前端
+cd frontend
+pnpm preview # deploy 后已经运行了 pnpm build
 ```
 
-
+详细介绍见 [前端 README](frontend/README.md)
 
 ## 🤖 ROS
+
+```bash
+# 启动 ROS
+roslaunch controller use_case_1.launch # 真实环境
+roslaunch controller use_case_1_sim.launch # 仿真环境
+```
+
 ### 文件说明
+
 ```none
 ros
 ├── build

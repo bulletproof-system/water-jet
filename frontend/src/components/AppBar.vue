@@ -81,6 +81,12 @@ async function changeMode(newMode: CtrlMode, oldMode: CtrlMode) {
 		return;
 	}
 	targetMode.value = newMode;
+
+	if (appStore.debug) {
+		setTimeout(() => {
+			rosStore.setCtrlMode(newMode)
+		}, 1000)
+	}
 	// 切换全局模式
 	try {
 		await ctrl.changeMode(newMode);
@@ -88,13 +94,6 @@ async function changeMode(newMode: CtrlMode, oldMode: CtrlMode) {
 	} catch (error) {
 		console.warn('changeMode error: ', error)
 	}
-	
-	if (appStore.debug) {
-		setTimeout(() => {
-			rosStore.setCtrlMode(newMode)
-		}, 1000)
-	}
-		
 }
 
 watch(targetMode, (newMode, oldMode) => {

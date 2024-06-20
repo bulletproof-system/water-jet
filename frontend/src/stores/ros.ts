@@ -1,5 +1,6 @@
 // Utilities
 import { defineStore } from 'pinia'
+import { useAppStore } from './app'
 
 export enum ConnectState {
   Connected,
@@ -41,14 +42,16 @@ export interface NodeInfo {
   cancel: () => void, // 取消当前操作
 }
 
+const appStore = useAppStore()
+
 export const useROSStore = defineStore('ros', {
   state: () => ({
     connectState: ConnectState.Disconnected,
 	  retry: 0,
-    ctrlMode: CtrlMode.Init,
+    ctrlMode: appStore.debug ? CtrlMode.Pending : CtrlMode.Init,
     scram: false,
     nodeInfo: {
-      state: NodeState.Stop,
+      state: appStore.debug ? NodeState.Wait : NodeState.Stop,
       task: '',
       feedback: '',
       result: '',
