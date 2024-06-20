@@ -14,10 +14,6 @@ uint8[] picture # 花照片
 bool active # 是否自动浇灌
 string last_water_date # 上次浇水时间
 ```
-## Published Topics
-
-
-
 ## Services
 - `/database/pot/list`
 
