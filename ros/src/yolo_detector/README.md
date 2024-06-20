@@ -1,4 +1,9 @@
 # YOLO Detector(WOLO)包说明
+
+>[!info]
+>
+>这是 yolo_detector 包，实际使用和 object_detect 联用，如果需要单独的目标识别包请访问：[WOLO](https://github.com/Mxoder/WOLO)
+
 ## 1. 功能优势
 
 - 精准检测：我们基于 [YOLO](https://github.com/ultralytics/ultralytics) 实现了纯视觉定位方案，相比于原生包的点云方案能够更精准地检测目标
@@ -8,6 +13,12 @@
 
 
 ## 2. 如何使用
+
+> [!warning]
+>
+> 目前环境部署已经集成至 [scrtipts/setup_miniconda.sh](../../../scripts/setup_miniconda.sh)，无需额外部署。
+>
+> 但使用时仍需要修改 [yolo_detector](scripts/yolo_detector_node.py) 的第一行的解释器路径，以匹配当前环境下的 yolo 环境解释器。具体来说，可以在激活 yolo 的 conda 环境情况下输入 `which python` 来找到解释器路径，一般只需要改动用户文件夹。
 
 1. 拉取仓库：
 
@@ -81,5 +92,90 @@
     # 在主 launch 中加一行 <include file="$(find yolo_detector)/launch/main.launch"/>
     ```
 
-    
 
+
+## 3. 参数详情
+
+### 订阅者 (Subscribers)
+
+1. **订阅速度**
+    - 话题：`/cmd_vel`
+    - 消息类型：`Twist`
+    - 回调函数：`cmd_vel_callback`
+    - 作用：订阅速度消息，更新当前的线速度和角速度。
+2. **订阅 AMCL 位姿**
+    - 话题：`amcl_pose`
+    - 消息类型：`PoseWithCovarianceStamped`
+    - 回调函数：`amcl_pose_callback`
+    - 作用：订阅 AMCL 位姿消息，更新位置和协方差矩阵。
+3. **订阅图像**
+    - 话题：`image_topic`（从参数服务器获取）
+    - 消息类型：`Image`
+    - 回调函数：`image_callback`
+    - 作用：订阅图像消息，将其转换为 NumPy 数组并进行 YOLO 检测。
+
+### 发布者 (Publishers)
+
+1. **发布目标位置**
+    - 话题：`publish_topic`（从参数服务器获取）
+    - 消息类型：`BoundingBoxes`
+    - 作用：发布检测到的目标位置（边界框）。
+2. **发布检测结果图像**
+    - 话题：`/yolo_detector/detection_image`
+    - 消息类型：`Image`
+    - 作用：发布包含检测结果的图像。
+
+### 参数 (Parameters)
+
+1. **权重路径**
+    - 参数名：`~weight_path`
+    - 默认值：`os.path.join(weights_dir, 'yolov8n.pt')`
+    - 可选值：`.../yolov8n.pt`、`.../yolov8n.onnx`、`.../yolov8n_openvino_model`
+    - 作用：指定 YOLO 模型的权重文件路径。
+2. **图像话题**
+    - 参数名：`~image_topic`
+    - 默认值：`/image_topic`
+    - 作用：指定订阅的图像话题名称。
+3. **发布话题**
+    - 参数名：`~publish_topic`
+    - 默认值：`/yolo_detector/BoundingBoxes`
+    - 作用：指定发布边界框的目标话题名称。
+4. **相机帧**
+    - 参数名：`~camera_frame`
+    - 默认值：`''`
+    - 作用：指定相机帧的名称。
+5. **模型置信度阈值**
+    - 参数名：`~conf`
+    - 默认值：`0.3`
+    - 作用：指定 YOLO 模型的置信度阈值。
+6. **是否可视化**
+    - 参数名：`~visualizable`
+    - 默认值：`True`
+    - 作用：指定是否可视化检测结果。
+7. **发布速率**
+    - 参数名：`~publish_rate`
+    - 默认值：`2`
+    - 作用：指定发布检测结果的速率（每秒发布次数）。
+
+### 回调函数
+
+1. **cmd_vel_callback**
+    - 作用：更新当前的线速度和角速度。
+2. **amcl_pose_callback**
+    - 作用：更新位置和协方差矩阵。
+3. **image_callback**
+    - 作用：处理接收到的图像消息，进行 YOLO 检测，并发布检测结果。
+
+### 私有方法
+
+1. **_load_model**
+    - 作用：加载 YOLO 模型，支持 .pt, .onnx 和 OpenVino 格式的权重文件。
+2. **show_detection**
+    - 作用：显示和发布检测结果。
+3. **publish_image**
+    - 作用：将 NumPy 数组图像转换为 ROS 图像消息并发布。
+
+### 主函数
+
+- main
+    - 作用：初始化 ROS 节点并启动 YoloDetector 实例。
