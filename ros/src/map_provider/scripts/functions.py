@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-import rospy
 import tf
-from numpy import array
+import rospy
 import actionlib
+
+from numpy import array
+from numpy import inf, floor
+from numpy.linalg import norm
+
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from actionlib_msgs.msg import GoalStatus
 from nav_msgs.srv import GetPlan
 from geometry_msgs.msg import PoseStamped
-from numpy import floor
-from numpy.linalg import norm
-from numpy import inf
-# ________________________________________________________________________________
-
 
 class Robot:
     goal = MoveBaseGoal()
@@ -26,7 +25,8 @@ class Robot:
         self.global_frame = rospy.get_param('~global_frame', 'map')
         self.robot_frame = rospy.get_param('~robot_frame', 'base_link')
         self.plan_service = rospy.get_param(
-            '~plan_service', '/move_base/GlobalPlanner/make_plan')
+            '~plan_service', '/move_base/GlobalPlanner/make_plan'
+        )
         self.listener = tf.TransformListener()
         self.listener.waitForTransform(
             self.global_frame, self.name+'/'+self.robot_frame, rospy.Time(0), rospy.Duration(10.0))
@@ -47,7 +47,7 @@ class Robot:
         Robot.goal.target_pose.header.frame_id = 'map'
         Robot.goal.target_pose.header.stamp = rospy.Time.now()
 
-        rospy.wait_for_service(self.name+self.plan_service)
+        rospy.wait_for_service(self.name + self.plan_service)
         self.make_plan = rospy.ServiceProxy(
             self.name+self.plan_service, GetPlan)
         Robot.start.header.frame_id = self.global_frame
@@ -126,8 +126,6 @@ class Robot:
             if self.isReachable(current_position, potential_point):
                 return potential_point
         return None
-# ________________________________________________________________________________
-
 
 def index_of_point(mapData, Xp):
     resolution = mapData.info.resolution
@@ -139,15 +137,12 @@ def index_of_point(mapData, Xp):
                   width)+(floor((Xp[0]-Xstartx)/resolution)))
     return index
 
-
 def point_of_index(mapData, i):
     y = mapData.info.origin.position.y + \
-        (i/mapData.info.width)*mapData.info.resolution
+        (i / mapData.info.width)*mapData.info.resolution
     x = mapData.info.origin.position.x + \
-        (i-(i//mapData.info.width)*(mapData.info.width))*mapData.info.resolution
+        (i - (i // mapData.info.width) * (mapData.info.width)) * mapData.info.resolution
     return array([x, y])
-# ________________________________________________________________________________
-
 
 def informationGain(mapData, point, r):
     infoGain = 0
@@ -156,34 +151,32 @@ def informationGain(mapData, point, r):
     init_index = index-r_region*(mapData.info.width+1)
     for n in range(0, 2*r_region+1):
         start = n*mapData.info.width+init_index
-        end = start+2*r_region
-        limit = ((start/mapData.info.width)+2)*mapData.info.width
+        end = start + 2 * r_region
+        limit = ((start / mapData.info.width) + 2) * mapData.info.width
         for i in range(start, end+1):
             if (i >= 0 and i < limit and i < len(mapData.data)):
                 if(mapData.data[i] == -1 and norm(array(point)-point_of_index(mapData, i)) <= r):
                     infoGain += 1
-    return infoGain*(mapData.info.resolution**2)
-# ________________________________________________________________________________
-
+    return infoGain*(mapData.info.resolution ** 2)
 
 def discount(mapData, assigned_pt, centroids, infoGain, r):
     index = index_of_point(mapData, assigned_pt)
-    r_region = int(r/mapData.info.resolution)
-    init_index = index-r_region*(mapData.info.width+1)
-    for n in range(0, 2*r_region+1):
-        start = n*mapData.info.width+init_index
-        end = start+2*r_region
-        limit = ((start/mapData.info.width)+2)*mapData.info.width
-        for i in range(start, end+1):
+    r_region = int(r / mapData.info.resolution)
+    init_index = index - r_region*(mapData.info.width + 1)
+    for n in range(0, 2 * r_region + 1):
+        start = n * mapData.info.width + init_index
+        end = start + 2 * r_region
+        limit = ((start / mapData.info.width) + 2) * mapData.info.width
+        for i in range(start, end + 1):
             if (i >= 0 and i < limit and i < len(mapData.data)):
                 for j in range(0, len(centroids)):
                     current_pt = centroids[j]
-                    if(mapData.data[i] == -1 and norm(point_of_index(mapData, i)-current_pt) <= r and norm(point_of_index(mapData, i)-assigned_pt) <= r):
+                    if (mapData.data[i] == -1 and \
+                       norm(point_of_index(mapData, i) - current_pt) <= r and \
+                        norm(point_of_index(mapData, i) - assigned_pt) <= r):
                         # this should be modified, subtract the area of a cell, not 1
                         infoGain[j] -= 1
     return infoGain
-# ________________________________________________________________________________
-
 
 def pathCost(path):
     if (len(path) > 0):
@@ -193,8 +186,6 @@ def pathCost(path):
         return norm(p1-p2)*(len(path)-1)
     else:
         return inf
-# ________________________________________________________________________________
-
 
 def unvalid(mapData, pt):
     index = index_of_point(mapData, pt)
@@ -209,8 +200,6 @@ def unvalid(mapData, pt):
                 if(mapData.data[i] == 1):
                     return True
     return False
-# ________________________________________________________________________________
-
 
 def Nearest(V, x):
     n = inf
@@ -222,20 +211,13 @@ def Nearest(V, x):
             result = i
     return result
 
-# ________________________________________________________________________________
-
-
 def Nearest2(V, x):
     n = inf
-    result = 0
     for i in range(0, len(V)):
         n1 = norm(V[i]-x)
-
         if (n1 < n):
             n = n1
     return i
-# ________________________________________________________________________________
-
 
 def gridValue(mapData, Xp):
     resolution = mapData.info.resolution
@@ -245,7 +227,9 @@ def gridValue(mapData, Xp):
     width = mapData.info.width
     Data = mapData.data
     # returns grid value at "Xp" location
-    # map data:  100 occupied      -1 unknown       0 free
+    # 100: occupied
+    # -1: unknown
+    # 0: free
     index = (floor((Xp[1]-Xstarty)/resolution)*width) + (floor((Xp[0]-Xstartx)/resolution))
 
     if int(index) < len(Data):
