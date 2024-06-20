@@ -1,9 +1,10 @@
-# core
+# ROS端controller包说明
+## core
 
 - 初始化
 - 控制全局状态
 
-## 状态转移
+### 状态转移
 
 ```mermaid
 stateDiagram-v2
@@ -25,7 +26,7 @@ direction LR
 
 
 
-## Subscribed Topics
+### Subscribed Topics
 
 - `/_cmd_vel`
   其他节点发布的运动信息
@@ -41,7 +42,7 @@ direction LR
 
   前端启动信息
 
-## Published Topics
+### Published Topics
 
 - `/ctrl/info`
 
@@ -69,7 +70,7 @@ direction LR
 
   - type: `/geometry_msgs/Twist.msg`
 
-## Services
+### Services
 
 - `/ctrl/start`
 
@@ -115,11 +116,11 @@ direction LR
   bool success # 结果
   ```
 
-# Pending
+## Pending
 
 等待状态
 
-## 状态转移
+### 状态转移
 
 ```mermaid
 stateDiagram-v2
@@ -140,7 +141,7 @@ stateDiagram-v2
 	Save_Map --> Wait : 完成保存地图 / 异常中断
 ```
 
-## Subscribed Topics
+### Subscribed Topics
 
 - `/hello`
 
@@ -148,7 +149,7 @@ stateDiagram-v2
 
   前端启动信息
 
-## Publish Topics
+### Publish Topics
 
 - `/ctrl/node_info`
 
@@ -186,7 +187,7 @@ stateDiagram-v2
   
   发布节点状态
 
-## Services
+### Services
 
 - `/ctrl/pending/start`
 
@@ -248,9 +249,9 @@ stateDiagram-v2
 
   
 
-## Actions
+### Actions
 
-### 导航
+#### 导航
 
 ```
 # /controller/action/Navigate.action
@@ -263,7 +264,7 @@ uint8 percentage # 进度百分数
 string cur_state # 'normal' | 'barrier'
 ```
 
-#### Action Subscribed Topics
+##### Action Subscribed Topics
 
 - `/ctrl/pending/navigate/goal`
   - 开始导航
@@ -271,7 +272,7 @@ string cur_state # 'normal' | 'barrier'
 - `/ctrl/pending/navigate/cancel`
   - 取消导航
 
-#### Action Published Topics
+##### Action Published Topics
 
 - `/ctrl/pending/navigate/status`
   - goal 状态
@@ -282,11 +283,11 @@ string cur_state # 'normal' | 'barrier'
 - `/ctrl/pending/navigate/result`
   - 导航结果
 
-# Auto_Map
+## Auto_Map
 
 自动建图节点
 
-## 状态转移
+### 状态转移
 
 ```mermaid
 stateDiagram-v2
@@ -299,7 +300,7 @@ stateDiagram-v2
 	Auto_Init_Map --> Wait : 完成自动建图 / 异常中断
 ```
 
-## Subscribed Topics
+### Subscribed Topics
 
 - `/hello`
 
@@ -307,7 +308,7 @@ stateDiagram-v2
 
   前端启动信息
 
-## Publish Topics
+### Publish Topics
 
 - `/ctrl/node_info`
 
@@ -315,13 +316,14 @@ stateDiagram-v2
 
   发布节点状态
 
-## Actions
+### Actions
 
-### 自动建图
+#### 自动建图
 
 - type: `/map_provider/action/InitMap.action`
 
-#### Action Subscribed Topics
+
+##### Action Subscribed Topics
 
 - `/ctrl/auto_map/auto_init_map/goal`
   - 开始自动建图
@@ -329,7 +331,7 @@ stateDiagram-v2
 - `/ctrl/auto_map/auto_init_map/cancel`
   - 取消建图
 
-#### Action Published Topics
+##### Action Published Topics
 
 - `/ctrl/auto_map/auto_init_map/status`
   - goal 状态
@@ -340,11 +342,11 @@ stateDiagram-v2
 - `/ctrl/auto_map/auto_init_map/result`
   - 建图结果
 
-# Manual_Map
+## Manual_Map
 
 手动建图节点
 
-## 状态转移
+### 状态转移
 
 ```mermaid
 stateDiagram-v2
@@ -357,7 +359,7 @@ stateDiagram-v2
 	Manual_Init_Map --> Wait : 完成手动建图 / 主动停止 / 异常中断
 ```
 
-## Subscribed Topics
+### Subscribed Topics
 
 - `/hello`
 
@@ -365,7 +367,7 @@ stateDiagram-v2
 
   前端启动信息
 
-## Publish Topics
+### Publish Topics
 
 - `/ctrl/node_info`
 
@@ -373,13 +375,13 @@ stateDiagram-v2
 
   发布节点状态
 
-## Actions
+### Actions
 
-### 手动建图
+#### 手动建图
 
 - type: `/map_provider/action/InitMap.action`
 
-#### Action Subscribed Topics
+##### Action Subscribed Topics
 
 - `/ctrl/manual_map/manual_init_map/goal`
   - 开始手动建图
@@ -387,7 +389,7 @@ stateDiagram-v2
 - `/ctrl/manual_map/manual_init_map/cancel`
   - 取消建图
 
-#### Action Published Topics
+##### Action Published Topics
 
 - `/ctrl/manual_map/manual_init_map/status`
   - goal 状态
@@ -398,11 +400,12 @@ stateDiagram-v2
 - `/ctrl/manual_map/manual_init_map/result`
   - 建图结果
 
-# Inspection
+
+## Inspection
 
 缺水巡检模式
 
-## 状态转移
+### 状态转移
 
 ```mermaid
 stateDiagram-v2
@@ -415,7 +418,7 @@ direction LR
 	Stop --> [*]: 退出
 ```
 
-## Subscribed Topics
+### Subscribed Topics
 
 - `/hello`
 
@@ -423,7 +426,7 @@ direction LR
 
   前端启动信息
 
-## Publish Topics
+### Publish Topics
 
 - `/ctrl/node_info`
 
@@ -431,7 +434,7 @@ direction LR
 
   发布节点状态
 
-## Actions
+### Actions
 
 缺水巡检
 
@@ -446,7 +449,7 @@ uint8 percentage # 进度百分数
 uint8 target # 目标花盆 id
 ```
 
-#### Action Subscribed Topics
+##### Action Subscribed Topics
 
 - `/ctrl/inspection/inspect/goal`
   - 开始缺水巡检
@@ -454,7 +457,7 @@ uint8 target # 目标花盆 id
 - `/ctrl/inspection/inspect/cancel`
   - 取消
 
-#### Action Published Topics
+##### Action Published Topics
 
 - `/ctrl/inspection/inspect/status`
   - goal 状态
@@ -465,11 +468,11 @@ uint8 target # 目标花盆 id
 - `/ctrl/inspection/inspect/result`
   - 巡检结果
 
-# Target
+## Target
 
 指定位置浇水模式
 
-## 状态转移
+### 状态转移
 
 ```mermaid
 stateDiagram-v2
@@ -482,7 +485,7 @@ Target --> Wait : 指定位置浇水完成 / 异常中断
 Stop --> [*] : 退出
 ```
 
-## Subscribed Topics
+### Subscribed Topics
 
 - `/hello`
 
@@ -490,7 +493,7 @@ Stop --> [*] : 退出
 
   前端启动信息
 
-## Publish Topics
+### Publish Topics
 
 - `/ctrl/node_info`
 
@@ -498,7 +501,7 @@ Stop --> [*] : 退出
 
   发布节点状态
 
-## Actions
+### Actions
 
 指定位置浇水
 
@@ -513,7 +516,7 @@ uint8 percentage # 进度百分数
 uint8 target # 目标花盆 id
 ```
 
-#### Action Subscribed Topics
+##### Action Subscribed Topics
 
 - `/ctrl/target/target/goal`
   - 开始指定位置浇水
@@ -521,7 +524,7 @@ uint8 target # 目标花盆 id
 - `/ctrl/target/target/cancel`
   - 取消
 
-#### Action Published Topics
+##### Action Published Topics
 
 - `/ctrl/target/target/status`
   - goal 状态
@@ -532,11 +535,11 @@ uint8 target # 目标花盆 id
 - `/ctrl/target/target/result`
   - 浇水结果
 
-# Auto_Water
+## Auto_Water
 
 自动浇水巡检
 
-## 状态转移
+### 状态转移
 
 ```mermaid
 stateDiagram-v2
@@ -549,7 +552,7 @@ direction LR
 	Stop --> [*]: 退出
 ```
 
-## Subscribed Topics
+### Subscribed Topics
 
 - `/hello`
 
@@ -557,7 +560,7 @@ direction LR
 
   前端启动信息
 
-## Publish Topics
+### Publish Topics
 
 - `/ctrl/node_info`
 
@@ -565,7 +568,7 @@ direction LR
 
   发布节点状态
 
-## Actions
+### Actions
 
 自动浇水巡检
 
@@ -580,7 +583,7 @@ uint8 percentage # 进度百分数
 uint8 target # 目标花盆 id
 ```
 
-#### Action Subscribed Topics
+##### Action Subscribed Topics
 
 - `/ctrl/auto_water/auto_water/goal`
   - 开始自动浇水巡检
@@ -588,7 +591,7 @@ uint8 target # 目标花盆 id
 - `/ctrl/auto_water/auto_water/cancel`
   - 取消
 
-#### Action Published Topics
+##### Action Published Topics
 
 - `/ctrl/auto_water/auto_water/status`
   - goal 状态
