@@ -37,27 +37,6 @@ roslaunch controller use_case_1.launch # 真实环境
 roslaunch controller use_case_1_sim.launch # 仿真环境
 ```
 
-### 文件说明
-
-```none
-ros
-├── build
-├── devel
-└── src
-    ├── controller
-    ├── map_provider
-    ├── navigation
-    ├── object_detect
-    ├── pot_database
-    ├── robot_arm
-    ├── yolo_detector
-    ├── tf2_web_publisher
-    ├── world_simulation
-    ├── wpb_home
-    └── wpr_simulation
-```
-
-
 
 ## 🏅 致谢
 
