@@ -13,8 +13,8 @@ def get_frontier(mapData):
     w = mapData.info.width
     h = mapData.info.height
     resolution = mapData.info.resolution
-    Xstartx = mapData.info.origin.position.x
-    Xstarty = mapData.info.origin.position.y
+    X_startx = mapData.info.origin.position.x
+    X_starty = mapData.info.origin.position.y
 
     # 创建空白图像
     img = np.zeros((h, w, 1), np.uint8)
@@ -50,8 +50,8 @@ def get_frontier(mapData):
             M = cv2.moments(cnt)
             cx = int(M['m10'] / M['m00'])
             cy = int(M['m01'] / M['m00'])
-            xr = cx * resolution + Xstartx
-            yr = cy * resolution + Xstarty
+            xr = cx * resolution + X_startx
+            yr = cy * resolution + X_starty
             pt = [np.array([xr, yr])]
             if len(all_pts) > 0:
                 all_pts = np.vstack([all_pts, pt])
