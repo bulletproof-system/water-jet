@@ -1,6 +1,6 @@
 # YOLO Detector(WOLO)包说明
 
->[!info]
+>[!tip]
 >
 >这是 yolo_detector 包，实际使用和 object_detect 联用，如果需要单独的目标识别包请访问：[WOLO](https://github.com/Mxoder/WOLO)
 
