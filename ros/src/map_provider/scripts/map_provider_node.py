@@ -12,7 +12,6 @@ from nav_msgs.msg import OccupancyGrid
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import PoseStamped, PointStamped, PoseWithCovarianceStamped
 
-
 cur_dir = os.path.dirname(os.path.abspath(__file__))    # 当前文件夹
 pkg_dir = os.path.dirname(cur_dir)                      # map_provider 包目录
 maps_dir = os.path.join(pkg_dir, 'maps')                # map_provider/maps，用于存放地图
@@ -25,14 +24,12 @@ class MapProviderNode:
         rospy.Subscriber('/map_provider/save_map', SaveMap, self.save_map_callback)
         rospy.Subscriber('/map_provider/clear_map', ClearMap, self.clear_map_callback)
         rospy.Subscriber('/map_provider/set_position', SetPosition, self.set_position_callback)
-        rospy.Subscriber('/map_provider/manual_init_map_start_msg', ManualInitMapStart, self.manual_init_map_start_callback)
-        rospy.Subscriber('/map_provider/manual_init_map_stop_msg', ManualInitMapStop, self.manual_init_map_stop_callback)
-        self.initial_pose_pub = rospy.Publisher('/initialpose', PoseWithCovarianceStamped, queue_size=10)
 
         # 发布主题
         self.map_pub = rospy.Publisher('/map', OccupancyGrid, queue_size=10)
         self.point_pub = rospy.Publisher('/rrt_publish_point', PointStamped, queue_size=10)
         self.goal_pub = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=10)
+        self.initial_pose_pub = rospy.Publisher('/initialpose', PoseWithCovarianceStamped, queue_size=10)
 
         # Action servers
         self.auto_map_server = actionlib.SimpleActionServer('/map_provider/auto_init_map', InitMapAction, self.auto_map, False)
@@ -42,12 +39,13 @@ class MapProviderNode:
         self.slam_process = None        # 用于存储 SLAM 进程的引用
         self.map_server_process = None  # map_server 进程
         self.amcl_process = None        # amcl 进程
-        self.rrt_process = None         # rrt 进程
+        self.rrt_process = None         # rrt 主进程
         self.assigner_process = None    # rrt.assigner 进程
 
+        # 启动 server
         self.auto_map_server.start()
         self.manual_map_server.start()
-        rospy.loginfo("Map Provider Node has started.")
+        rospy.loginfo("[map_provider] Map Provider Node has started.")
 
         # 检查 maps_dir 下是否存放有 .pgm 和同名 .yaml 文件，有的话直接用 map_server 读取
         self.check_and_launch_map_server()
@@ -85,7 +83,7 @@ class MapProviderNode:
             rospy.logerr("Failed to launch map server for %s: %s", map_yaml_path, e)
             self.map_server_process = None
 
-    # 0520 - new
+    # 保存地图功能函数（非回调）
     def save_map(self, map_name):
         rospy.loginfo("[map_provider - save_map] Saving map...")
         save_target_path = os.path.join(maps_dir, map_name)
@@ -315,13 +313,10 @@ class MapProviderNode:
             rospy.loginfo("[map_provider - auto_map] First goal (%s, %s, %s, %s) to /move_base", x, y, z, w)
             client.send_goal(goal)
         
-        # auto_map_send_nav_goal(1.0, 1.0, 0.0, 1.0, save_map=False)
+        # 初始向 (0, -1, 0) 移动，可以调整
         auto_map_send_nav_goal(0.0, -1.0, 0.0, 1.0, save_map=False)
 
         while not rospy.is_shutdown():
-            # rospy.loginfo('[map_provider - auto_map] auto map in progress...')
-            # rospy.loginfo('[map_provider - auto_map] subprocess assigner_process.launch: %s, poll(): %s', self.assigner_process, self.assigner_process.poll())
-            
             # 检查 assigner 进程是否已经结束
             if self.assigner_process.poll() is not None:
                 rospy.loginfo('[map_provider - auto_map] assigner_process.launch process has finished cleanly.')
@@ -404,7 +399,7 @@ class MapProviderNode:
         
         rospy.loginfo("[map_provider] Successfully completed automatic mapping.")
 
-    # 0520 - new
+    # 手动建图回调函数
     def manual_map(self, goal):
         rospy.loginfo("Received manual mapping request, starting manual mapping...")
         feedback = InitMapFeedback()
@@ -456,39 +451,6 @@ class MapProviderNode:
             rospy.sleep(1)  # 休眠，以避免过度占用CPU
         
         rospy.loginfo("[map_provider] Successfully completed manual mapping.")
-    
-    # ====================================== deprecated ====================================== #
-    # 尝试使用 Msg 机制来触发手动建图
-    # 手动建图本质：启动 slam 与 关闭 slam
-    # 启动/停止 slam 进程即返回
-    # Msg 无 result 返回
-    def manual_init_map_start_callback(self, data):
-        rospy.loginfo("manual_init_map_start_callback called by {}".format(data.caller))
-        # 检查 /slam_gmapping 节点是否开启
-        try:
-            # 等同于 `rosnode list` 命令
-            nodes = subprocess.check_output(["rosnode", "list"]).decode('utf-8').strip().split("\n")
-            if '/slam_gmapping' not in nodes:
-                rospy.loginfo("/slam_gmapping node is not running, starting it...")
-                self.slam_process = subprocess.Popen(['roslaunch', 'map_provider', 'slam_gmapping.launch'])
-            else:
-                rospy.loginfo("/slam_gmapping node already running.")
-        except Exception as e:
-            rospy.logerr("An error occurred while checking for the /slam_gmapping node: %s", e)
-
-    def manual_init_map_stop_callback(self, data):
-        rospy.loginfo("manual_init_map_stop_callback called by {}".format(data.caller))
-        # 检查 /slam_gmapping 节点是否开启
-        try:
-            # 等同于 `rosnode list` 命令
-            nodes = subprocess.check_output(["rosnode", "list"]).decode('utf-8').strip().split("\n")
-            if '/slam_gmapping' in nodes:
-                rospy.loginfo("/slam_gmapping node is running, stopping it...")
-                subprocess.call(["rosnode", "kill", "/slam_gmapping"])
-            else:
-                rospy.loginfo("/slam_gmapping node is not running, nothing to stop.")
-        except Exception as e:
-            rospy.logerr("An error occurred while attempting to kill the /slam_gmapping node: %s", e)
 
 if __name__ == '__main__':
     try:
