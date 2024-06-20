@@ -1,1 +1,2 @@
-# object_detect package
+# object detect包说明
+
