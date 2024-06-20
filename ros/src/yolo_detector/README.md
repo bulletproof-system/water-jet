@@ -1,4 +1,4 @@
-# YOLO Detector(Water-Jet Only Look Once,WOLO)包说明
+# YOLO Detector(WOLO)包说明
 ## 1. 功能优势
 
 - 精准检测：我们基于 [YOLO](https://github.com/ultralytics/ultralytics) 实现了纯视觉定位方案，相比于原生包的点云方案能够更精准地检测目标
