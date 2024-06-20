@@ -40,8 +40,7 @@
     <!-- RViz and TF tree -->
     <arg name="model" default="$(find wpb_home_bringup)/urdf/wpb_home.urdf"/>
     <arg name="gui" default="false" />
-    <!-- <arg name="rvizconfig" default="$(find wpr_simulation)/rviz/nav.rviz" /> -->
-    <arg name="rvizconfig" default="$(find map_provider)/rviz/dev-rrt.rviz" />
+    <arg name="rvizconfig" default="$(find map_provider)/rviz/rrt.rviz" />
 
     <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
     <param name="use_gui" value="$(arg gui)"/>
