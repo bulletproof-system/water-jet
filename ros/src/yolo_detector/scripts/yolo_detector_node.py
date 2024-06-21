@@ -134,9 +134,9 @@ class YoloDetector:
         if self.current_linear_velocity >= 0.01 or self.current_angular_velocity >= 0.01:
             return
 
-        if any(value > 0.1 for value in self.uncertainty[0]):
+        if any(value > 0.1 for value in self.uncertainty[0][:3]):
             return
-        if any(value > 0.1 for value in self.uncertainty[1]):
+        if any(value > 0.1 for value in self.uncertainty[1][:3]):
             return
 
         self.boundingBoxes = BoundingBoxes()
