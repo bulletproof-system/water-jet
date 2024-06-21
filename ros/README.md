@@ -32,3 +32,15 @@ ros
 │   └── wpr_simulation
 └── README.md
 ```
+
+- [controller](src/controller/README.md)
+- [map_provider](src/map_provider/README.md)
+- [navigation](src/navigation/README.md)
+- [object_detect](src/object_detect/README.md)
+- [pot_database](src/pot_database/README.md)
+- [robot_arm](src/robot_arm/README.md)
+- [yolo_detector](src/yolo_detector/README.md)
+
+## 📚 参考资料
+
+- [ROS 官方文档](http://wiki.ros.org/cn/ROS/Tutorials)
