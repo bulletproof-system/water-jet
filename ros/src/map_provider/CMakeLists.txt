@@ -58,8 +58,6 @@ add_message_files(
   SaveMap.msg
   ClearMap.msg
   SetPosition.msg
-  ManualInitMapStart.msg
-  ManualInitMapStop.msg
   PointArray.msg
 )
 
