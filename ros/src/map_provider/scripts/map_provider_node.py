@@ -186,7 +186,7 @@ class MapProviderNode:
         self.check_and_launch_map_server()
 
     # 手动设定位置的回调函数
-    # data 是 geometry_msgs/Pose pos，yaml 格式的 data 如下（示例见test_set_pos.yaml）：
+    # data 是 geometry_msgs/Pose pos，yaml 格式的 data 如下（示例见 test/test_set_pos.yaml）：
     """
     pos:
     position:
@@ -199,7 +199,6 @@ class MapProviderNode:
         z: 0.0
         w: 10.0
     """
-
     def set_position_callback(self, data):
         rospy.loginfo("Setting initial robot position...")
         # 创建一个带协方差的位姿消息，这通常用于设置初始位姿
@@ -256,6 +255,7 @@ class MapProviderNode:
         rospy.loginfo("[map_provider - auto_map] awoken")
 
         # step_2: 向 /rrt_publish_point 发布四个边界点
+        # 边界点可修改，相当于机器人探索的最大框架，可以大于实际场景
         points = [
             (-3.0, 3.0, 0.0),
             (4.0, 3.0, 0.0),
@@ -290,7 +290,7 @@ class MapProviderNode:
         rospy.loginfo("[map_provider - auto_map] awoken")
 
         # step_4: 向 /move_base_simple/goal 发布一个初始目标点
-        def auto_map_send_nav_goal(x, y, z, w, save_map):
+        def auto_map_send_nav_goal(x, y, z, w):
             # 创建一个SimpleActionClient，使用move_base的MoveBaseAction接口
             client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
             client.wait_for_server()
@@ -319,7 +319,7 @@ class MapProviderNode:
             client.send_goal(goal)
 
         # 初始向 (0, -1, 0) 移动，可以调整
-        auto_map_send_nav_goal(0.0, -1.0, 0.0, 1.0, save_map=False)
+        auto_map_send_nav_goal(0.0, -1.0, 0.0, 1.0)
 
         while not rospy.is_shutdown():
             # 检查 assigner 进程是否已经结束
@@ -450,11 +450,9 @@ class MapProviderNode:
                     rospy.logerr("[map_provider] Failed to terminate SLAM process with rosnode kill: %s", e)
                     result.result = 'error'
                 finally:
-                    # self.save_map('saved_map')
                     rospy.loginfo("[map_provider] SLAM process completed and map has been saved.")
                     self.slam_process = None  # Reset the SLAM process variable
                     self.manual_map_server.set_preempted(result)  # 设置操作已被取消的结果
-                    # self.check_and_launch_map_server()  # 启动 map_server
                 break
             rospy.sleep(1)  # 休眠，以避免过度占用CPU
 
