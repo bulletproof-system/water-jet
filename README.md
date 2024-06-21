@@ -1,6 +1,4 @@
 # Water-Jet
-北京航空航天大学 北航 BUAA 2024 春季 软件工程 嵌入式项目 软工 嵌入式 ROS Embedded SE Software Engineering
-
 [![GitHub Repo stars](https://img.shields.io/github/stars/bulletproof-system/water-jet?style=social)](https://github.com/bulletproof-system/water-jet/stargazers)
 [![license](https://img.shields.io/github/license/bulletproof-system/water-jet.svg)](https://github.com/bulletproof-system/water-jet/blob/main/LICENSE)
 [![issue resolution](https://img.shields.io/github/issues-closed-raw/bulletproof-system/water-jet)](https://github.com/bulletproof-system/water-jet/issues)
