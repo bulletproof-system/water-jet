@@ -1,81 +1,88 @@
-# Vuetify (Default)
+# water-jet 前端
 
-This is the official scaffolding tool for Vuetify, designed to give you a head start in building your new Vuetify application. It sets up a base template with all the necessary configurations and standard directory structure, enabling you to begin development without the hassle of setting up the project from scratch.
+## 📖 介绍
 
-## ❗️ Important Links
+water-jet 前端项目, 使用 Vue3 + Vite + Vuetify3 开发, 能够在前端实现模式切换、花盆信息展示、3D地图、状态反馈等功能。
 
-- 📄 [Docs](https://vuetifyjs.com/)
-- 🚨 [Issues](https://issues.vuetifyjs.com/)
-- 🏬 [Store](https://store.vuetifyjs.com/)
-- 🎮 [Playground](https://play.vuetifyjs.com/)
-- 💬 [Discord](https://community.vuetifyjs.com)
+<table>
+  <tr>
+    <td><img src="docs/output.gif" alt="Output GIF" style="height: 300px;"></td>
+    <td><img src="docs/花盆.png" alt="Flower Pot" style="height: 300px;"></td>
+  </tr>
+</table>
 
-## 💿 Install
+## 💿 运行
 
-Set up your project using your preferred package manager. Use the corresponding command to install the dependencies:
-
-| Package Manager                                                | Command        |
-|---------------------------------------------------------------|----------------|
-| [yarn](https://yarnpkg.com/getting-started)                   | `yarn install` |
-| [npm](https://docs.npmjs.com/cli/v7/commands/npm-install)     | `npm install`  |
-| [pnpm](https://pnpm.io/installation)                          | `pnpm install` |
-| [bun](https://bun.sh/#getting-started)                        | `bun install`  |
-
-After completing the installation, your environment is ready for Vuetify development.
-
-## ✨ Features
-
-- 🖼️ **Optimized Front-End Stack**: Leverage the latest Vue 3 and Vuetify 3 for a modern, reactive UI development experience. [Vue 3](https://v3.vuejs.org/) | [Vuetify 3](https://vuetifyjs.com/en/)
-- 🗃️ **State Management**: Integrated with [Pinia](https://pinia.vuejs.org/), the intuitive, modular state management solution for Vue.
-- 🚦 **Routing and Layouts**: Utilizes Vue Router for SPA navigation and vite-plugin-vue-layouts for organizing Vue file layouts. [Vue Router](https://router.vuejs.org/) | [vite-plugin-vue-layouts](https://github.com/JohnCampionJr/vite-plugin-vue-layouts)
-- 💻 **Enhanced Development Experience**: Benefit from TypeScript's static type checking and the ESLint plugin suite for Vue, ensuring code quality and consistency. [TypeScript](https://www.typescriptlang.org/) | [ESLint Plugin Vue](https://eslint.vuejs.org/)
-- ⚡ **Next-Gen Tooling**: Powered by Vite, experience fast cold starts and instant HMR (Hot Module Replacement). [Vite](https://vitejs.dev/)
-- 🧩 **Automated Component Importing**: Streamline your workflow with unplugin-vue-components, automatically importing components as you use them. [unplugin-vue-components](https://github.com/antfu/unplugin-vue-components)
-- 🛠️ **Strongly-Typed Vue**: Use vue-tsc for type-checking your Vue components, and enjoy a robust development experience. [vue-tsc](https://github.com/johnsoncodehk/volar/tree/master/packages/vue-tsc)
-
-These features are curated to provide a seamless development experience from setup to deployment, ensuring that your Vuetify application is both powerful and maintainable.
-
-## 💡 Usage
-
-This section covers how to start the development server and build your project for production.
-
-### Starting the Development Server
-
-To start the development server with hot-reload, run the following command. The server will be accessible at [http://localhost:3000](http://localhost:3000):
+建议使用 `pnpm`。
 
 ```bash
-yarn dev
+pnpm install # 安装依赖
+pnpm build
+pnpm preview 
 ```
 
-(Repeat for npm, pnpm, and bun with respective commands.)
+## ✨ 特点
 
-> Add NODE_OPTIONS='--no-warnings' to suppress the JSON import warnings that happen as part of the Vuetify import mapping. If you are on Node [v21.3.0](https://nodejs.org/en/blog/release/v21.3.0) or higher, you can change this to NODE_OPTIONS='--disable-warning=5401'. If you don't mind the warning, you can remove this from your package.json dev script.
+- 🗺️ **看个地图还需要 rviz?** 我们用 [Three.js](https://threejs.org/) 实现了一个。
+  - 地图展示
+  - 自由视角
+  - 机器人视角
+  - 花盆视角
+  - 标注航点
 
-### Building for Production
+- ⛓️‍💥 **后端是什么?** 我们的前端直接与 ROS 通信。
+- 🪴 **花盆信息展示:** 可折叠的花盆信息展示栏, 与地图和巡检操作同步。
+- 📹 **状态监控:** 状态栏实时显示 ROS 连接和工作状态。 
 
-To build your project for production, use:
+## 💡 开发
 
 ```bash
-yarn build
+pnpm dev # 启动开发模式
 ```
 
-(Repeat for npm, pnpm, and bun with respective commands.)
+> [!tip]
+>
+> 如果不连接 ROS, 需要将 `src/stores/app.ts` 中的 `debug` 设置为 `true`
 
-Once the build process is completed, your application will be ready for deployment in a production environment.
+### 🗂️ 文件说明
 
-## 💪 Support Vuetify Development
+```none
+frontend
+├── public # 机器人材质, 花盆模型文件
+├── src
+│   ├── assets 						# logo 文件
+│   ├── components 					# vue 组件
+│   │   ├── AppBar.vue 				# 顶栏
+│   │   ├── AppFooter.vue 			# 状态栏
+│   │   ├── Map 					# 地图组件
+│   │   │   ├── Map.vue 			# 3D 地图
+│   │   │   └── others 				# 地图组成成分
+│   │   ├── OperatorPanel 			# 操作面板
+│   │   │   ├── OperatorPanel.vue 	# 面板总体结构
+│   │   │   └── others 				# 各模式对应面板
+│   │   ├── PotInfo.vue 			# 花盆信息标签
+│   │   └── PotList.vue 			# 花盆列表
+│   ├── pages 						# 路由页面
+│   ├── stores 						# 状态管理
+│   │   ├── app.ts 					# 全局状态
+│   │   ├── index.ts
+│   │   ├── map.ts 					# 地图状态
+│   │   └── ros.ts 					# ROS 状态
+│   └── styles # 样式
+└── README.md
+```
 
-This project is built with [Vuetify](https://vuetifyjs.com/en/), a UI Library with a comprehensive collection of Vue components. Vuetify is an MIT licensed Open Source project that has been made possible due to the generous contributions by our [sponsors and backers](https://vuetifyjs.com/introduction/sponsors-and-backers/). If you are interested in supporting this project, please consider:
+### 📦 相关包说明
 
-- [Requesting Enterprise Support](https://support.vuetifyjs.com/)
-- [Sponsoring John on Github](https://github.com/users/johnleider/sponsorship)
-- [Sponsoring Kael on Github](https://github.com/users/kaelwd/sponsorship)
-- [Supporting the team on Open Collective](https://opencollective.com/vuetify)
-- [Becoming a sponsor on Patreon](https://www.patreon.com/vuetify)
-- [Becoming a subscriber on Tidelift](https://tidelift.com/subscription/npm/vuetify)
-- [Making a one-time donation with Paypal](https://paypal.me/vuetify)
+- [roslibjs](https://github.com/RobotWebTools/roslibjs) 提供与 ROS 交互的能力
+- [Three.js](https://threejs.org/) 前端 3D 库
+- [TresJS](https://docs.tresjs.org/zh/guide/) 把 Threejs 当 Vue 组件使用
 
-## 📑 License
-[MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2016-present Vuetify, LLC
+
+
+
+
+
+
+

@@ -1,0 +1,8 @@
+# /controller/action/Inspect.action
+
+string caller
+---
+string result # 结果 'success' | 'fail' | 'cancel' | 'error'
+---
+uint8 percentage # 进度百分数
+uint8 target # 目标花盆 id

@@ -1,0 +1,11 @@
+<launch>
+	<!-- 载入 机器人 和 RoboCup@Home 的仿真场景 -->
+	<include file="$(find world_simulation)/launch/world.launch"/>
+	
+	<!-- Rviz -->
+	<!-- <arg name="rvizconfig" default="$(find wpr_simulation)/rviz/slam.rviz" />
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" /> -->
+
+	<include file="$(find controller)/launch/main.launch"/>
+
+</launch>

@@ -1,0 +1,4 @@
+uint32 id # 花盆 id
+bool active # 设置是否激活
+---
+string result # 结果

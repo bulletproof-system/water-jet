@@ -1,0 +1,4 @@
+# /controller/srv/ClearMap.srv
+bool clear # 始终为 true
+---
+bool success # 结果

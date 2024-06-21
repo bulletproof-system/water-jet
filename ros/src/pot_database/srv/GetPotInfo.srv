@@ -1,0 +1,6 @@
+# /database/srv/GetPotInfo.srv
+
+uint32 id
+---
+bool success
+PotInfo info

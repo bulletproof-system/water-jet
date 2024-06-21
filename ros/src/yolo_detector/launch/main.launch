@@ -1,0 +1,14 @@
+<launch>
+
+    <!-- yolo_detector -->
+    <node name="yolo_detector" pkg="yolo_detector" type="yolo_detector_node.py" output="screen" >
+        <param name="weight_path" value="$(find yolo_detector)/weights/yolov8n_openvino_model"/>
+        <param name="image_topic" value="/kinect2/hd/image_color_rect" />
+        <param name="publish_topic" value="/yolo_detector/BoundingBoxes" />
+        <param name="camera_frame" value="camera_color_frame"/>
+        <param name="visualizable" value="true"/>
+        <param name="conf" value="0.3" />
+        <param name="publish_rate" value="1" />
+    </node>
+
+</launch>

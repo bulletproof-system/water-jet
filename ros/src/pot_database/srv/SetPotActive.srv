@@ -1,0 +1,6 @@
+# /database/srv/SetPotActive.srv
+
+uint32 id
+bool active
+---
+bool success
