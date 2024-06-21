@@ -1,0 +1,3 @@
+[submodule "ros/src/wpb_home"]
+	path = ros/src/wpb_home
+	url = https://github.com/6-robot/wpb_home.git
