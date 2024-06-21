@@ -9,9 +9,9 @@ from ultralytics import YOLO
 
 from std_msgs.msg import Header
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import PoseWithCovarianceStamped,Twist
+from geometry_msgs.msg import PoseWithCovarianceStamped, Twist
 from yolo_detector.msg import BoundingBox, BoundingBoxes
-from controller.msg import Info
+
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 pkg_dir = os.path.dirname(cur_dir)
 weights_dir = os.path.join(pkg_dir, 'weights')
@@ -23,10 +23,9 @@ class YoloDetector:
         self.current_linear_velocity = 0.0
         self.current_angular_velocity = 0.0
 
-        # 订阅amcl_pose
+        # 订阅 amcl_pose
         self.amcl_pose_sub = rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, self.amcl_pose_callback)
-        self.uncertainty = [[0.15,0.15,0.15],[0.15,0.15,0.15]]
-    
+        self.uncertainty = [[0.15, 0.15, 0.15], [0.15, 0.15, 0.15]]
 
         # 加载参数
         weight_path = rospy.get_param('~weight_path', os.path.join(weights_dir, 'yolov8n.pt'))
@@ -39,9 +38,6 @@ class YoloDetector:
 
         # device: cpu
         self.device = 'cpu'
-        # self.model = YOLO(weight_path, task='detect')
-        # self.model.fuse()               # 混合 BN 与相邻的卷积层，加快推理
-        # self.model.conf = model_conf
         self.model = None
         self._load_model(weight_path, model_conf)
 
@@ -80,7 +76,7 @@ class YoloDetector:
         self.current_linear_velocity = max(abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z))
         self.current_angular_velocity = max(abs(msg.angular.x), abs(msg.angular.y), abs(msg.angular.z))
 
-    def amcl_pose_callback(self,msg):
+    def amcl_pose_callback(self, msg):
         # 提取位置和协方差矩阵
         position = msg.pose.pose.position
         covariance = msg.pose.covariance
@@ -93,6 +89,11 @@ class YoloDetector:
         self.uncertainty[1][1] = covariance[28]
         self.uncertainty[1][2] = covariance[35]
 
+    # 加载模型
+    # 支持：
+    ## 1. 原生 pytorch 权重 - .pt
+    ## 2. ONNX 权重 - .onnx
+    ## 3. OpenVino 权重 - /openvino
     def _load_model(self, weight_path, model_conf):
         weight_ext = os.path.splitext(weight_path)[1]
 
@@ -123,20 +124,20 @@ class YoloDetector:
         self.model.conf = model_conf
 
     def image_callback(self, image: BoundingBoxes):    
-        rospy.logwarn("AMCL uncertainty:%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+        rospy.logwarn(
+            "AMCL uncertainty:%.2f, %.2f, %.2f, %.2f, %.2f, %.2f", 
             self.uncertainty[0][0], self.uncertainty[0][1], self.uncertainty[0][2], 
-            self.uncertainty[1][0], self.uncertainty[1][1], self.uncertainty[1][2])
+            self.uncertainty[1][0], self.uncertainty[1][1], self.uncertainty[1][2]
+        )
 
-        # 判断当前速度与pose的置信度
+        # 判断当前速度与 pose 的置信度
         if self.current_linear_velocity >= 0.01 or self.current_angular_velocity >= 0.01:
             return
 
-        if self.uncertainty[0][0] >  0.1 or self.uncertainty[0][1] > 0.1  \
-            or self.uncertainty[0][2] > 0.1: 
-            return 
-        if self.uncertainty[1][0] >  0.1 or self.uncertainty[1][1] > 0.1  \
-            or self.uncertainty[1][2] > 0.1: 
-            return 
+        if any(value > 0.1 for value in self.uncertainty[0][:3]):
+            return
+        if any(value > 0.1 for value in self.uncertainty[1][:3]):
+            return
 
         self.boundingBoxes = BoundingBoxes()
         self.boundingBoxes.header = image.header
@@ -207,7 +208,7 @@ class YoloDetector:
         if self.visualizable :
             cv2.imshow('yolo_detector', self.frame)
 
-    # 将NumPy数组图像转换为ROS图像消息并发布
+    # 将 NumPy 数组图像转换为 ROS 图像消息并发布
     def publish_image(self, imgdata, height, width):
         image_temp = Image()
         header = Header(stamp=rospy.Time.now())

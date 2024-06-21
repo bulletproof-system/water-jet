@@ -13,6 +13,8 @@ else
     # 安装 miniconda
     bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
 
+    source ~/.bashrc
+
     # 初始化 conda
     ~/miniconda3/bin/conda init bash
 
