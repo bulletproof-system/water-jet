@@ -1,6 +1,6 @@
 <div align="center">
 
-# Water-Jet：浇花机器人——温室管家 🔫
+# Water-Jet：浇花机器人——温室管家 🔫💦
 [![GitHub Repo stars](https://img.shields.io/github/stars/bulletproof-system/water-jet?style=social)](https://github.com/bulletproof-system/water-jet/stargazers)
 [![license](https://img.shields.io/github/license/bulletproof-system/water-jet.svg)](https://github.com/bulletproof-system/water-jet/blob/main/LICENSE)
 [![issue resolution](https://img.shields.io/github/issues-closed-raw/bulletproof-system/water-jet)](https://github.com/bulletproof-system/water-jet/issues)
@@ -59,7 +59,7 @@ roslaunch controller use_case_1_sim.launch # 仿真环境
 
 
 
-## 📃 开源许可证
+## 📑 开源许可证
 
 本项目采用 [GNU General Public License v3.0 开源许可证](https://github.com/bulletproof-system/water-jet/blob/main/LICENSE)。
 
